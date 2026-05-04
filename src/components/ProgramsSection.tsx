@@ -1,0 +1,129 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
+import type { Specialty } from "@/types";
+import { cn } from "@/lib/utils";
+
+export function ProgramsSection() {
+  const [active, setActive] = useState<Specialty>("popular");
+  const railRef = useRef<HTMLDivElement | null>(null);
+
+  const filtered = useMemo(() => {
+    return DOCTORS.filter((d) => d.specialty.includes(active));
+  }, [active]);
+
+  const scroll = (dir: "left" | "right") => {
+    const el = railRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  return (
+    <section
+      aria-labelledby="programs-title"
+      className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"
+    >
+      <h2
+        id="programs-title"
+        className="mx-auto max-w-3xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
+      >
+        Programs Designed for Those <br className="hidden sm:block" />
+        Who Are Ready for More
+      </h2>
+      <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-white/60 sm:text-base">
+        Each program is carefully structured and led by experienced practitioners,
+        designed to help you advance through focused, real-time learning.
+      </p>
+
+      {/* Specialty tabs */}
+      <div
+        role="tablist"
+        aria-label="Specialty filters"
+        className="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-2 sm:gap-3"
+      >
+        {SPECIALTY_TABS.map((tab) => {
+          const selected = active === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setActive(tab.key)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition sm:text-sm",
+                selected
+                  ? "border-white bg-white text-ink-950"
+                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+              )}
+            >
+              <GraduationCap className="h-3.5 w-3.5" aria-hidden />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Doctor rail — horizontal scroll with prev/next buttons */}
+      <div className="relative mt-10">
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          aria-label="Scroll doctors left"
+          className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80 sm:inline-flex"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          aria-label="Scroll doctors right"
+          className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80 sm:inline-flex"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        <div
+          ref={railRef}
+          role="region"
+          aria-label="Featured mentors"
+          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2"
+        >
+          {(filtered.length ? filtered : DOCTORS).map((d) => (
+            <Link
+              key={d.id}
+              href={`/doctors/${d.slug}`}
+              className="group relative aspect-[3/4] w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[300px]"
+            >
+              <Image
+                src={d.imageUrl}
+                alt={`${d.name}, ${d.title} — ${d.city}`}
+                fill
+                sizes="(max-width: 640px) 240px, 300px"
+                className="object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <p className="text-sm font-semibold text-white">{d.name}</p>
+                <p className="text-xs text-white/70">{d.title}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <Link
+          href="/programs"
+          className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
+        >
+          Explore More
+        </Link>
+      </div>
+    </section>
+  );
+}
