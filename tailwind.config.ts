@@ -42,8 +42,8 @@ const config: Config = {
         },
       },
       animation: {
-        scrollY: "scrollY 28s linear infinite",
-        scrollYReverse: "scrollYReverse 32s linear infinite",
+        scrollY: "scrollY 160s linear infinite",
+        scrollYReverse: "scrollYReverse 180s linear infinite",
         fadeUp: "fadeUp 0.6s ease-out both",
       },
       backgroundImage: {

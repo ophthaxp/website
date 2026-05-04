@@ -4,22 +4,28 @@ import { HERO_IMAGES } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 /**
- * Hero — two vertical marquee columns flanking the headline.
- * Left column scrolls down, right column scrolls up.
+ * Hero — two pairs of vertical marquee columns flanking the headline.
+ * Each side has two columns moving in opposite directions.
  * The track is duplicated so the loop is seamless.
  */
 function MarqueeColumn({
   direction,
+  offset = 0,
   className,
 }: {
   direction: "up" | "down";
+  offset?: number;
   className?: string;
 }) {
-  const track = [...HERO_IMAGES, ...HERO_IMAGES];
+  // Stagger the starting image so paired columns don't look identical
+  const rotated = offset
+    ? [...HERO_IMAGES.slice(offset), ...HERO_IMAGES.slice(0, offset)]
+    : HERO_IMAGES;
+  const track = [...rotated, ...rotated];
   return (
     <div
       className={cn(
-        "pause-on-hover relative h-[520px] w-[160px] overflow-hidden sm:h-[640px] sm:w-[200px]",
+        "pause-on-hover relative h-[520px] w-[120px] overflow-hidden sm:h-[640px] sm:w-[160px]",
         className,
       )}
       aria-hidden
@@ -34,20 +40,29 @@ function MarqueeColumn({
       >
         {track.map((img, i) => (
           <div
-            key={`${direction}-${i}`}
-            className="relative h-[180px] w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:h-[220px]"
+            key={`${direction}-${offset}-${i}`}
+            className="relative h-[160px] w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:h-[200px]"
           >
             <Image
               src={img.src}
               alt={img.alt}
               fill
-              sizes="200px"
+              sizes="160px"
               className="object-cover"
               priority={i < 2}
             />
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function MarqueePair({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex gap-3 sm:gap-4", className)} aria-hidden>
+      <MarqueeColumn direction="down" />
+      <MarqueeColumn direction="up" offset={2} />
     </div>
   );
 }
@@ -59,10 +74,8 @@ export function Hero() {
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden"
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-radial-fade" />
-
-      <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-10 sm:gap-10 sm:px-8 sm:py-16">
-        <MarqueeColumn direction="down" />
+      <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-10 sm:gap-8 sm:px-8 sm:py-16">
+        <MarqueePair />
 
         <div className="flex flex-col items-center text-center">
           <h1
@@ -87,7 +100,7 @@ export function Hero() {
           </Link>
         </div>
 
-        <MarqueeColumn direction="up" />
+        <MarqueePair />
       </div>
     </section>
   );
