@@ -94,7 +94,7 @@ export function Hero() {
           </p>
           <Link
             href="#smart-assist"
-            className="mt-7 inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink-950 shadow-[0_8px_28px_-12px_rgba(255,255,255,0.6)] transition hover:bg-white/90"
+            className="mt-7 inline-flex items-center justify-center rounded-[12px] border border-[#2A2A2A] bg-[#1A1A1A] px-7 py-2.5 text-sm font-medium text-white shadow-[0_8px_28px_-12px_rgba(0,0,0,0.8)] transition hover:bg-[#222]"
           >
             Get Started
           </Link>

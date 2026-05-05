@@ -56,13 +56,13 @@ export function ProgramsSection() {
               aria-selected={selected}
               onClick={() => setActive(tab.key)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition sm:text-sm",
+                "inline-flex items-center gap-2 rounded-[12px] border px-4 py-2.5 text-sm font-medium transition",
                 selected
-                  ? "border-white bg-white text-ink-950"
-                  : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
+                  ? "border-white bg-[#1A1A1A] text-white"
+                  : "border-[#2A2A2A] bg-[#1A1A1A] text-white/70 hover:bg-[#222]",
               )}
             >
-              <GraduationCap className="h-3.5 w-3.5" aria-hidden />
+              <GraduationCap className="h-4 w-4" aria-hidden />
               {tab.label}
             </button>
           );
@@ -119,7 +119,7 @@ export function ProgramsSection() {
       <div className="mt-8 flex justify-center">
         <Link
           href="/programs"
-          className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
+          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
         >
           Explore More
         </Link>

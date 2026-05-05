@@ -38,7 +38,7 @@ function Card({ title, body, tall }: { title: string; body: string; tall?: boole
         tall ? "min-h-[160px] sm:min-h-[200px]" : "min-h-[160px] sm:min-h-[180px]"
       }`}
     >
-      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-accent/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-[12px] bg-accent/10 blur-3xl" />
       <h3 className="text-sm font-semibold text-white">
         <span className="text-white">{title}</span>
         <span className="ml-1 text-white/40"> — {body}</span>
