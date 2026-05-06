@@ -10,6 +10,7 @@ export function LegendsVideo() {
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
 
   // Keep React state in sync with native fullscreen changes (esc key etc.)
   useEffect(() => {
@@ -66,18 +67,31 @@ export function LegendsVideo() {
         ref={wrapperRef}
         className="group relative mx-auto mt-10 aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-ink-800 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]"
       >
-        <video
-          ref={videoRef}
-          className="h-full w-full object-cover"
-          src={HERO_VIDEO_SRC}
-          poster={HERO_VIDEO_POSTER}
-          autoPlay
-          muted={muted}
-          loop
-          playsInline
-          preload="metadata"
-          aria-label="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
-        />
+        {videoFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={HERO_VIDEO_POSTER}
+            alt="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            className="h-full w-full object-cover"
+            src={HERO_VIDEO_SRC}
+            poster={HERO_VIDEO_POSTER}
+            autoPlay
+            muted={muted}
+            loop
+            playsInline
+            preload="metadata"
+            onError={() => {
+              console.warn("[LegendsVideo] video failed to load, falling back to poster:", HERO_VIDEO_SRC);
+              setVideoFailed(true);
+            }}
+            aria-label="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
+          />
+        )}
 
         {/* gradient for control legibility */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />

@@ -36,6 +36,19 @@ export interface Program {
   startDate: string; // ISO
   priceInr: number;
   highlights: string[];
+  // Course detail page extras (optional — populated when sourced from nocode backend)
+  doctorImage?: string;
+  specialistTitle?: string;
+  city?: string;
+  experienceYears?: number;
+  bio?: string;
+  lessonsCount?: number;
+  durationMinutes?: number;
+  trailerVideoUrl?: string;
+  pricePerDayInr?: number;
+  billingPeriod?: "annual" | "monthly" | "onetime";
+  moneyBackDays?: number;
+  relatedDoctorSlugs?: string[];
 }
 
 export interface ChatMessage {

@@ -5,16 +5,19 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
-import type { Specialty } from "@/types";
+import type { Doctor, Specialty } from "@/types";
 import { cn } from "@/lib/utils";
 
-export function ProgramsSection() {
+export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
+  // When the parent passes `doctors` (even an empty array), use it as the source of truth.
+  // Only fall back to static data when the prop is omitted entirely (e.g. preview mode).
+  const data: Doctor[] = doctors !== undefined ? doctors : DOCTORS;
   const [active, setActive] = useState<Specialty>("popular");
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
-    return DOCTORS.filter((d) => d.specialty.includes(active));
-  }, [active]);
+    return data.filter((d) => d.specialty.includes(active));
+  }, [active, data]);
 
   const scroll = (dir: "left" | "right") => {
     const el = railRef.current;
@@ -94,25 +97,40 @@ export function ProgramsSection() {
           aria-label="Featured mentors"
           className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2"
         >
-          {(filtered.length ? filtered : DOCTORS).map((d) => (
-            <Link
-              key={d.id}
-              href={`/doctors/${d.slug}`}
-              className="group relative aspect-[3/4] w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[300px]"
-            >
-              <Image
-                src={d.imageUrl}
-                alt={`${d.name}, ${d.title} — ${d.city}`}
-                fill
-                sizes="(max-width: 640px) 240px, 300px"
-                className="object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <p className="text-sm font-semibold text-white">{d.name}</p>
-                <p className="text-xs text-white/70">{d.title}</p>
-              </div>
-            </Link>
-          ))}
+          {data.length === 0 ? (
+            <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
+              No doctors yet — add records to the <code className="text-white/80">doctors</code> module
+              in the admin panel.
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
+              No mentors in this specialty yet.
+            </div>
+          ) : (
+            filtered.map((d) => (
+              <Link
+                key={d.id}
+                href={`/doctors/${d.slug}`}
+                className="group relative aspect-[3/4] w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[300px]"
+              >
+                {d.imageUrl ? (
+                  <Image
+                    src={d.imageUrl}
+                    alt={`${d.name}, ${d.title} — ${d.city}`}
+                    fill
+                    sizes="(max-width: 640px) 240px, 300px"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-700/40 to-violet-900/40" />
+                )}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <p className="text-sm font-semibold text-white">{d.name}</p>
+                  <p className="text-xs text-white/70">{d.title}</p>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
 

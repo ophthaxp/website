@@ -1,19 +1,23 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DOCTORS } from "@/lib/data";
+import { fetchDoctorsFromBackend } from "@/lib/courses";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
 import { DoctorDetailClient } from "./DoctorDetailClient";
 
-export function generateStaticParams() {
-  return DOCTORS.map((d) => ({ slug: d.slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const doctors = await fetchDoctorsFromBackend();
+  return doctors.map((d) => ({ slug: d.slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
-}): Metadata {
-  const d = DOCTORS.find((x) => x.slug === params.slug);
+}): Promise<Metadata> {
+  const doctors = await fetchDoctorsFromBackend();
+  const d = doctors.find((x) => x.slug === params.slug);
   if (!d) return buildMetadata({ title: "Mentor not found" });
   return buildMetadata({
     title: `${d.name} — ${d.title}`,
@@ -22,9 +26,15 @@ export function generateMetadata({
   });
 }
 
-export default function DoctorDetailPage({ params }: { params: { slug: string } }) {
-  const d = DOCTORS.find((x) => x.slug === params.slug);
+export default async function DoctorDetailPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const doctors = await fetchDoctorsFromBackend();
+  const d = doctors.find((x) => x.slug === params.slug);
   if (!d) notFound();
+  const others = doctors.filter((x) => x.id !== d.id);
 
   const personLd = {
     "@context": "https://schema.org",
@@ -47,7 +57,7 @@ export default function DoctorDetailPage({ params }: { params: { slug: string } 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
       />
-      <DoctorDetailClient doctor={d} />
+      <DoctorDetailClient doctor={d} otherDoctors={others} />
     </>
   );
 }

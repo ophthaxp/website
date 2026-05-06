@@ -7,11 +7,18 @@ import { ProgramsSection } from "@/components/ProgramsSection";
 import { SmartAssist } from "@/components/SmartAssist";
 import { Footer } from "@/components/Footer";
 import { courseListJsonLd } from "@/lib/seo";
-import { PROGRAMS } from "@/lib/data";
+import { fetchCoursesFromBackend, fetchDoctorsFromBackend } from "@/lib/courses";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [programs, doctors] = await Promise.all([
+    fetchCoursesFromBackend(),
+    fetchDoctorsFromBackend(),
+  ]);
+
   const courseLd = courseListJsonLd(
-    PROGRAMS.map((p) => ({ name: p.name, slug: p.slug, description: p.description })),
+    programs.map((p) => ({ name: p.name, slug: p.slug, description: p.description })),
   );
 
   return (
@@ -25,7 +32,7 @@ export default function HomePage() {
         <Hero />
         <LegendsVideo />
         <HowLearningHappens />
-        <ProgramsSection />
+        <ProgramsSection doctors={doctors} />
         <SmartAssist />
         <ScrollHighlightText />
       </main>

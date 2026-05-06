@@ -6,38 +6,43 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight, Play, Volume2, Maximize2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { DOCTORS } from "@/lib/data";
 import type { Doctor } from "@/types";
 
-const TESTIMONIALS = [
-  {
-    name: "Dr. Rohit Bansal",
-    role: "MS Ophthalmology · Jaipur",
-    avatar: DOCTORS[2].imageUrl,
-    quote:
-      "It gives me the ability to use my down time to learn from senior surgeons instead of just scrolling on social media.",
-  },
-  {
-    name: "Dr. Anjali Verma",
-    role: "DNB Resident · Delhi",
-    avatar: DOCTORS[1].imageUrl,
-    quote:
-      "I have not found another platform that offers the same level or amount of amazing learning opportunities.",
-  },
-  {
-    name: "Dr. Sahil Khanna",
-    role: "Cornea Fellow · Bengaluru",
-    avatar: DOCTORS[4].imageUrl,
-    quote:
-      "I like the vast range of mentors available on this platform. There is literally something for every sub-specialty.",
-  },
-];
-
-export function DoctorDetailClient({ doctor }: { doctor: Doctor }) {
+export function DoctorDetailClient({
+  doctor,
+  otherDoctors,
+}: {
+  doctor: Doctor;
+  otherDoctors: Doctor[];
+}) {
   const railRef = useRef<HTMLDivElement>(null);
 
-  const otherDoctors = DOCTORS.filter((d) => d.id !== doctor.id);
   const memberAvatars = otherDoctors.slice(0, 5).map((d) => d.imageUrl);
+
+  const fallbackAvatar = doctor.imageUrl;
+  const TESTIMONIALS = [
+    {
+      name: "Dr. Rohit Bansal",
+      role: "MS Ophthalmology · Jaipur",
+      avatar: otherDoctors[2]?.imageUrl ?? fallbackAvatar,
+      quote:
+        "It gives me the ability to use my down time to learn from senior surgeons instead of just scrolling on social media.",
+    },
+    {
+      name: "Dr. Anjali Verma",
+      role: "DNB Resident · Delhi",
+      avatar: otherDoctors[1]?.imageUrl ?? fallbackAvatar,
+      quote:
+        "I have not found another platform that offers the same level or amount of amazing learning opportunities.",
+    },
+    {
+      name: "Dr. Sahil Khanna",
+      role: "Cornea Fellow · Bengaluru",
+      avatar: otherDoctors[4]?.imageUrl ?? fallbackAvatar,
+      quote:
+        "I like the vast range of mentors available on this platform. There is literally something for every sub-specialty.",
+    },
+  ];
 
   const scrollRail = (dir: "left" | "right") => {
     const el = railRef.current;

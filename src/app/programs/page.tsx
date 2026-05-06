@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { PROGRAMS } from "@/lib/data";
+import { fetchCoursesFromBackend } from "@/lib/courses";
 import { formatINR } from "@/lib/utils";
 import { buildMetadata } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Programs",
@@ -13,7 +15,8 @@ export const metadata: Metadata = buildMetadata({
   alternates: { canonical: "/programs" },
 });
 
-export default function ProgramsIndexPage() {
+export default async function ProgramsIndexPage() {
+  const programs = await fetchCoursesFromBackend();
   return (
     <>
       <Navbar />
@@ -24,7 +27,7 @@ export default function ProgramsIndexPage() {
         </p>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
-          {PROGRAMS.map((p) => (
+          {programs.map((p) => (
             <Link
               key={p.id}
               href={`/programs/${p.slug}`}

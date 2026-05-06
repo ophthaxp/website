@@ -32,8 +32,11 @@ export const HERO_IMAGES: { src: string; alt: string }[] = Array.from({ length: 
 );
 
 export const HERO_VIDEO_POSTER = PORTRAIT_SENIOR;
+// Override with NEXT_PUBLIC_HERO_VIDEO_SRC in your env to use a real OphthaXP trailer.
+// The default below points at Google's long-lived public test bucket so dev never breaks.
 export const HERO_VIDEO_SRC =
-  "https://cdn.coverr.co/videos/coverr-a-doctor-walking-through-a-hospital-1572/1080p.mp4";
+  process.env.NEXT_PUBLIC_HERO_VIDEO_SRC ||
+  "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
 export const DOCTORS: Doctor[] = [
   {

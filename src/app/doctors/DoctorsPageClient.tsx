@@ -6,37 +6,50 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight, Play, Volume2, Maximize2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { DOCTORS, HERO_VIDEO_POSTER } from "@/lib/data";
+import { HERO_VIDEO_POSTER } from "@/lib/data";
+import type { Doctor } from "@/types";
 
-const FEATURED_DOCTOR = DOCTORS[0];
+export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
+  if (DOCTORS.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <main className="mx-auto max-w-3xl px-5 py-24 text-center text-white">
+          <h1 className="font-serif text-3xl">No mentors yet</h1>
+          <p className="mt-4 text-white/60">
+            Add doctor records in the admin panel to see them here.
+          </p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
-const MEMBER_AVATARS = DOCTORS.slice(1, 6).map((d) => d.imageUrl);
-
-const TESTIMONIALS = [
-  {
-    name: "Dr. Rohit Bansal",
-    role: "MS Ophthalmology · Jaipur",
-    avatar: DOCTORS[2].imageUrl,
-    quote:
-      "It gives me the ability to use my down time to learn from senior surgeons instead of just scrolling on social media.",
-  },
-  {
-    name: "Dr. Anjali Verma",
-    role: "DNB Resident · Delhi",
-    avatar: DOCTORS[1].imageUrl,
-    quote:
-      "I have not found another platform that offers the same level or amount of amazing learning opportunities.",
-  },
-  {
-    name: "Dr. Sahil Khanna",
-    role: "Cornea Fellow · Bengaluru",
-    avatar: DOCTORS[4].imageUrl,
-    quote:
-      "I like the vast range of mentors available on this platform. There is literally something for every sub-specialty.",
-  },
-];
-
-export function DoctorsPageClient() {
+  const FEATURED_DOCTOR = DOCTORS[0];
+  const MEMBER_AVATARS = DOCTORS.slice(1, 6).map((d) => d.imageUrl);
+  const TESTIMONIALS = [
+    {
+      name: "Dr. Rohit Bansal",
+      role: "MS Ophthalmology · Jaipur",
+      avatar: (DOCTORS[2] ?? DOCTORS[0]).imageUrl,
+      quote:
+        "It gives me the ability to use my down time to learn from senior surgeons instead of just scrolling on social media.",
+    },
+    {
+      name: "Dr. Anjali Verma",
+      role: "DNB Resident · Delhi",
+      avatar: (DOCTORS[1] ?? DOCTORS[0]).imageUrl,
+      quote:
+        "I have not found another platform that offers the same level or amount of amazing learning opportunities.",
+    },
+    {
+      name: "Dr. Sahil Khanna",
+      role: "Cornea Fellow · Bengaluru",
+      avatar: (DOCTORS[4] ?? DOCTORS[0]).imageUrl,
+      quote:
+        "I like the vast range of mentors available on this platform. There is literally something for every sub-specialty.",
+    },
+  ];
   const railRef = useRef<HTMLDivElement>(null);
 
   const scrollRail = (dir: "left" | "right") => {

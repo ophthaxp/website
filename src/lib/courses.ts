@@ -1,0 +1,239 @@
+import type { Doctor, Program } from "@/types";
+import { DOCTORS, PROGRAMS } from "@/lib/data";
+
+const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
+const NOCODE_APP_ID = process.env.NOCODE_APP_ID || "";
+const NOCODE_MODULE = process.env.NOCODE_COURSES_MODULE || "courses";
+const NOCODE_DOCTORS_MODULE = process.env.NOCODE_DOCTORS_MODULE || "doctors";
+
+const isBackendConfigured = Boolean(NOCODE_BASE && NOCODE_APP_ID);
+
+type RawRecord = Record<string, unknown>;
+
+function pickString(rec: RawRecord, ...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = rec[k];
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return undefined;
+}
+
+function pickNumber(rec: RawRecord, ...keys: string[]): number | undefined {
+  for (const k of keys) {
+    const v = rec[k];
+    if (typeof v === "number" && !Number.isNaN(v)) return v;
+    if (typeof v === "string" && v.trim() && !Number.isNaN(Number(v))) return Number(v);
+  }
+  return undefined;
+}
+
+/**
+ * If the value is a relative path coming from the nocode backend (e.g.
+ * "/api/public/files/foo.jpg"), prefix it with the backend base URL so the
+ * browser can load it. Absolute URLs are returned as-is.
+ */
+function absoluteUrl(value?: string): string | undefined {
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+  if (!NOCODE_BASE) return value;
+  return value.startsWith("/") ? `${NOCODE_BASE}${value}` : `${NOCODE_BASE}/${value}`;
+}
+
+function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
+  for (const k of keys) {
+    const v = rec[k];
+    if (Array.isArray(v)) return v.map(String).filter(Boolean);
+    if (typeof v === "string" && v.trim()) {
+      try {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed)) return parsed.map(String);
+      } catch {
+        return v.split(/[\n,;]/).map((s) => s.trim()).filter(Boolean);
+      }
+    }
+  }
+  return [];
+}
+
+/**
+ * Map a raw record from the nocode-backend public module endpoint into the
+ * Program shape this app already uses. Field names map flexibly so the user
+ * can name them either camelCase or snake_case in the admin panel.
+ */
+function mapRecordToProgram(rec: RawRecord): Program | null {
+  const slug = pickString(rec, "slug", "Slug");
+  const name = pickString(rec, "name", "title", "course_name", "courseName");
+  if (!slug || !name) return null;
+
+  return {
+    id: String(pickString(rec, "id") ?? rec.id ?? slug),
+    slug,
+    name,
+    specialty:
+      (pickString(rec, "specialty", "Specialty") as Program["specialty"]) ||
+      ("popular" as Program["specialty"]),
+    description:
+      pickString(rec, "description", "summary", "bio", "shortBio") || "",
+    durationWeeks: pickNumber(rec, "durationWeeks", "duration_weeks", "duration") ?? 0,
+    cohortSize: pickNumber(rec, "cohortSize", "cohort_size", "seats") ?? 0,
+    startDate:
+      pickString(rec, "startDate", "start_date", "starts_at") ||
+      new Date().toISOString().slice(0, 10),
+    priceInr: pickNumber(rec, "priceInr", "price_inr", "price", "fee") ?? 0,
+    highlights: pickStringArray(rec, "highlights", "Highlights"),
+    doctorImage: absoluteUrl(
+      pickString(rec, "doctorImage", "doctor_image", "imageUrl", "image_url"),
+    ),
+    specialistTitle: pickString(rec, "specialistTitle", "specialist_title", "title"),
+    city: pickString(rec, "city", "location"),
+    experienceYears: pickNumber(rec, "experienceYears", "experience_years", "experience"),
+    bio: pickString(rec, "bio", "shortBio", "short_bio"),
+    lessonsCount: pickNumber(rec, "lessonsCount", "lessons_count", "lessons"),
+    durationMinutes: pickNumber(rec, "durationMinutes", "duration_minutes", "totalMinutes"),
+    trailerVideoUrl: pickString(
+      rec,
+      "trailerVideoUrl",
+      "trailer_video_url",
+      "trailerUrl",
+      "trailer_url",
+      "videoUrl",
+    ),
+    pricePerDayInr: pickNumber(rec, "pricePerDayInr", "price_per_day_inr", "pricePerDay"),
+    billingPeriod: pickString(rec, "billingPeriod", "billing_period") as Program["billingPeriod"],
+    moneyBackDays: pickNumber(rec, "moneyBackDays", "money_back_days"),
+    relatedDoctorSlugs: pickStringArray(
+      rec,
+      "relatedDoctorSlugs",
+      "related_doctor_slugs",
+      "relatedDoctors",
+    ),
+  };
+}
+
+function mapRecordToDoctor(rec: RawRecord): Doctor | null {
+  const slug = pickString(rec, "slug", "Slug");
+  const name = pickString(rec, "name", "fullName");
+  if (!slug || !name) return null;
+  const specialtyRaw =
+    pickString(rec, "specialty", "Specialty") ??
+    (Array.isArray(rec.specialty) ? (rec.specialty as string[]).join(",") : "");
+  const specialty = specialtyRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean) as Doctor["specialty"];
+  return {
+    id: String(pickString(rec, "id") ?? rec.id ?? slug),
+    slug,
+    name,
+    title: pickString(rec, "title", "designation") ?? "",
+    specialty: specialty.length > 0 ? specialty : (["popular"] as Doctor["specialty"]),
+    city: pickString(rec, "city", "location") ?? "",
+    experienceYears: pickNumber(rec, "experienceYears", "experience_years") ?? 0,
+    imageUrl: absoluteUrl(pickString(rec, "imageUrl", "image_url", "image")) ?? "",
+    bio: pickString(rec, "bio", "shortBio") ?? "",
+  };
+}
+
+async function fetchJson(url: string): Promise<{ ok: boolean; json: any }> {
+  try {
+    console.log("[courses] GET", url);
+    const res = await fetch(url, { cache: "no-store" });
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      console.error("[courses] non-JSON response from", url, text.slice(0, 200));
+    }
+    if (!res.ok) {
+      console.error("[courses] non-OK", res.status, url, json);
+      return { ok: false, json };
+    }
+    return { ok: true, json };
+  } catch (err) {
+    console.error("[courses] fetch failed:", url, err);
+    return { ok: false, json: null };
+  }
+}
+
+function extractRows(json: any): RawRecord[] {
+  if (!json) return [];
+  const candidates = [json?.data?.rows, json?.data?.data, json?.data, json?.rows];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c as RawRecord[];
+  }
+  return [];
+}
+
+export async function fetchCoursesFromBackend(): Promise<Program[]> {
+  if (!isBackendConfigured) return PROGRAMS;
+  const url = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
+    NOCODE_MODULE,
+  )}?limit=100`;
+  const { ok, json } = await fetchJson(url);
+  if (!ok) {
+    console.warn(
+      `[courses] courses module fetch failed — returning empty list. ` +
+        `Make sure module "${NOCODE_MODULE}" exists in app_id=${NOCODE_APP_ID} on the nocode backend ` +
+        `and that settings.isPublic = true on it.`,
+    );
+    return [];
+  }
+  const rows = extractRows(json);
+  console.log(`[courses] fetched ${rows.length} course rows`);
+  return rows.map(mapRecordToProgram).filter((p): p is Program => !!p);
+}
+
+export async function fetchCourseFromBackend(slug: string): Promise<Program | null> {
+  if (!isBackendConfigured) {
+    return PROGRAMS.find((p) => p.slug === slug) ?? null;
+  }
+
+  // Use the records endpoint with a slug filter
+  const url = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
+    NOCODE_MODULE,
+  )}?slug=${encodeURIComponent(slug)}&limit=1`;
+  const { ok, json } = await fetchJson(url);
+  if (ok) {
+    const rows = extractRows(json);
+    if (rows[0]) {
+      const mapped = mapRecordToProgram(rows[0]);
+      if (mapped) return mapped;
+    }
+  }
+
+  // Fallback: list all + find by slug
+  const all = await fetchCoursesFromBackend();
+  return all.find((p) => p.slug === slug) ?? null;
+}
+
+export async function fetchCourseSlugsFromBackend(): Promise<string[]> {
+  const all = await fetchCoursesFromBackend();
+  return all.map((p) => p.slug);
+}
+
+export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
+  if (!isBackendConfigured) return DOCTORS;
+  const url = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
+    NOCODE_DOCTORS_MODULE,
+  )}?limit=100`;
+  const { ok, json } = await fetchJson(url);
+  if (!ok) {
+    console.warn(
+      `[courses] doctors module fetch failed — returning empty list. ` +
+        `Make sure module "${NOCODE_DOCTORS_MODULE}" exists in app_id=${NOCODE_APP_ID} on the nocode backend ` +
+        `and that nocode-backend is running on ${NOCODE_BASE}.`,
+    );
+    return [];
+  }
+  const rows = extractRows(json);
+  console.log(`[courses] fetched ${rows.length} doctor rows`);
+  return rows.map(mapRecordToDoctor).filter((d): d is Doctor => !!d);
+}
+
+export async function fetchRelatedDoctors(slugs: string[]): Promise<Doctor[]> {
+  if (slugs.length === 0) return [];
+  const all = await fetchDoctorsFromBackend();
+  const set = new Set(slugs);
+  return all.filter((d) => set.has(d.slug));
+}
