@@ -2,15 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const SENTENCE =
-  "What you choose to learn shapes how you grow, and the right path goes beyond knowledge to truly expand your impact. Take a moment to see where it can lead you.";
+const LINES = [
+  "What you choose to learn",
+  "shapes how you grow,",
+  "and the right path goes beyond knowledge",
+  "to truly expand your impact.",
+  "Take a moment to see where it can lead you.",
+];
 
-const WORDS = SENTENCE.split(" ");
+// vh of scroll runway per line. ~30vh feels tight and responsive —
+// each line lights up after about 1/3 of a viewport scroll.
+const VH_PER_LINE = 30;
 
 /**
- * ScrollHighlightText — a tall section with a sticky narrow column of text.
- * As the user scrolls through the section, each word transitions from dim
- * to bright white, creating a word-by-word reveal effect.
+ * ScrollHighlightText — sticky panel where each line of copy rises into focus
+ * as the user scrolls through the section.
+ *
+ * Timing contract:
+ *   - line 0 begins revealing the moment the section pins.
+ *   - line N-1 is fully revealed exactly when the section unpins.
+ *   - no empty scroll before or after.
  */
 export function ScrollHighlightText() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -24,11 +35,13 @@ export function ScrollHighlightText() {
     const update = () => {
       const rect = el.getBoundingClientRect();
       const viewportH = window.innerHeight;
-      // Section scrolls from "top of section meets top of viewport" until
-      // "bottom of section meets bottom of viewport".
-      const total = rect.height - viewportH;
-      const scrolled = Math.min(Math.max(-rect.top, 0), Math.max(total, 1));
-      const p = total > 0 ? scrolled / total : 0;
+      // Progress 0  = section's top edge just entered viewport from below.
+      // Progress ~1 = section has scrolled past so its bottom hits viewport bottom.
+      // This way the FIRST line begins lighting up the moment the text appears,
+      // and by the time the sticky pins, line 0 is fully lit.
+      const total = Math.max(rect.height, 1);
+      const scrolled = viewportH - rect.top;
+      const p = Math.min(Math.max(scrolled / total, 0), 1);
       setProgress(p);
     };
 
@@ -47,36 +60,62 @@ export function ScrollHighlightText() {
     };
   }, []);
 
-  // Map progress (0..1) onto the words. A small "fade window" lets each
-  // word ease in across a slice of the scroll, instead of snapping.
-  const litCount = progress * WORDS.length;
+  // Smoothstep — soft easing instead of linear
+  const smoothstep = (t: number) => {
+    const x = Math.max(0, Math.min(1, t));
+    return x * x * (3 - 2 * x);
+  };
+
+  // Each line owns an even slice of the progress range. Overlap is only on
+  // the START side, so each line ends exactly at its slice boundary —
+  // meaning the last line is fully bright the moment scroll reaches the end.
+  const slice = 1 / LINES.length;
+  const overlap = slice * 0.25;
+
+  // Section height = 100vh sticky + (lines × per-line runway).
+  const sectionHeight = `${100 + LINES.length * VH_PER_LINE}vh`;
 
   return (
     <section
       ref={sectionRef}
       aria-label="Why what you learn matters"
-      className="relative h-[260vh] w-full"
+      className="relative w-full"
+      style={{ height: sectionHeight }}
     >
-      <div className="sticky top-0 flex h-screen items-center justify-center px-5">
-        <p className="mx-auto max-w-xl font-serif text-3xl leading-[2] tracking-tight sm:text-5xl sm:leading-[1.9]">
-          {WORDS.map((word, i) => {
-            const t = Math.min(Math.max(litCount - i, 0), 1);
-            // Interpolate from a dim white to fully bright white
-            const opacity = 0.15 + t * 0.85;
+      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-5">
+        <div className="mx-auto max-w-5xl text-center">
+          {LINES.map((line, i) => {
+            // Start a bit early, end exactly at the slice boundary.
+            const start = i * slice - overlap;
+            const end = (i + 1) * slice;
+            const local = (progress - start) / (end - start);
+            const eased = smoothstep(local);
+
+            // Higher floor (0.25) so unlit lines stay readable instead of
+            // disappearing into the background.
+            const opacity = 0.25 + eased * 0.75;
+            const translateY = (1 - eased) * 10;
+            const blur = (1 - eased) * 1.5;
+
             return (
-              <span
+              <p
                 key={i}
+                className="font-serif font-medium leading-[1.1] tracking-tight text-3xl sm:text-5xl lg:text-6xl"
                 style={{
                   color: `rgba(255,255,255,${opacity})`,
-                  transition: "color 120ms linear",
+                  transform: `translateY(${translateY}px)`,
+                  filter: `blur(${blur}px)`,
+                  willChange: "color, transform, filter",
+                  transition:
+                    "color 220ms cubic-bezier(0.22,1,0.36,1), transform 260ms cubic-bezier(0.22,1,0.36,1), filter 260ms cubic-bezier(0.22,1,0.36,1)",
+                  marginTop: i === 0 ? 0 : "0.32em",
                 }}
               >
-                {word}
-                {i < WORDS.length - 1 ? " " : ""}
-              </span>
+                {line}
+              </p>
             );
           })}
-        </p>
+        </div>
       </div>
     </section>
   );
