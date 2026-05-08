@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
@@ -8,8 +9,15 @@ export function Navbar() {
         aria-label="Primary"
         className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8"
       >
-        <Link href="/" className="text-base font-semibold tracking-tight">
-          OphthaXP
+        <Link href="/" aria-label="OphthaXP — home" className="inline-flex items-center">
+          <Image
+            src="/logo.png"
+            alt="OphthaXP"
+            width={140}
+            height={36}
+            priority
+            className="h-9 w-auto"
+          />
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">

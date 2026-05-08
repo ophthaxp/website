@@ -5,14 +5,15 @@ import { useEffect, useRef, useState } from "react";
 const LINES = [
   "What you choose to learn",
   "shapes how you grow,",
-  "and the right path goes beyond knowledge",
+  "and the right path",
+  "goes beyond knowledge",
   "to truly expand your impact.",
-  "Take a moment to see where it can lead you.",
+  "Take a moment to see",
+  "where it can lead you.",
 ];
 
-// vh of scroll runway per line. ~30vh feels tight and responsive —
-// each line lights up after about 1/3 of a viewport scroll.
-const VH_PER_LINE = 30;
+// vh of scroll runway per line. Slower runway = each line gets more screen time.
+const VH_PER_LINE = 40;
 
 /**
  * ScrollHighlightText — sticky panel where each line of copy rises into focus
@@ -82,8 +83,8 @@ export function ScrollHighlightText() {
       className="relative w-full"
       style={{ height: sectionHeight }}
     >
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-5">
-        <div className="mx-auto max-w-5xl text-center">
+      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6 sm:px-10">
+        <div className="mx-auto max-w-6xl text-center">
           {LINES.map((line, i) => {
             // Start a bit early, end exactly at the slice boundary.
             const start = i * slice - overlap;
@@ -100,7 +101,7 @@ export function ScrollHighlightText() {
             return (
               <p
                 key={i}
-                className="font-serif font-medium leading-[1.1] tracking-tight text-3xl sm:text-5xl lg:text-6xl"
+                className="font-serif font-medium leading-[1.15] tracking-tight text-2xl sm:text-4xl lg:text-5xl"
                 style={{
                   color: `rgba(255,255,255,${opacity})`,
                   transform: `translateY(${translateY}px)`,
@@ -108,7 +109,7 @@ export function ScrollHighlightText() {
                   willChange: "color, transform, filter",
                   transition:
                     "color 220ms cubic-bezier(0.22,1,0.36,1), transform 260ms cubic-bezier(0.22,1,0.36,1), filter 260ms cubic-bezier(0.22,1,0.36,1)",
-                  marginTop: i === 0 ? 0 : "0.32em",
+                  marginTop: i === 0 ? 0 : "0.45em",
                 }}
               >
                 {line}

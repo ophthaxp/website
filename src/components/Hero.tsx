@@ -25,7 +25,7 @@ function MarqueeColumn({
   return (
     <div
       className={cn(
-        "pause-on-hover relative h-[520px] w-[120px] overflow-hidden sm:h-[640px] sm:w-[160px]",
+        "pause-on-hover relative h-[600px] w-[180px] overflow-hidden sm:h-[760px] sm:w-[260px]",
         className,
       )}
       aria-hidden
@@ -41,13 +41,13 @@ function MarqueeColumn({
         {track.map((img, i) => (
           <div
             key={`${direction}-${offset}-${i}`}
-            className="relative h-[160px] w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:h-[200px]"
+            className="relative h-[220px] w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:h-[300px]"
           >
             <Image
               src={img.src}
               alt={img.alt}
               fill
-              sizes="160px"
+              sizes="(max-width: 640px) 180px, 260px"
               className="object-cover"
               priority={i < 2}
             />
@@ -75,7 +75,7 @@ export function Hero() {
       className="relative isolate overflow-hidden"
     >
       <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-10 sm:gap-8 sm:px-8 sm:py-16">
-        <MarqueePair />
+        <MarqueeColumn direction="down" />
 
         <div className="flex flex-col items-center text-center">
           <h1
@@ -100,7 +100,7 @@ export function Hero() {
           </Link>
         </div>
 
-        <MarqueePair />
+        <MarqueeColumn direction="up" offset={2} />
       </div>
     </section>
   );

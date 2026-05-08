@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Linkedin, Twitter } from "lucide-react";
 
@@ -9,15 +10,17 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-5 sm:flex-row sm:px-8">
         {/* Left: logo pill + copyright */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            aria-label="OphthaXP home"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold text-white"
-          >
-            Logo
+          <Link href="/" aria-label="OphthaXP home" className="inline-flex items-center">
+            <Image
+              src="/logo.png"
+              alt="OphthaXP"
+              width={140}
+              height={36}
+              className="h-9 w-auto"
+            />
           </Link>
           <span className="text-sm text-white/70">
-            OphthaXP <span aria-hidden>©</span> {year}
+            <span aria-hidden>©</span> {year}
           </span>
         </div>
 
