@@ -16,6 +16,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
+    if (active === "popular") return data;
     return data.filter((d) => d.specialty.includes(active));
   }, [active, data]);
 
@@ -74,22 +75,24 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
 
       {/* Doctor rail — horizontal scroll with prev/next buttons */}
       <div className="relative mt-10">
-        <button
-          type="button"
-          onClick={() => scroll("left")}
-          aria-label="Scroll doctors left"
-          className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80 sm:inline-flex"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => scroll("right")}
-          aria-label="Scroll doctors right"
-          className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80 sm:inline-flex"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
+        <div className="absolute right-2 top-0 z-10 hidden -translate-y-12 items-center gap-2 sm:flex">
+          <button
+            type="button"
+            onClick={() => scroll("left")}
+            aria-label="Scroll doctors left"
+            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scroll("right")}
+            aria-label="Scroll doctors right"
+            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
 
         <div
           ref={railRef}
