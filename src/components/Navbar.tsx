@@ -13,10 +13,10 @@ export function Navbar() {
           <Image
             src="/logo.png"
             alt="OphthaXP"
-            width={140}
-            height={36}
+            width={410}
+            height={74}
             priority
-            className="h-9 w-auto"
+            className="h-[54px] w-auto"
           />
         </Link>
 
