@@ -428,48 +428,50 @@ export function DoctorDetailClient({
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 6 — Member Stories                                   */}
+        {/* SECTION 6 — Member Stories (hidden)                          */}
         {/* ──────────────────────────────────────────────────────────── */}
-        <section
-          id="get-started"
-          aria-labelledby="stories-title"
-          className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
-        >
-          <h2
-            id="stories-title"
-            className="text-center text-2xl font-bold sm:text-3xl"
+        {false && (
+          <section
+            id="get-started"
+            aria-labelledby="stories-title"
+            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
           >
-            Member Stories
-          </h2>
+            <h2
+              id="stories-title"
+              className="text-center text-2xl font-bold sm:text-3xl"
+            >
+              Member Stories
+            </h2>
 
-          <div className="mt-10 grid gap-5 text-left sm:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <figure
-                key={t.name}
-                className="rounded-md bg-[#141417] p-7 text-center"
-              >
-                <div className="mx-auto h-20 w-20 overflow-hidden rounded-[40%]">
-                  <div className="relative h-full w-full">
-                    <Image
-                      src={t.avatar}
-                      alt={t.name}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
+            <div className="mt-10 grid gap-5 text-left sm:grid-cols-3">
+              {TESTIMONIALS.map((t) => (
+                <figure
+                  key={t.name}
+                  className="rounded-md bg-[#141417] p-7 text-center"
+                >
+                  <div className="mx-auto h-20 w-20 overflow-hidden rounded-[40%]">
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={t.avatar}
+                        alt={t.name}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
-                </div>
-                <blockquote className="mt-5 text-sm leading-relaxed text-white/85">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <figcaption className="mt-4 text-xs text-white/55">
-                  <p className="font-semibold text-white/80">{t.name}</p>
-                  <p>{t.role}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+                  <blockquote className="mt-5 text-sm leading-relaxed text-white/85">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-4 text-xs text-white/55">
+                    <p className="font-semibold text-white/80">{t.name}</p>
+                    <p>{t.role}</p>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 7 — Other mentors rail                               */}
