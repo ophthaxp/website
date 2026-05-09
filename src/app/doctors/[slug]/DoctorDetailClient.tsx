@@ -58,7 +58,9 @@ export function DoctorDetailClient({
   otherDoctors: Doctor[];
 }) {
   const railRef = useRef<HTMLDivElement>(null);
+  const footerSentinelRef = useRef<HTMLDivElement>(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyIntent, setApplyIntent] = useState<"apply" | "brochure">("apply");
   const openApply = () => {
@@ -76,6 +78,17 @@ export function DoctorDetailClient({
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = footerSentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { rootMargin: "16px 0px 0px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const memberAvatars = otherDoctors.slice(0, 5).map((d) => d.imageUrl);
@@ -602,7 +615,7 @@ export function DoctorDetailClient({
       {/* ──────────────────────────────────────────────────────────── */}
       <div
         className={`fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-[#0a0a0d]/95 backdrop-blur transition-transform duration-300 ${
-          showSticky ? "translate-y-0" : "translate-y-full"
+          showSticky && !footerVisible ? "translate-y-0" : "translate-y-full"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
@@ -661,6 +674,7 @@ export function DoctorDetailClient({
         brochureUrl={doctor.brochureUrl}
       />
 
+      <div ref={footerSentinelRef} aria-hidden className="h-px" />
       <Footer />
     </>
   );
