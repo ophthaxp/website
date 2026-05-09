@@ -22,7 +22,7 @@ export function CertificatesPromo() {
             id="certificates-title"
             className="mt-6 font-serif text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Accelerate your career
+            Accelerate your Pride
             <br />
             with Certificates
           </h2>
