@@ -240,10 +240,12 @@ export function ApplyFormModal({
               </Field>
 
               <Field label="Qualification" required>
-                <select name="qualification" required className={inputCls}>
-                  <option value="">Select qualification</option>
+                <select name="qualification" required className={selectCls}>
+                  <option value="" className={optionCls}>
+                    Select qualification
+                  </option>
                   {QUALIFICATIONS.map((q) => (
-                    <option key={q} value={q}>
+                    <option key={q} value={q} className={optionCls}>
                       {q}
                     </option>
                   ))}
@@ -251,10 +253,12 @@ export function ApplyFormModal({
               </Field>
 
               <Field label="State (India)">
-                <select name="state" className={inputCls}>
-                  <option value="">Select state</option>
+                <select name="state" className={selectCls}>
+                  <option value="" className={optionCls}>
+                    Select state
+                  </option>
                   {INDIAN_STATES.map((s) => (
-                    <option key={s} value={s}>
+                    <option key={s} value={s} className={optionCls}>
                       {s}
                     </option>
                   ))}
@@ -306,6 +310,10 @@ export function ApplyFormModal({
 
 const inputCls =
   "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
+
+const selectCls = `${inputCls} appearance-none bg-[#0f0f12] [color-scheme:dark]`;
+
+const optionCls = "bg-[#0f0f12] text-white";
 
 function Field({
   label,
