@@ -98,7 +98,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
           </p>
           <Link
             href="#programs"
-            className="mt-7 inline-flex items-center justify-center rounded-[12px] border border-[#2A2A2A] bg-[#1A1A1A] px-7 py-2.5 text-sm font-medium text-white shadow-[0_8px_28px_-12px_rgba(0,0,0,0.8)] transition hover:bg-[#222]"
+            className="mt-7 inline-flex items-center justify-center rounded-[12px] border border-[#2A2A2A] bg-[#1A1A1A] px-7 py-2.5 text-sm font-medium text-white shadow-[0_8px_28px_-12px_rgba(0,0,0,0.8)] transition hover:border-[#ab834d] hover:bg-[#ab834d]"
           >
             Take me to Courses
           </Link>

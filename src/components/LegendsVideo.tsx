@@ -42,7 +42,7 @@ export function LegendsVideo() {
           </p>
           <Link
             href="#programs"
-            className="mt-6 inline-flex items-center gap-2 rounded-[12px] border border-white/15 bg-black/60 px-5 py-2.5 text-sm font-medium text-white backdrop-blur transition hover:bg-black/80"
+            className="mt-6 inline-flex items-center gap-2 rounded-[12px] border border-white/15 bg-black/60 px-5 py-2.5 text-sm font-medium text-white backdrop-blur transition hover:border-[#ab834d] hover:bg-[#ab834d]"
           >
             <Play className="h-4 w-4 fill-white" aria-hidden />
             Watch Trailer

@@ -30,7 +30,7 @@ export function Navbar() {
           </Link>
           <Link
             href="#get-started"
-            className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 transition hover:bg-white/90"
+            className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 transition hover:bg-[#ab834d] hover:text-white"
           >
             Login
           </Link>

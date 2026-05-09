@@ -209,21 +209,49 @@ function extractRows(json: any): RawRecord[] {
 
 export async function fetchCoursesFromBackend(): Promise<Program[]> {
   if (!isBackendConfigured) return PROGRAMS;
-  const url = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
+
+  // 1. Try the dedicated courses module first.
+  const primaryUrl = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
     NOCODE_MODULE,
   )}?limit=100`;
-  const { ok, json } = await fetchJson(url);
-  if (!ok) {
-    console.warn(
-      `[courses] courses module fetch failed — returning empty list. ` +
-        `Make sure module "${NOCODE_MODULE}" exists in app_id=${NOCODE_APP_ID} on the nocode backend ` +
-        `and that settings.isPublic = true on it.`,
+  const { ok, json } = await fetchJson(primaryUrl);
+  let programs: Program[] = [];
+  if (ok) {
+    const rows = extractRows(json);
+    programs = rows.map(mapRecordToProgram).filter((p): p is Program => !!p);
+    console.log(
+      `[courses] fetched ${programs.length} programs from "${NOCODE_MODULE}"`,
     );
-    return [];
   }
-  const rows = extractRows(json);
-  console.log(`[courses] fetched ${rows.length} course rows`);
-  return rows.map(mapRecordToProgram).filter((p): p is Program => !!p);
+
+  // 2. Fallback: derive programs from the doctors module when the dedicated
+  // courses module is empty / missing / a different module. Each doctor record
+  // is itself a mentorship offering in the merged setup, so we map it through
+  // the same mapper (which already falls back to doctor-side field names).
+  if (programs.length === 0 && NOCODE_MODULE !== NOCODE_DOCTORS_MODULE) {
+    console.log(
+      `[courses] "${NOCODE_MODULE}" returned 0 programs — falling back to doctors module "${NOCODE_DOCTORS_MODULE}"`,
+    );
+    const fallbackUrl = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
+      NOCODE_DOCTORS_MODULE,
+    )}?limit=100`;
+    const fallback = await fetchJson(fallbackUrl);
+    if (fallback.ok) {
+      const rows = extractRows(fallback.json);
+      programs = rows.map(mapRecordToProgram).filter((p): p is Program => !!p);
+      console.log(
+        `[courses] derived ${programs.length} programs from doctors module`,
+      );
+    }
+  }
+
+  // 3. Last resort: local mock data so the page is never empty in dev.
+  if (programs.length === 0) {
+    console.log(`[courses] backend returned no programs — using local PROGRAMS mock`);
+    return PROGRAMS;
+  }
+
+  return programs;
 }
 
 export async function fetchCourseFromBackend(slug: string): Promise<Program | null> {

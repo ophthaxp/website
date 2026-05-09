@@ -63,8 +63,8 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
               className={cn(
                 "inline-flex items-center gap-2 rounded-[12px] border px-4 py-2.5 text-sm font-medium transition",
                 selected
-                  ? "border-white bg-[#1A1A1A] text-white"
-                  : "border-[#2A2A2A] bg-[#1A1A1A] text-white/70 hover:bg-[#222]",
+                  ? "border-[#ab834d] bg-[#ab834d] text-white"
+                  : "border-[#2A2A2A] bg-[#1A1A1A] text-white/70 hover:border-[#ab834d] hover:bg-[#ab834d] hover:text-white",
               )}
             >
               <GraduationCap className="h-4 w-4" aria-hidden />
@@ -99,7 +99,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
           ref={railRef}
           role="region"
           aria-label="Featured mentors"
-          className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2"
+          className="no-scrollbar -mr-5 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:-mr-8 sm:pr-8"
         >
           {data.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
@@ -115,22 +115,32 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
               <Link
                 key={d.id}
                 href={`/doctors/${d.slug}`}
-                className="group relative aspect-[3/4] w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[300px]"
+                className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
               >
                 {d.imageUrl ? (
                   <Image
                     src={d.imageUrl}
                     alt={`${d.name}, ${d.title} — ${d.city}`}
                     fill
-                    sizes="(max-width: 640px) 240px, 300px"
+                    sizes="(max-width: 640px) 170px, 210px"
                     className="object-cover transition duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-700/40 to-violet-900/40" />
                 )}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                  <p className="text-sm font-semibold text-white">{d.name}</p>
-                  <p className="text-xs text-white/70">{d.title}</p>
+                {/* Bottom-up dark scrim — extends ~half the card so titles stay legible */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]" />
+                <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
+                  <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                    {d.name}
+                  </p>
+                  <span
+                    className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                    aria-hidden
+                  />
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
+                    {d.title}
+                  </p>
                 </div>
               </Link>
             ))
