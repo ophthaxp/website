@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="OphthaXP">
+  <title>OphthaXP</title>
+  <defs>
+    <linearGradient id="oxpIris" x1="15%" y1="15%" x2="85%" y2="85%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#7C5CFF"/>
+    </linearGradient>
+    <radialGradient id="oxpCard" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#1B1F27"/>
+      <stop offset="100%" stop-color="#06070A"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Card background with subtle elevation -->
+  <rect width="64" height="64" rx="14" fill="url(#oxpCard)"/>
+
+  <!-- Eye almond outline -->
+  <path
+    d="M6 32 C 16 14, 48 14, 58 32 C 48 50, 16 50, 6 32 Z"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+
+  <!-- Iris -->
+  <circle cx="32" cy="32" r="11" fill="url(#oxpIris)"/>
+
+  <!-- Inner aperture ring (precision detail) -->
+  <circle
+    cx="32"
+    cy="32"
+    r="11"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="0.7"
+    opacity="0.35"
+  />
+
+  <!-- Pupil -->
+  <circle cx="32" cy="32" r="4" fill="#06070A"/>
+
+  <!-- Accent dot — subtle iris highlight, on-brand purple -->
+  <circle cx="28.5" cy="28.5" r="1.4" fill="#A78BFA" opacity="0.9"/>
+</svg>
