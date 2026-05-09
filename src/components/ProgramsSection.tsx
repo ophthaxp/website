@@ -15,6 +15,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
   const [active, setActive] = useState<Specialty>("popular");
   const [pageCount, setPageCount] = useState(1);
   const [activePage, setActivePage] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
@@ -66,6 +67,22 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
     const target = pageCount > 1 ? (i / (pageCount - 1)) * maxScroll : 0;
     el.scrollTo({ left: target, behavior: "smooth" });
   };
+
+  // Auto-advance the carousel every 4s. Pauses while the user hovers the rail
+  // (so they can read), and skips entirely when the document tab is hidden.
+  useEffect(() => {
+    if (pageCount <= 1 || isPaused) return;
+
+    const id = window.setInterval(() => {
+      if (document.hidden) return;
+      const next = (activePage + 1) % pageCount;
+      goToPage(next);
+    }, 4000);
+
+    return () => window.clearInterval(id);
+    // goToPage is stable for current refs; intentionally omitting it from deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageCount, activePage, isPaused]);
 
   return (
     <section
@@ -143,6 +160,11 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
           ref={railRef}
           role="region"
           aria-label="Featured mentors"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocusCapture={() => setIsPaused(true)}
+          onBlurCapture={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
           className="no-scrollbar mr-[calc(50%-50vw)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-8"
         >
           {data.length === 0 ? (
