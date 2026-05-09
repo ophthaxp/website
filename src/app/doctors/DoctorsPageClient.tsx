@@ -157,7 +157,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
                 </p>
                 <Link
                   href="#get-started"
-                  className="mt-4 block rounded-md bg-[#e8265c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+                  className="mt-4 block rounded-md bg-[#e8265c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#a88251]"
                 >
                   Get Mentorship
                 </Link>
@@ -328,7 +328,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
             </div>
             <Link
               href="#get-started"
-              className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+              className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a88251]"
             >
               Get Mentorship
             </Link>
@@ -357,7 +357,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
           </p>
           <Link
             href="/programs"
-            className="mt-8 inline-flex rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+            className="mt-8 inline-flex rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251]"
           >
             Get Mentorship
           </Link>

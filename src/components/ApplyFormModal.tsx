@@ -52,24 +52,61 @@ const INDIAN_STATES = [
 ];
 
 type Status = "idle" | "submitting" | "success" | "error";
+type Intent = "apply" | "brochure";
+
+const COPY: Record<
+  Intent,
+  {
+    eyebrow: string;
+    title: string;
+    submitLabel: string;
+    submittingLabel: string;
+    successTitle: string;
+    successBody: string;
+  }
+> = {
+  apply: {
+    eyebrow: "Apply",
+    title: "Tell us about you",
+    submitLabel: "Apply Now",
+    submittingLabel: "Submitting…",
+    successTitle: "Thanks — we’ve got your application.",
+    successBody: "Our team will reach out shortly to schedule your discovery call.",
+  },
+  brochure: {
+    eyebrow: "Brochure",
+    title: "Get the brochure in your inbox",
+    submitLabel: "Send me the brochure",
+    submittingLabel: "Sending…",
+    successTitle: "Check your inbox.",
+    successBody: "We’ve emailed the brochure to you. It may take a minute to arrive.",
+  },
+};
 
 export function ApplyFormModal({
   open,
   onClose,
   courseId,
   courseName,
+  intent = "apply",
+  brochureUrl,
 }: {
   open: boolean;
   onClose: () => void;
   courseId: string;
   courseName?: string;
+  intent?: Intent;
+  brochureUrl?: string;
 }) {
+  const copy = COPY[intent];
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    setStatus("idle");
+    setErrorMsg(null);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -116,7 +153,9 @@ export function ApplyFormModal({
           pincode,
           courseId: hiddenCourseId,
           courseName,
-          source: "apply-form-modal",
+          intent,
+          brochureUrl: intent === "brochure" ? brochureUrl : undefined,
+          source: intent === "brochure" ? "brochure-form-modal" : "apply-form-modal",
         }),
       });
       if (!res.ok) {
@@ -163,15 +202,13 @@ export function ApplyFormModal({
               id="apply-modal-title"
               className="font-serif text-2xl text-white"
             >
-              Thanks — we&rsquo;ve got your application.
+              {copy.successTitle}
             </h3>
-            <p className="mt-3 text-sm text-white/70">
-              Our team will reach out shortly to schedule your discovery call.
-            </p>
+            <p className="mt-3 text-sm text-white/70">{copy.successBody}</p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-6 rounded-md bg-[#e8265c] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+              className="mt-6 rounded-md bg-[#e8265c] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#a88251]"
             >
               Close
             </button>
@@ -179,13 +216,13 @@ export function ApplyFormModal({
         ) : (
           <>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              Apply
+              {copy.eyebrow}
             </p>
             <h3
               id="apply-modal-title"
               className="mt-2 font-serif text-2xl text-white sm:text-3xl"
             >
-              Tell us about you
+              {copy.title}
             </h3>
             {courseName ? (
               <p className="mt-1 text-sm text-white/55">For {courseName}</p>
@@ -296,9 +333,9 @@ export function ApplyFormModal({
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="mt-2 rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-2 rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? "Submitting…" : "Apply Now"}
+                {status === "submitting" ? copy.submittingLabel : copy.submitLabel}
               </button>
             </form>
           </>

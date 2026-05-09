@@ -60,7 +60,15 @@ export function DoctorDetailClient({
   const railRef = useRef<HTMLDivElement>(null);
   const [showSticky, setShowSticky] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
-  const openApply = () => setApplyOpen(true);
+  const [applyIntent, setApplyIntent] = useState<"apply" | "brochure">("apply");
+  const openApply = () => {
+    setApplyIntent("apply");
+    setApplyOpen(true);
+  };
+  const openBrochure = () => {
+    setApplyIntent("brochure");
+    setApplyOpen(true);
+  };
   const closeApply = () => setApplyOpen(false);
 
   useEffect(() => {
@@ -227,21 +235,18 @@ export function DoctorDetailClient({
                 <button
                   type="button"
                   onClick={openApply}
-                  className="rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+                  className="rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251]"
                 >
                   Apply Now
                 </button>
-                {doctor.brochureUrl ? (
-                  <a
-                    href={doctor.brochureUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download Brochure
-                  </a>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={openBrochure}
+                  className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Brochure
+                </button>
               </div>
 
               {doctor.trailerVideoUrl ? (
@@ -426,7 +431,7 @@ export function DoctorDetailClient({
               <button
                 type="button"
                 onClick={openApply}
-                className="rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+                className="rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251]"
               >
                 Apply Now
               </button>
@@ -608,7 +613,7 @@ export function DoctorDetailClient({
           <button
             type="button"
             onClick={openApply}
-            className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
+            className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a88251]"
           >
             Apply Now
           </button>
@@ -618,8 +623,10 @@ export function DoctorDetailClient({
       <ApplyFormModal
         open={applyOpen}
         onClose={closeApply}
+        intent={applyIntent}
         courseId={doctor.id}
         courseName={courseName}
+        brochureUrl={doctor.brochureUrl}
       />
 
       <Footer />
