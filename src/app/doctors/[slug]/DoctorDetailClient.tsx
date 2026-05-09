@@ -235,7 +235,7 @@ export function DoctorDetailClient({
                 <button
                   type="button"
                   onClick={openApply}
-                  className="rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251]"
+                  className="rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
                 >
                   Apply Now
                 </button>
@@ -463,7 +463,7 @@ export function DoctorDetailClient({
               <button
                 type="button"
                 onClick={openApply}
-                className="rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251]"
+                className="rounded-md bg-[#a88251] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
               >
                 Apply Now
               </button>
@@ -645,7 +645,7 @@ export function DoctorDetailClient({
           <button
             type="button"
             onClick={openApply}
-            className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a88251]"
+            className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
           >
             Apply Now
           </button>

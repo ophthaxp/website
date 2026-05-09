@@ -208,7 +208,7 @@ export function ApplyFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="mt-6 rounded-md bg-[#e8265c] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#a88251]"
+              className="mt-6 rounded-md bg-[#a88251] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
             >
               Close
             </button>
@@ -333,7 +333,7 @@ export function ApplyFormModal({
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="mt-2 rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#a88251] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-2 rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {status === "submitting" ? copy.submittingLabel : copy.submitLabel}
               </button>
@@ -365,7 +365,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-white/70">
         {label}
-        {required ? <span className="ml-1 text-[#e8265c]">*</span> : null}
+        {required ? <span className="ml-1 text-[#a88251]">*</span> : null}
       </span>
       {children}
     </label>
