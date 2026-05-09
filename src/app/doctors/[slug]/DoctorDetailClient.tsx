@@ -16,6 +16,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
+import { ApplyFormModal } from "@/components/ApplyFormModal";
 import { formatINR } from "@/lib/utils";
 import type { Doctor } from "@/types";
 
@@ -58,6 +59,9 @@ export function DoctorDetailClient({
 }) {
   const railRef = useRef<HTMLDivElement>(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const openApply = () => setApplyOpen(true);
+  const closeApply = () => setApplyOpen(false);
 
   useEffect(() => {
     const onScroll = () => setShowSticky(window.scrollY > 540);
@@ -220,12 +224,13 @@ export function DoctorDetailClient({
               ) : null}
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="#apply"
+                <button
+                  type="button"
+                  onClick={openApply}
                   className="rounded-md bg-[#e8265c] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
                 >
                   Apply Now
-                </Link>
+                </button>
                 {doctor.brochureUrl ? (
                   <a
                     href={doctor.brochureUrl}
@@ -411,18 +416,20 @@ export function DoctorDetailClient({
             </div>
 
             <div className="flex flex-wrap gap-3 lg:flex-nowrap">
-              <Link
-                href="#get-started"
+              <button
+                type="button"
+                onClick={openApply}
                 className="rounded-md border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Register
-              </Link>
-              <Link
-                href="#get-started"
+              </button>
+              <button
+                type="button"
+                onClick={openApply}
                 className="rounded-md bg-[#e8265c] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
               >
                 Apply Now
-              </Link>
+              </button>
             </div>
           </div>
         </section>
@@ -598,14 +605,22 @@ export function DoctorDetailClient({
               ) : null}
             </div>
           </div>
-          <Link
-            href="#apply"
+          <button
+            type="button"
+            onClick={openApply}
             className="rounded-md bg-[#e8265c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d8214f]"
           >
             Apply Now
-          </Link>
+          </button>
         </div>
       </div>
+
+      <ApplyFormModal
+        open={applyOpen}
+        onClose={closeApply}
+        courseId={doctor.id}
+        courseName={courseName}
+      />
 
       <Footer />
     </>
