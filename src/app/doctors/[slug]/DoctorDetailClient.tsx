@@ -266,41 +266,73 @@ export function DoctorDetailClient({
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           aria-labelledby="steps-title"
-          className="border-y border-white/5 bg-[#0a0a0d]"
+          className="relative overflow-hidden border-y border-white/5 bg-[#0a0a0d]"
         >
-          <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-16">
-            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              How it works
-            </p>
-            <h2
-              id="steps-title"
-              className="mt-3 text-center font-serif text-3xl leading-tight sm:text-4xl"
-            >
-              Three steps from interest to your first cohort call
-            </h2>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(70% 60% at 50% 0%, rgba(168,130,81,0.08) 0%, transparent 70%)",
+            }}
+          />
 
-            <ol className="mt-10 grid gap-4 sm:grid-cols-3">
-              {STEPS.map(({ icon: Icon, num, title, desc }) => (
-                <li
-                  key={num}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] p-6 transition hover:border-accent/30 hover:bg-white/[0.06]"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      aria-hidden
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
-                    >
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="text-xs font-bold tracking-widest text-white/40">
-                      {num}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-white/60">{desc}</p>
-                </li>
-              ))}
-            </ol>
+          <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]">
+                How it works
+              </p>
+              <h2
+                id="steps-title"
+                className="mt-4 font-serif text-3xl leading-[1.15] sm:text-[44px]"
+              >
+                Three steps from interest to your first cohort call
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/55">
+                A simple, mentor-led path designed to align outcomes from day one.
+              </p>
+            </div>
+
+            <div className="relative mt-16">
+              {/* Connector line — desktop only, masked by icon bubble shadows */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-0 right-0 top-[50px] hidden sm:block"
+              >
+                <div className="mx-auto h-px max-w-[66%] bg-gradient-to-r from-transparent via-[#a88251]/40 to-transparent" />
+              </div>
+
+              <ol className="relative grid gap-14 sm:grid-cols-3 sm:gap-8">
+                {STEPS.map(({ icon: Icon, num, title, desc }) => (
+                  <li key={num} className="group relative text-center">
+                    <div className="relative mx-auto flex h-[100px] items-center justify-center">
+                      <span
+                        aria-hidden
+                        className="select-none font-serif text-[96px] font-light leading-none text-white/[0.06]"
+                      >
+                        {num}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="absolute inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#a88251]/40 bg-[#0a0a0d] text-[#a88251] shadow-[0_0_0_6px_#0a0a0d] transition duration-300 group-hover:scale-105 group-hover:border-[#a88251] group-hover:shadow-[0_0_0_6px_#0a0a0d,0_0_30px_-4px_rgba(168,130,81,0.55)]"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </span>
+                    </div>
+
+                    <p className="mt-6 text-[10px] font-bold tracking-[0.32em] text-[#a88251]">
+                      STEP {num}
+                    </p>
+                    <h3 className="mt-2 font-serif text-2xl leading-tight text-white">
+                      {title}
+                    </h3>
+                    <p className="mx-auto mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
+                      {desc}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </section>
 
