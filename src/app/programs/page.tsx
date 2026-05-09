@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { PROGRAMS } from "@/lib/data";
+import { fetchCoursesFromBackend } from "@/lib/courses";
 import { formatINR } from "@/lib/utils";
 import { buildMetadata } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Programs",
@@ -13,7 +15,9 @@ export const metadata: Metadata = buildMetadata({
   alternates: { canonical: "/programs" },
 });
 
-export default function ProgramsIndexPage() {
+export default async function ProgramsIndexPage() {
+  const programs = await fetchCoursesFromBackend();
+
   return (
     <>
       <Navbar />
@@ -23,25 +27,67 @@ export default function ProgramsIndexPage() {
           Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
         </p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
-          {PROGRAMS.map((p) => (
-            <Link
-              key={p.id}
-              href={`/programs/${p.slug}`}
-              className="card block p-6 transition hover:bg-white/[0.04]"
-            >
-              <p className="text-xs uppercase tracking-wider text-white/45">
-                {p.specialty}
-              </p>
-              <h2 className="mt-2 text-lg font-semibold text-white">{p.name}</h2>
-              <p className="mt-2 text-sm text-white/60">{p.description}</p>
-              <p className="mt-4 text-sm text-white/70">
-                {p.durationWeeks} weeks · cohort of {p.cohortSize} ·{" "}
-                <span className="font-medium text-white">{formatINR(p.priceInr)}</span>
-              </p>
-            </Link>
-          ))}
-        </div>
+        {programs.length === 0 ? (
+          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
+            <p className="text-white/70">No programs available yet.</p>
+            <p className="mt-2 text-sm text-white/45">Check back soon — new cohorts are added regularly.</p>
+          </div>
+        ) : (
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {programs.map((p) => {
+              const meta = [
+                p.durationWeeks ? `${p.durationWeeks} weeks` : null,
+                p.cohortSize ? `cohort of ${p.cohortSize}` : null,
+                p.experienceYears ? `${p.experienceYears} yrs experience` : null,
+                p.city,
+              ].filter(Boolean);
+
+              return (
+                <Link
+                  key={p.id}
+                  href={`/programs/${p.slug}`}
+                  className="group block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:bg-white/[0.06]"
+                >
+                  {p.doctorImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.doctorImage}
+                      alt={p.name}
+                      className="aspect-[4/5] w-full object-cover transition group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <div
+                      aria-hidden
+                      className="aspect-[4/5] w-full bg-gradient-to-br from-accent/30 via-accent/10 to-ink-900"
+                    />
+                  )}
+
+                  <div className="p-5">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-accent-soft">
+                      Teaches {p.specialistTitle ?? p.specialty}
+                    </p>
+                    <h2 className="mt-2 font-serif text-xl leading-tight text-white">
+                      {p.name}
+                    </h2>
+                    {p.description ? (
+                      <p className="mt-2 line-clamp-3 text-sm text-white/60">{p.description}</p>
+                    ) : null}
+
+                    {meta.length > 0 ? (
+                      <p className="mt-4 text-xs text-white/55">{meta.join(" · ")}</p>
+                    ) : null}
+
+                    {p.priceInr ? (
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {formatINR(p.priceInr)}
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </main>
       <Footer />
     </>

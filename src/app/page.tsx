@@ -1,17 +1,28 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { LegendsVideo } from "@/components/LegendsVideo";
-import { ScrollHighlightText } from "@/components/ScrollHighlightText";
-import { HowLearningHappens } from "@/components/HowLearningHappens";
 import { ProgramsSection } from "@/components/ProgramsSection";
+import { CertificatesPromo } from "@/components/CertificatesPromo";
 import { SmartAssist } from "@/components/SmartAssist";
 import { Footer } from "@/components/Footer";
 import { courseListJsonLd } from "@/lib/seo";
-import { PROGRAMS } from "@/lib/data";
+import {
+  fetchCoursesFromBackend,
+  fetchDoctorsFromBackend,
+  fetchHeroImagesFromBackend,
+} from "@/lib/courses";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [programs, doctors, heroImages] = await Promise.all([
+    fetchCoursesFromBackend(),
+    fetchDoctorsFromBackend(),
+    fetchHeroImagesFromBackend(),
+  ]);
+
   const courseLd = courseListJsonLd(
-    PROGRAMS.map((p) => ({ name: p.name, slug: p.slug, description: p.description })),
+    programs.map((p) => ({ name: p.name, slug: p.slug, description: p.description })),
   );
 
   return (
@@ -22,12 +33,11 @@ export default function HomePage() {
       />
       <Navbar />
       <main>
-        <Hero />
+        <Hero images={heroImages} />
         <LegendsVideo />
-        <HowLearningHappens />
-        <ProgramsSection />
+        <ProgramsSection doctors={doctors} />
+        <CertificatesPromo />
         <SmartAssist />
-        <ScrollHighlightText />
       </main>
       <Footer />
     </>

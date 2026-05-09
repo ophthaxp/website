@@ -10,12 +10,25 @@
   --border: rgba(255, 255, 255, 0.08);
 }
 
+html {
+  scroll-behavior: smooth;
+  /* Sticky Navbar is ~78px tall — offset anchor targets so headings aren't hidden */
+  scroll-padding-top: 88px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 html,
 body {
   background: var(--bg);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 * {

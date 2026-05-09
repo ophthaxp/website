@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         system:
           "You are the OphthaXP assistant. Help final-year MBBS students and practising ophthalmologists choose mentorship cohorts (cataract, retina, glaucoma, cornea, paediatric, neuro, refractive, uveitis). Keep replies under 4 sentences. Suggest a relevant program slug when helpful.",
         messages: [
-          ...(body.history ?? []).map((m) => ({ role: m.role, content: m.content })),
+          ...(body?.history ?? []).map((m) => ({ role: m.role, content: m.content })),
           { role: "user", content: message },
         ],
       }),

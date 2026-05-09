@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PROGRAMS } from "@/lib/data";
+import { fetchCoursesFromBackend } from "@/lib/courses";
 import type { Specialty } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const specialty = url.searchParams.get("specialty") as Specialty | null;
-  const data = specialty ? PROGRAMS.filter((p) => p.specialty === specialty) : PROGRAMS;
+  const all = await fetchCoursesFromBackend();
+  const data = specialty ? all.filter((p) => p.specialty === specialty) : all;
   return NextResponse.json({ data, count: data.length });
 }

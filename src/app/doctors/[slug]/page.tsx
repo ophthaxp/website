@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
-import { DOCTORS } from "@/lib/data";
+import { fetchDoctorsFromBackend } from "@/lib/courses";
 import { buildMetadata, SITE_URL } from "@/lib/seo";
+import { DoctorDetailClient } from "./DoctorDetailClient";
 
-export function generateStaticParams() {
-  return DOCTORS.map((d) => ({ slug: d.slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const doctors = await fetchDoctorsFromBackend();
+  return doctors.map((d) => ({ slug: d.slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
-}): Metadata {
-  const d = DOCTORS.find((x) => x.slug === params.slug);
+}): Promise<Metadata> {
+  const doctors = await fetchDoctorsFromBackend();
+  const d = doctors.find((x) => x.slug === params.slug);
   if (!d) return buildMetadata({ title: "Mentor not found" });
   return buildMetadata({
     title: `${d.name} — ${d.title}`,
@@ -24,9 +26,15 @@ export function generateMetadata({
   });
 }
 
-export default function DoctorDetailPage({ params }: { params: { slug: string } }) {
-  const d = DOCTORS.find((x) => x.slug === params.slug);
+export default async function DoctorDetailPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const doctors = await fetchDoctorsFromBackend();
+  const d = doctors.find((x) => x.slug === params.slug);
   if (!d) notFound();
+  const others = doctors.filter((x) => x.id !== d.id);
 
   const personLd = {
     "@context": "https://schema.org",
@@ -49,32 +57,7 @@ export default function DoctorDetailPage({ params }: { params: { slug: string } 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
       />
-      <Navbar />
-      <main className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-24">
-        <div className="grid gap-10 sm:grid-cols-[280px_1fr] sm:items-start">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-white/10">
-            <Image
-              src={d.imageUrl}
-              alt={`${d.name}, ${d.title}`}
-              fill
-              sizes="280px"
-              className="object-cover"
-              priority
-            />
-          </div>
-          <div>
-            <h1 className="font-serif text-4xl leading-tight text-white sm:text-5xl">
-              {d.name}
-            </h1>
-            <p className="mt-2 text-white/70">{d.title}</p>
-            <p className="mt-1 text-sm text-white/50">
-              {d.city} · {d.experienceYears} years of experience
-            </p>
-            <p className="mt-6 text-white/80">{d.bio}</p>
-          </div>
-        </div>
-      </main>
-      <Footer />
+      <DoctorDetailClient doctor={d} otherDoctors={others} />
     </>
   );
 }

@@ -23,6 +23,35 @@ export interface Doctor {
   experienceYears: number;
   imageUrl: string;
   bio: string;
+  // Optional extras populated when sourced from the merged nocode `doctors` module
+  heroImages?: string[];
+  showInHeroSection?: boolean;
+  trailerVideoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
+  // Course-side fields (1:1 doctor↔course in the merged module)
+  qualification?: string;
+  email?: string;
+  phone?: string;
+  courseName?: string;
+  courseSlug?: string;
+  specialistTitle?: string;
+  doctorImage?: string;
+  description?: string;
+  lessonsCount?: number;
+  durationMinutes?: number;
+  durationWeeks?: number;
+  cohortSize?: number;
+  startDate?: string;
+  priceInr?: number;
+  pricePerDayInr?: number;
+  billingPeriod?: "annual" | "monthly" | "onetime";
+  moneyBackDays?: number;
+  highlights?: string[];
+  learningOutcomes?: string[];
+  brochureUrl?: string;
+  relatedDoctorSlugs?: string[];
+  isActive?: boolean;
 }
 
 export interface Program {
@@ -36,6 +65,19 @@ export interface Program {
   startDate: string; // ISO
   priceInr: number;
   highlights: string[];
+  // Course detail page extras (optional — populated when sourced from nocode backend)
+  doctorImage?: string;
+  specialistTitle?: string;
+  city?: string;
+  experienceYears?: number;
+  bio?: string;
+  lessonsCount?: number;
+  durationMinutes?: number;
+  trailerVideoUrl?: string;
+  pricePerDayInr?: number;
+  billingPeriod?: "annual" | "monthly" | "onetime";
+  moneyBackDays?: number;
+  relatedDoctorSlugs?: string[];
 }
 
 export interface ChatMessage {

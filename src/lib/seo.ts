@@ -70,10 +70,6 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
         "max-video-preview": -1,
       },
     },
-    icons: {
-      icon: [{ url: "/favicon.ico" }],
-      apple: [{ url: "/apple-touch-icon.png" }],
-    },
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
     },

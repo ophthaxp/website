@@ -1,9 +1,13 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
-import { PROGRAMS, DOCTORS } from "@/lib/data";
+import { fetchCoursesFromBackend, fetchDoctorsFromBackend } from "@/lib/courses";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const [programs, doctors] = await Promise.all([
+    fetchCoursesFromBackend(),
+    fetchDoctorsFromBackend(),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
@@ -13,14 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  const programRoutes: MetadataRoute.Sitemap = PROGRAMS.map((p) => ({
+  const programRoutes: MetadataRoute.Sitemap = programs.map((p) => ({
     url: `${SITE_URL}/programs/${p.slug}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
 
-  const doctorRoutes: MetadataRoute.Sitemap = DOCTORS.map((d) => ({
+  const doctorRoutes: MetadataRoute.Sitemap = doctors.map((d) => ({
     url: `${SITE_URL}/doctors/${d.slug}`,
     lastModified: now,
     changeFrequency: "monthly",

@@ -1,52 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Maximize2, Minimize2, Pause, Play, Volume2, VolumeX } from "lucide-react";
-import { HERO_VIDEO_POSTER, HERO_VIDEO_SRC } from "@/lib/data";
+import { Play, X } from "lucide-react";
+import { HERO_VIDEO_POSTER } from "@/lib/data";
+
+const TRAILER_SRC = "/Screen%20Recording%202026-05-09%20132251.mp4";
 
 export function LegendsVideo() {
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [muted, setMuted] = useState(true);
-  const [playing, setPlaying] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  // Keep React state in sync with native fullscreen changes (esc key etc.)
   useEffect(() => {
-    const onChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+    if (!playing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
     };
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
-  }, []);
+    document.addEventListener("keydown", onKey);
+    videoRef.current?.play().catch(() => {});
+    return () => document.removeEventListener("keydown", onKey);
+  }, [playing]);
 
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
-
-  const togglePlay = async () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      await v.play();
-      setPlaying(true);
-    } else {
-      v.pause();
-      setPlaying(false);
-    }
-  };
-
-  const toggleFullscreen = async () => {
-    const el = wrapperRef.current;
-    if (!el) return;
-    if (!document.fullscreenElement) {
-      await el.requestFullscreen?.();
-    } else {
-      await document.exitFullscreen?.();
-    }
+  const close = () => {
+    videoRef.current?.pause();
+    setPlaying(false);
+    triggerRef.current?.focus();
   };
 
   return (
@@ -58,63 +36,67 @@ export function LegendsVideo() {
         id="legends-title"
         className="mx-auto max-w-2xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
       >
-        Learn from Those Who&rsquo;ve <br className="hidden sm:block" />
-        Defined the Field
+        Meet the world&rsquo;s best. <br className="hidden sm:block" />
+        New classes added every month.
       </h2>
 
-      <div
-        ref={wrapperRef}
-        className="group relative mx-auto mt-10 aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-ink-800 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]"
-      >
-        <video
-          ref={videoRef}
-          className="h-full w-full object-cover"
-          src={HERO_VIDEO_SRC}
-          poster={HERO_VIDEO_POSTER}
-          autoPlay
-          muted={muted}
-          loop
-          playsInline
-          preload="metadata"
-          aria-label="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
-        />
-
-        {/* gradient for control legibility */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
-
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 sm:inset-x-5 sm:bottom-5">
-          <button
-            type="button"
-            onClick={togglePlay}
-            aria-label={playing ? "Pause video" : "Play video"}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/70"
-          >
-            {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </button>
-
-          <div className="flex items-center gap-2">
+      <div className="relative mx-auto mt-10 aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-ink-800 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]">
+        {playing ? (
+          <>
+            <video
+              ref={videoRef}
+              src={TRAILER_SRC}
+              controls
+              playsInline
+              autoPlay
+              className="h-full w-full bg-black object-contain"
+            />
             <button
               type="button"
-              onClick={toggleMute}
-              aria-label={muted ? "Unmute video" : "Mute video"}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/70"
+              onClick={close}
+              aria-label="Close trailer"
+              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white backdrop-blur transition hover:border-[#ab834d] hover:bg-[#ab834d]"
             >
-              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              <X className="h-5 w-5" />
             </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              aria-label={isFullscreen ? "Exit fullscreen" : "Expand to fullscreen"}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/70"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={HERO_VIDEO_POSTER}
+              alt="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
+              className="h-full w-full object-cover"
+            />
+
+            {/* Gradient scrim — darker on the right so the overlay card stays legible */}
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.85)_25%,rgba(0,0,0,0.45)_55%,rgba(0,0,0,0)_85%)]" />
+
+            {/* Featured-class overlay card */}
+            <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col items-center justify-center px-6 text-center sm:px-10">
+              <span className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
+                New
+              </span>
+              <h3 className="mt-4 font-serif text-3xl leading-tight text-white sm:text-5xl">
+                The Technique of <br />
+                Phacoemulsification
+              </h3>
+              <span className="mt-4 block h-px w-8 bg-white/70" aria-hidden />
+              <p className="mt-4 text-sm font-semibold text-white sm:text-base">
+                Master Modern Cataract Surgery from World-Renowned Mentors
+              </p>
+              <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => setPlaying(true)}
+                className="mt-6 inline-flex items-center gap-2 rounded-[12px] border border-white/15 bg-black/60 px-5 py-2.5 text-sm font-medium text-white backdrop-blur transition hover:border-[#ab834d] hover:bg-[#ab834d]"
+              >
+                <Play className="h-4 w-4 fill-white" aria-hidden />
+                Watch Trailer
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

@@ -1,60 +1,69 @@
+import Image from "next/image";
 import Link from "next/link";
+import { Instagram, Linkedin, Twitter } from "lucide-react";
 
 export function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="border-t border-white/5 bg-ink-950/60">
-      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:grid-cols-4 sm:px-8">
-        <div className="sm:col-span-2">
-          <p className="text-base font-semibold text-white">OphthaXP</p>
-          <p className="mt-3 max-w-sm text-sm text-white/55">
-            Live, cohort-based mentorship for practising ophthalmologists and
-            final-year MBBS students preparing to specialise.
-          </p>
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-5 sm:flex-row sm:px-8">
+        {/* Left: logo pill + copyright */}
+        <div className="flex items-center gap-3">
+          <Link href="/" aria-label="OphthaXP home" className="inline-flex items-center">
+            <Image
+              src="/logo.png"
+              alt="OphthaXP"
+              width={410}
+              height={74}
+              className="h-[54px] w-auto"
+            />
+          </Link>
+          <span className="text-sm text-white/70">
+            <span aria-hidden>©</span> {year}
+          </span>
         </div>
 
-        <nav aria-label="Programs" className="text-sm">
-          <p className="mb-3 font-semibold text-white">Programs</p>
-          <ul className="space-y-2 text-white/60">
-            <li>
-              <Link href="/programs/cataract-mastery-cohort">Cataract Mastery</Link>
-            </li>
-            <li>
-              <Link href="/programs/vitreo-retinal-track">Vitreo-Retinal</Link>
-            </li>
-            <li>
-              <Link href="/programs/cornea-refractive-fellowship-prep">
-                Cornea & Refractive
-              </Link>
-            </li>
-            <li>
-              <Link href="/programs/glaucoma-clinic">Glaucoma Clinic</Link>
-            </li>
-          </ul>
+        {/* Center: legal links */}
+        <nav aria-label="Footer legal links" className="flex items-center gap-8 text-sm text-white/70">
+          <Link href="/privacy" className="hover:text-white">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="hover:text-white">
+            Term Of Services
+          </Link>
         </nav>
 
-        <nav aria-label="Company" className="text-sm">
-          <p className="mb-3 font-semibold text-white">Company</p>
-          <ul className="space-y-2 text-white/60">
-            <li>
-              <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/doctors">Mentors</Link>
-            </li>
-            <li>
-              <Link href="/contact">Contact</Link>
-            </li>
-            <li>
-              <Link href="/privacy">Privacy</Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
-      <div className="border-t border-white/5">
-        <p className="mx-auto max-w-7xl px-5 py-5 text-center text-xs text-white/40 sm:px-8">
-          © {new Date().getFullYear()} OphthaXP. All rights reserved.
-        </p>
+        {/* Right: social icons */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="https://x.com/"
+            aria-label="OphthaXP on X"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black transition hover:opacity-90"
+          >
+            <Twitter className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            href="https://www.linkedin.com/"
+            aria-label="OphthaXP on LinkedIn"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black transition hover:opacity-90"
+          >
+            <Linkedin className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            href="https://www.instagram.com/"
+            aria-label="OphthaXP on Instagram"
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black transition hover:opacity-90"
+          >
+            <Instagram className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
       </div>
     </footer>
   );

@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
-import { DOCTORS } from "@/lib/data";
+import { fetchDoctorsFromBackend } from "@/lib/courses";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   _req: Request,
   { params }: { params: { slug: string } },
 ) {
-  const doc = DOCTORS.find((d) => d.slug === params.slug);
+  const doctors = await fetchDoctorsFromBackend();
+  const doc = doctors.find((d) => d.slug === params.slug);
   if (!doc) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
