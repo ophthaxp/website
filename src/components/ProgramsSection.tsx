@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
 import type { Doctor, Specialty } from "@/types";
@@ -13,6 +13,8 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
   // Only fall back to static data when the prop is omitted entirely (e.g. preview mode).
   const data: Doctor[] = doctors !== undefined ? doctors : DOCTORS;
   const [active, setActive] = useState<Specialty>("popular");
+  const [pageCount, setPageCount] = useState(1);
+  const [activePage, setActivePage] = useState(0);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
@@ -20,11 +22,49 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
     return data.filter((d) => d.specialty.includes(active));
   }, [active, data]);
 
+  // Track scroll position so the bottom dot pagination reflects the user's place
+  // in the rail. Recomputes on scroll, on filter change, and when the rail resizes.
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 1) {
+        setPageCount(1);
+        setActivePage(0);
+        return;
+      }
+      const pages = Math.max(1, Math.ceil(el.scrollWidth / el.clientWidth));
+      setPageCount(pages);
+      const ratio = el.scrollLeft / maxScroll;
+      setActivePage(Math.min(pages - 1, Math.round(ratio * (pages - 1))));
+    };
+
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, [filtered.length]);
+
   const scroll = (dir: "left" | "right") => {
     const el = railRef.current;
     if (!el) return;
     const amount = el.clientWidth * 0.8;
     el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  const goToPage = (i: number) => {
+    const el = railRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    const target = pageCount > 1 ? (i / (pageCount - 1)) * maxScroll : 0;
+    el.scrollTo({ left: target, behavior: "smooth" });
   };
 
   return (
@@ -74,14 +114,18 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
         })}
       </div>
 
-      {/* Doctor rail — horizontal scroll with prev/next buttons */}
+      {/* Doctor rail carousel. Outer wrapper stays within the section's max-w-7xl
+          so the chevron buttons align with the heading's right edge. The inner rail
+          breaks out to the viewport right with mr-[calc(50%-50vw)], so cards visibly
+          overflow past the main layout instead of being clipped at section padding.
+          Body has overflow-x: hidden so this doesn't trigger horizontal page scroll. */}
       <div className="relative mt-10">
         <div className="absolute right-2 top-0 z-10 hidden -translate-y-12 items-center gap-2 sm:flex">
           <button
             type="button"
             onClick={() => scroll("left")}
             aria-label="Scroll doctors left"
-            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80"
+            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-[#ab834d]"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -89,7 +133,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
             type="button"
             onClick={() => scroll("right")}
             aria-label="Scroll doctors right"
-            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-black/80"
+            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-[#ab834d]"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -99,7 +143,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
           ref={railRef}
           role="region"
           aria-label="Featured mentors"
-          className="no-scrollbar -mr-5 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:-mr-8 sm:pr-8"
+          className="no-scrollbar mr-[calc(50%-50vw)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-8"
         >
           {data.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
@@ -146,6 +190,35 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
             ))
           )}
         </div>
+
+        {/* Bottom carousel pagination — clickable dots reflect rail scroll position */}
+        {pageCount > 1 && (
+          <div
+            role="tablist"
+            aria-label="Doctor list pages"
+            className="mt-6 flex items-center justify-center gap-2"
+          >
+            {Array.from({ length: pageCount }).map((_, i) => {
+              const selected = i === activePage;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  aria-label={`Go to page ${i + 1} of ${pageCount}`}
+                  onClick={() => goToPage(i)}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-300",
+                    selected
+                      ? "w-6 bg-[#ab834d]"
+                      : "w-1.5 bg-white/30 hover:bg-white/60",
+                  )}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 flex justify-center">
