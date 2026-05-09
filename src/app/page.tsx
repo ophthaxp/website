@@ -6,14 +6,19 @@ import { ProgramsSection } from "@/components/ProgramsSection";
 import { SmartAssist } from "@/components/SmartAssist";
 import { Footer } from "@/components/Footer";
 import { courseListJsonLd } from "@/lib/seo";
-import { fetchCoursesFromBackend, fetchDoctorsFromBackend } from "@/lib/courses";
+import {
+  fetchCoursesFromBackend,
+  fetchDoctorsFromBackend,
+  fetchHeroImagesFromBackend,
+} from "@/lib/courses";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [programs, doctors] = await Promise.all([
+  const [programs, doctors, heroImages] = await Promise.all([
     fetchCoursesFromBackend(),
     fetchDoctorsFromBackend(),
+    fetchHeroImagesFromBackend(),
   ]);
 
   const courseLd = courseListJsonLd(
@@ -28,7 +33,7 @@ export default async function HomePage() {
       />
       <Navbar />
       <main>
-        <Hero />
+        <Hero images={heroImages} />
         <LegendsVideo />
         <ProgramsSection doctors={doctors} />
         <SmartAssist />

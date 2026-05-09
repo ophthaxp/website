@@ -14,9 +14,9 @@ export function Footer() {
             <Image
               src="/logo.png"
               alt="OphthaXP"
-              width={140}
-              height={36}
-              className="h-9 w-auto"
+              width={410}
+              height={74}
+              className="h-[54px] w-auto"
             />
           </Link>
           <span className="text-sm text-white/70">

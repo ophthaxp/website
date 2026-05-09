@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Volume2, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { TrailerPlayer } from "@/components/TrailerPlayer";
 import type { Doctor } from "@/types";
 
 export function DoctorDetailClient({
@@ -62,26 +63,34 @@ export function DoctorDetailClient({
           aria-labelledby="featured-title"
           className="grid w-full grid-cols-1 lg:grid-cols-2"
         >
-          <div className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[640px]">
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(120% 80% at 50% 20%, #ffb56b 0%, #ff5f9e 35%, #d63ad6 65%, #1a0628 100%)",
-              }}
-            />
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#06070a] lg:aspect-auto lg:min-h-[640px]">
             <Image
               src={doctor.imageUrl}
               alt={`${doctor.name}, ${doctor.title}`}
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-center mix-blend-luminosity"
+              className="object-cover object-center contrast-110 saturate-75"
             />
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
+              className="absolute inset-0 mix-blend-soft-light"
+              style={{
+                background:
+                  "radial-gradient(110% 70% at 50% 10%, rgba(232,38,92,0.9) 0%, rgba(232,38,92,0) 65%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(150% 100% at 50% 45%, transparent 38%, rgba(6,7,10,0.55) 100%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-gradient-to-t from-[#06070a]/45 via-transparent to-transparent"
             />
           </div>
 
@@ -166,42 +175,29 @@ export function DoctorDetailClient({
           className="mx-auto max-w-7xl px-5 py-16 sm:px-8"
         >
           <div className="relative aspect-video w-full overflow-hidden rounded-md bg-black">
-            <Image
-              src={doctor.imageUrl}
-              alt={`${doctor.name} trailer`}
-              fill
-              sizes="100vw"
-              className="object-cover opacity-70"
-            />
-            <div className="absolute inset-0 bg-black/30" />
-
-            <div className="absolute right-5 top-4 flex items-center gap-5 text-sm text-white">
-              <span className="font-semibold">Trailer</span>
-              <span className="text-white/60">Sample</span>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
-              <div className="h-[3px] w-full rounded-full bg-white/20">
-                <div className="h-full w-0 rounded-full bg-white" />
-              </div>
-              <div className="mt-3 flex items-center justify-between text-xs text-white/85">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    aria-label="Play trailer"
-                    className="flex h-7 w-7 items-center justify-center rounded-sm bg-white/15 hover:bg-white/25"
-                  >
-                    <Play className="h-3.5 w-3.5 fill-white text-white" />
-                  </button>
-                  <Volume2 className="h-4 w-4 text-white/80" />
-                  <span>0:00 / 1:19</span>
+            {doctor.trailerVideoUrl ? (
+              <TrailerPlayer
+                src={doctor.trailerVideoUrl}
+                poster={doctor.imageUrl}
+                title={`${doctor.name} — Trailer`}
+                className="absolute inset-0 h-full w-full"
+              />
+            ) : (
+              <>
+                <Image
+                  src={doctor.imageUrl}
+                  alt={`${doctor.name} trailer poster`}
+                  fill
+                  sizes="100vw"
+                  className="object-cover opacity-70"
+                />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute right-5 top-4 flex items-center gap-5 text-sm text-white">
+                  <span className="font-semibold">Trailer</span>
+                  <span className="text-white/60">Coming soon</span>
                 </div>
-                <div className="flex items-center gap-3 text-white/80">
-                  <span>1x</span>
-                  <Maximize2 className="h-4 w-4" />
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           <div className="mt-10 flex items-end justify-between">

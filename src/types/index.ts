@@ -23,6 +23,12 @@ export interface Doctor {
   experienceYears: number;
   imageUrl: string;
   bio: string;
+  // Optional extras populated when sourced from the merged nocode `doctors` module
+  heroImages?: string[];
+  showInHeroSection?: boolean;
+  trailerVideoUrl?: string;
+  isFeatured?: boolean;
+  isNew?: boolean;
 }
 
 export interface Program {

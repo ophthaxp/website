@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { TrailerPlayer } from "@/components/TrailerPlayer";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
@@ -115,9 +116,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 {durationLabel ? <span>· {durationLabel}</span> : null}
                 {p.trailerVideoUrl ? (
                   <a
-                    href={p.trailerVideoUrl}
-                    target="_blank"
-                    rel="noreferrer"
+                    href="#trailer"
                     className="ml-3 font-semibold text-white underline-offset-4 hover:underline"
                   >
                     Watch Trailer
@@ -149,6 +148,26 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             ) : null}
           </div>
         </section>
+
+        {/* Trailer */}
+        {p.trailerVideoUrl ? (
+          <section id="trailer" aria-labelledby="trailer-title" className="mt-12">
+            <h2
+              id="trailer-title"
+              className="text-sm font-semibold uppercase tracking-wider text-white/60"
+            >
+              Trailer
+            </h2>
+            <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-2xl bg-black">
+              <TrailerPlayer
+                src={p.trailerVideoUrl}
+                poster={p.doctorImage}
+                title={`${p.name} — Trailer`}
+                className="absolute inset-0 h-full w-full"
+              />
+            </div>
+          </section>
+        ) : null}
 
         {/* Cohort facts */}
         <dl className="mt-12 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">

@@ -3,8 +3,11 @@ import { DOCTORS, PROGRAMS } from "@/lib/data";
 
 const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
 const NOCODE_APP_ID = process.env.NOCODE_APP_ID || "";
-const NOCODE_MODULE = process.env.NOCODE_COURSES_MODULE || "courses";
+// In the merged setup both courses and doctors live in one module ("doctors").
+// Keep the legacy NOCODE_COURSES_MODULE override for backwards compat, but
+// default it to the doctors module so a single create-module covers both.
 const NOCODE_DOCTORS_MODULE = process.env.NOCODE_DOCTORS_MODULE || "doctors";
+const NOCODE_MODULE = process.env.NOCODE_COURSES_MODULE || NOCODE_DOCTORS_MODULE;
 
 const isBackendConfigured = Boolean(NOCODE_BASE && NOCODE_APP_ID);
 
@@ -61,8 +64,17 @@ function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
  * can name them either camelCase or snake_case in the admin panel.
  */
 function mapRecordToProgram(rec: RawRecord): Program | null {
-  const slug = pickString(rec, "slug", "Slug");
-  const name = pickString(rec, "name", "title", "course_name", "courseName");
+  // Merged module: prefer the course-specific slug/name when present, fall
+  // back to the doctor-level slug/name for legacy single-purpose `courses` modules.
+  const slug = pickString(rec, "courseSlug", "course_slug", "slug", "Slug");
+  const name = pickString(
+    rec,
+    "courseName",
+    "course_name",
+    "name",
+    "title",
+    "courseName",
+  );
   if (!slug || !name) return null;
 
   return {
@@ -90,13 +102,17 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
     bio: pickString(rec, "bio", "shortBio", "short_bio"),
     lessonsCount: pickNumber(rec, "lessonsCount", "lessons_count", "lessons"),
     durationMinutes: pickNumber(rec, "durationMinutes", "duration_minutes", "totalMinutes"),
-    trailerVideoUrl: pickString(
-      rec,
-      "trailerVideoUrl",
-      "trailer_video_url",
-      "trailerUrl",
-      "trailer_url",
-      "videoUrl",
+    trailerVideoUrl: absoluteUrl(
+      pickString(
+        rec,
+        "trailerVideo",
+        "trailer_video",
+        "trailerVideoUrl",
+        "trailer_video_url",
+        "trailerUrl",
+        "trailer_url",
+        "videoUrl",
+      ),
     ),
     pricePerDayInr: pickNumber(rec, "pricePerDayInr", "price_per_day_inr", "pricePerDay"),
     billingPeriod: pickString(rec, "billingPeriod", "billing_period") as Program["billingPeriod"],
@@ -110,6 +126,20 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
   };
 }
 
+function pickBool(rec: RawRecord, ...keys: string[]): boolean | undefined {
+  for (const k of keys) {
+    const v = rec[k];
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") {
+      const s = v.trim().toLowerCase();
+      if (s === "true" || s === "1" || s === "yes") return true;
+      if (s === "false" || s === "0" || s === "no") return false;
+    }
+    if (typeof v === "number") return v !== 0;
+  }
+  return undefined;
+}
+
 function mapRecordToDoctor(rec: RawRecord): Doctor | null {
   const slug = pickString(rec, "slug", "Slug");
   const name = pickString(rec, "name", "fullName");
@@ -121,6 +151,11 @@ function mapRecordToDoctor(rec: RawRecord): Doctor | null {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean) as Doctor["specialty"];
+
+  const heroImages = pickStringArray(rec, "heroImages", "hero_images")
+    .map((u) => absoluteUrl(u))
+    .filter((u): u is string => Boolean(u));
+
   return {
     id: String(pickString(rec, "id") ?? rec.id ?? slug),
     slug,
@@ -131,6 +166,13 @@ function mapRecordToDoctor(rec: RawRecord): Doctor | null {
     experienceYears: pickNumber(rec, "experienceYears", "experience_years") ?? 0,
     imageUrl: absoluteUrl(pickString(rec, "imageUrl", "image_url", "image")) ?? "",
     bio: pickString(rec, "bio", "shortBio") ?? "",
+    heroImages,
+    showInHeroSection: pickBool(rec, "showInHeroSection", "show_in_hero_section"),
+    trailerVideoUrl: absoluteUrl(
+      pickString(rec, "trailerVideoUrl", "trailer_video_url", "trailerVideo", "trailer_video"),
+    ),
+    isFeatured: pickBool(rec, "isFeatured", "is_featured"),
+    isNew: pickBool(rec, "isNew", "is_new"),
   };
 }
 
@@ -229,6 +271,26 @@ export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
   const rows = extractRows(json);
   console.log(`[courses] fetched ${rows.length} doctor rows`);
   return rows.map(mapRecordToDoctor).filter((d): d is Doctor => !!d);
+}
+
+/**
+ * Build the list of images shown in the homepage Hero marquee.
+ * Only includes doctors whose `showInHeroSection` switch is ON.
+ * Each such doctor contributes their `heroImages[]` if set, otherwise their
+ * single `imageUrl`. Returns [] when no doctors are flagged — caller can fall
+ * back to a static placeholder list.
+ */
+export async function fetchHeroImagesFromBackend(): Promise<{ src: string; alt: string }[]> {
+  const doctors = await fetchDoctorsFromBackend();
+  const out: { src: string; alt: string }[] = [];
+  for (const d of doctors) {
+    if (!d.showInHeroSection) continue;
+    const list = d.heroImages?.length ? d.heroImages : d.imageUrl ? [d.imageUrl] : [];
+    list.forEach((src, i) => {
+      if (src) out.push({ src, alt: `${d.name} portrait ${i + 1}` });
+    });
+  }
+  return out;
 }
 
 export async function fetchRelatedDoctors(slugs: string[]): Promise<Doctor[]> {

@@ -29,6 +29,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
 
   return (
     <section
+      id="programs"
       aria-labelledby="programs-title"
       className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"
     >
