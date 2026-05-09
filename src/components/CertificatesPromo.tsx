@@ -14,7 +14,7 @@ export function CertificatesPromo() {
           <p className="flex items-baseline gap-2 font-serif text-base font-semibold tracking-tight">
             <span>OphthaXP</span>
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#1a1a1a]/85">
-              Certificates
+              Certification
             </span>
           </p>
 
@@ -22,14 +22,14 @@ export function CertificatesPromo() {
             id="certificates-title"
             className="mt-6 font-serif text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Accelerate your Pride
+            Wear Your Mastery
             <br />
-            with Certificates
+            with Pride
           </h2>
 
           <p className="mt-6 max-w-md text-base leading-relaxed text-[#1a1a1a]/75">
-            Learn advanced surgical skills from world-renowned ophthalmologists
-            and stand out with OphthaXP Certificates.
+            Train with the surgeons who defined modern ophthalmology,
+             and earn a certificate that belongs on your wall — and in the trust of your patients.
           </p>
 
           <Link

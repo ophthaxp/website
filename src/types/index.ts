@@ -29,6 +29,29 @@ export interface Doctor {
   trailerVideoUrl?: string;
   isFeatured?: boolean;
   isNew?: boolean;
+  // Course-side fields (1:1 doctor↔course in the merged module)
+  qualification?: string;
+  email?: string;
+  phone?: string;
+  courseName?: string;
+  courseSlug?: string;
+  specialistTitle?: string;
+  doctorImage?: string;
+  description?: string;
+  lessonsCount?: number;
+  durationMinutes?: number;
+  durationWeeks?: number;
+  cohortSize?: number;
+  startDate?: string;
+  priceInr?: number;
+  pricePerDayInr?: number;
+  billingPeriod?: "annual" | "monthly" | "onetime";
+  moneyBackDays?: number;
+  highlights?: string[];
+  learningOutcomes?: string[];
+  brochureUrl?: string;
+  relatedDoctorSlugs?: string[];
+  isActive?: boolean;
 }
 
 export interface Program {

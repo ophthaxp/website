@@ -96,12 +96,15 @@ interface Props {
   defaultSpecialty?: string;
   courseTuitionInr?: number;
   ctaHref?: string;
+  /** When true, renders a single-column layout sized to sit next to a video. */
+  compact?: boolean;
 }
 
 export function PracticeGrowthCalculator({
   defaultSpecialty = "cataract",
   courseTuitionInr = 350_000,
   ctaHref = "#get-started",
+  compact = false,
 }: Props) {
   const initialKey =
     defaultSpecialty && defaultSpecialty in SPECIALTY_DATA
@@ -132,22 +135,38 @@ export function PracticeGrowthCalculator({
   return (
     <section
       aria-labelledby="growth-title"
-      className="mt-16 overflow-hidden rounded-2xl bg-ink-850 p-6 ring-1 ring-white/5 sm:p-10"
+      className={
+        compact
+          ? "h-full overflow-hidden rounded-md bg-ink-850 p-6 ring-1 ring-white/5"
+          : "mt-16 overflow-hidden rounded-2xl bg-ink-850 p-6 ring-1 ring-white/5 sm:p-10"
+      }
     >
-      <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+      <div
+        className={
+          compact
+            ? "grid h-full gap-6"
+            : "grid gap-10 lg:grid-cols-2 lg:items-center"
+        }
+      >
         {/* ─────────── LEFT: Inputs ─────────── */}
         <div>
           <h2
             id="growth-title"
-            className="font-serif text-3xl leading-tight text-white sm:text-4xl"
+            className={
+              compact
+                ? "font-serif text-2xl leading-tight text-white"
+                : "font-serif text-3xl leading-tight text-white sm:text-4xl"
+            }
           >
             Estimate Your{" "}
             <span className="text-accent-soft">Practice Growth</span>
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/65">
-            Select your specialty and see how your investment in advanced
-            learning can translate into higher earnings.
-          </p>
+          {!compact && (
+            <p className="mt-3 text-sm leading-relaxed text-white/65">
+              Select your specialty and see how your investment in advanced
+              learning can translate into higher earnings.
+            </p>
+          )}
 
           {/* Specialty dropdown */}
           <label

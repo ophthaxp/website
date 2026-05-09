@@ -33,7 +33,7 @@ export function LegendsVideo() {
             New
           </span>
           <h3 className="mt-4 font-serif text-3xl leading-tight text-white sm:text-5xl">
-            The Art of <br />
+            The Technique of <br />
             Phacoemulsification
           </h3>
           <span className="mt-4 block h-px w-8 bg-white/70" aria-hidden />

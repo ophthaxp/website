@@ -173,6 +173,36 @@ function mapRecordToDoctor(rec: RawRecord): Doctor | null {
     ),
     isFeatured: pickBool(rec, "isFeatured", "is_featured"),
     isNew: pickBool(rec, "isNew", "is_new"),
+    // Merged course-side fields
+    qualification: pickString(rec, "qualification"),
+    email: pickString(rec, "email"),
+    phone: pickString(rec, "phone"),
+    courseName: pickString(rec, "courseName", "course_name"),
+    courseSlug: pickString(rec, "courseSlug", "course_slug"),
+    specialistTitle: pickString(rec, "specialistTitle", "specialist_title"),
+    doctorImage: absoluteUrl(
+      pickString(rec, "doctorImage", "doctor_image", "courseHeroImage", "course_hero_image"),
+    ),
+    description: pickString(rec, "description", "fullDescription", "full_description"),
+    lessonsCount: pickNumber(rec, "lessonsCount", "lessons_count", "lessons"),
+    durationMinutes: pickNumber(rec, "durationMinutes", "duration_minutes"),
+    durationWeeks: pickNumber(rec, "durationWeeks", "duration_weeks"),
+    cohortSize: pickNumber(rec, "cohortSize", "cohort_size"),
+    startDate: pickString(rec, "startDate", "start_date"),
+    priceInr: pickNumber(rec, "priceInr", "price_inr", "price"),
+    pricePerDayInr: pickNumber(rec, "pricePerDayInr", "price_per_day_inr", "pricePerDay"),
+    billingPeriod: pickString(rec, "billingPeriod", "billing_period") as Doctor["billingPeriod"],
+    moneyBackDays: pickNumber(rec, "moneyBackDays", "money_back_days"),
+    highlights: pickStringArray(rec, "highlights"),
+    learningOutcomes: pickStringArray(rec, "learningOutcomes", "learning_outcomes"),
+    brochureUrl: absoluteUrl(pickString(rec, "brochureUrl", "brochure_url", "brochure")),
+    relatedDoctorSlugs: pickStringArray(
+      rec,
+      "relatedDoctorSlugs",
+      "related_doctor_slugs",
+      "relatedDoctors",
+    ),
+    isActive: pickBool(rec, "isActive", "is_active"),
   };
 }
 

@@ -70,6 +70,7 @@ export function SmartAssist() {
           if (!cancelled) setReady(true);
         });
         window.botpress.init(BOT_CONFIG);
+        if (!cancelled) setReady(true);
       } catch (err) {
         console.error("[Botpress] failed to load", err);
       }
