@@ -4,23 +4,10 @@ import { useEffect, useState } from "react";
 import { MessageSquare, Sparkles } from "lucide-react";
 
 const INJECT_SRC = "https://cdn.botpress.cloud/webchat/v3.6/inject.js";
-
-const BOT_CONFIG = {
-  botId: "01e2b452-472b-439a-9fa0-c8940ffdddb8",
-  clientId: "e8f58e0b-936e-4b4a-8d3d-d3740723e4c6",
-  configuration: {
-    version: "v2",
-    botName: "OphthaXP Mentor Bot",
-    color: "#3978B7",
-    variant: "solid",
-    headerVariant: "solid",
-    themeMode: "dark",
-    fontFamily: "inter",
-    radius: 2,
-    feedbackEnabled: false,
-    soundEnabled: false,
-  },
-};
+// Share script from the Botpress dashboard — carries the latest bot config and
+// calls botpress.init() itself, so dashboard edits propagate without a redeploy.
+const SHARE_SRC =
+  "https://files.bpcontent.cloud/2026/04/21/13/20260421130343-2SD9PW7U.js";
 
 const QUICK_PROMPTS = [
   "What is OphthaXP?",
@@ -44,14 +31,25 @@ function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
     if (existing) {
-      if (window.botpress) resolve();
-      else existing.addEventListener("load", () => resolve(), { once: true });
+      if (existing.dataset.loaded === "true") {
+        resolve();
+      } else {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener(
+          "error",
+          () => reject(new Error(`Failed to load ${src}`)),
+          { once: true },
+        );
+      }
       return;
     }
     const s = document.createElement("script");
     s.src = src;
     s.async = false;
-    s.onload = () => resolve();
+    s.onload = () => {
+      s.dataset.loaded = "true";
+      resolve();
+    };
     s.onerror = () => reject(new Error(`Failed to load ${src}`));
     document.body.appendChild(s);
   });
@@ -66,11 +64,12 @@ export function SmartAssist() {
       try {
         await loadScript(INJECT_SRC);
         if (cancelled || !window.botpress) return;
+        // Attach the listener BEFORE the share script's init() runs, so the
+        // ready event isn't missed.
         window.botpress.on("webchat:ready", () => {
           if (!cancelled) setReady(true);
         });
-        window.botpress.init(BOT_CONFIG);
-        if (!cancelled) setReady(true);
+        await loadScript(SHARE_SRC);
       } catch (err) {
         console.error("[Botpress] failed to load", err);
       }

@@ -295,7 +295,7 @@ export function DoctorDetailClient({
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 3 — Trailer + ROI calculator (side-by-side)          */}
+        {/* SECTION 3 — Trailer (top) + ROI calculator (below)           */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           id="trailer"
@@ -305,9 +305,9 @@ export function DoctorDetailClient({
           <h2 id="trailer-title" className="sr-only">
             Trailer and ROI estimator
           </h2>
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+          <div className="grid gap-10">
             {/* Video */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-md bg-black lg:aspect-auto lg:min-h-[420px]">
+            <div className="relative mx-auto aspect-video w-full max-w-5xl overflow-hidden rounded-md bg-black">
               {doctor.trailerVideoUrl ? (
                 <TrailerPlayer
                   src={doctor.trailerVideoUrl}
@@ -333,12 +333,11 @@ export function DoctorDetailClient({
               )}
             </div>
 
-            {/* ROI calculator (compact) */}
+            {/* ROI calculator — full left/right layout */}
             <PracticeGrowthCalculator
               defaultSpecialty={doctor.specialty[0]}
               courseTuitionInr={doctor.priceInr}
               ctaHref="#apply"
-              compact
             />
           </div>
         </section>
