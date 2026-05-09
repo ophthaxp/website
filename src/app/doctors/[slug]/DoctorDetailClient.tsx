@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
@@ -71,14 +71,14 @@ export function DoctorDetailClient({
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-center contrast-110 saturate-75"
+              className="object-cover object-top"
             />
             <div
               aria-hidden
               className="absolute inset-0 mix-blend-soft-light"
               style={{
                 background:
-                  "radial-gradient(110% 70% at 50% 10%, rgba(232,38,92,0.9) 0%, rgba(232,38,92,0) 65%)",
+                  "radial-gradient(110% 70% at 50% 10%, rgba(168,130,81,0.9) 0%, rgba(168,130,81,0) 65%)",
               }}
             />
             <div
@@ -235,48 +235,44 @@ export function DoctorDetailClient({
 
           <div
             ref={railRef}
-            className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
+            className="no-scrollbar mr-[calc(50%-50vw)] mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pr-5 sm:pr-8"
           >
-            {otherDoctors.map((d, i) => (
+            {otherDoctors.map((d) => (
               <Link
                 key={d.id}
                 href={`/doctors/${d.slug}`}
-                className="group relative w-[220px] shrink-0 snap-start overflow-hidden rounded-md bg-[#141417] sm:w-[240px]"
+                className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
               >
-                <div className="relative aspect-[3/4] w-full">
-                  <Image
-                    src={d.imageUrl}
-                    alt={`${d.name}, ${d.title}`}
-                    fill
-                    sizes="240px"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  {i === 3 || i === 4 ? (
-                    <span className="absolute left-3 top-3 rounded-sm bg-white/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-black">
-                      New
-                    </span>
-                  ) : null}
-                  <div
+                <Image
+                  src={d.imageUrl}
+                  alt={`${d.name}, ${d.title}`}
+                  fill
+                  sizes="(max-width: 640px) 170px, 210px"
+                  className="object-cover object-top transition duration-500 group-hover:scale-105"
+                />
+                {/* Bottom-up dark scrim — extends ~half the card so titles stay legible */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]"
+                />
+                <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
+                  <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                    {d.name}
+                  </p>
+                  <span
+                    className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
                     aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"
                   />
-                  <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="font-serif text-lg leading-tight">
-                      {d.name.replace("Dr. ", "")}
-                    </p>
-                    <p className="mt-1 text-xs text-white/70">{d.title}</p>
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white">
-                      <Play className="h-3 w-3 fill-white text-white" />
-                      Watch Trailer
-                    </span>
-                  </div>
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
+                    {d.title}
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
 
           <div className="mt-5 flex justify-center gap-1.5">
-            <span className="h-1.5 w-6 rounded-full bg-white/80" />
+            <span className="h-1.5 w-6 rounded-full bg-[#ab834d]" />
             <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
             <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
           </div>

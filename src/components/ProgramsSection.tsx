@@ -189,7 +189,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
                     alt={`${d.name}, ${d.title} — ${d.city}`}
                     fill
                     sizes="(max-width: 640px) 170px, 210px"
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    className="object-cover object-top transition duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-700/40 to-violet-900/40" />

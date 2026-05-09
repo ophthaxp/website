@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { LegendsVideo } from "@/components/LegendsVideo";
 import { ProgramsSection } from "@/components/ProgramsSection";
+import { CertificatesPromo } from "@/components/CertificatesPromo";
 import { SmartAssist } from "@/components/SmartAssist";
 import { Footer } from "@/components/Footer";
 import { courseListJsonLd } from "@/lib/seo";
@@ -35,6 +36,7 @@ export default async function HomePage() {
         <Hero images={heroImages} />
         <LegendsVideo />
         <ProgramsSection doctors={doctors} />
+        <CertificatesPromo />
         <SmartAssist />
       </main>
       <Footer />
