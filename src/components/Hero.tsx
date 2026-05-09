@@ -78,10 +78,10 @@ export function Hero({ images }: { images?: HeroImg[] }) {
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden"
     >
-      <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-10 sm:gap-8 sm:px-8 sm:py-16">
-        <MarqueeColumn images={list} direction="down" />
+      <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-start gap-4 px-4 pb-8 pt-2 sm:gap-8 sm:px-8 sm:pb-16 sm:pt-6">
+        <MarqueeColumn images={list} direction="down" className="self-center" />
 
-        <div className="flex flex-col items-center text-center">
+        <div className="flex flex-col items-center pt-28 text-center sm:pt-26">
           <h1
             id="hero-title"
             className="font-serif text-4xl leading-[1.05] tracking-tight text-white sm:text-6xl"
@@ -100,11 +100,11 @@ export function Hero({ images }: { images?: HeroImg[] }) {
             href="#programs"
             className="mt-7 inline-flex items-center justify-center rounded-[12px] border border-[#2A2A2A] bg-[#1A1A1A] px-7 py-2.5 text-sm font-medium text-white shadow-[0_8px_28px_-12px_rgba(0,0,0,0.8)] transition hover:bg-[#222]"
           >
-            Get Started
+            Take me to Courses
           </Link>
         </div>
 
-        <MarqueeColumn images={list} direction="up" offset={2} />
+        <MarqueeColumn images={list} direction="up" offset={2} className="self-center" />
       </div>
     </section>
   );

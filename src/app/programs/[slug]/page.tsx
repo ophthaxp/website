@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
+import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
@@ -194,6 +195,12 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             <dd className="mt-1 font-semibold text-white">{formatINR(p.priceInr)}</dd>
           </div>
         </dl>
+
+        {/* Practice growth / ROI calculator */}
+        <PracticeGrowthCalculator
+          defaultSpecialty={p.specialty}
+          courseTuitionInr={p.priceInr}
+        />
 
         {/* Highlights */}
         {p.highlights.length > 0 && (

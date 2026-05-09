@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
+import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import type { Doctor } from "@/types";
 
 export function DoctorDetailClient({
@@ -279,6 +280,12 @@ export function DoctorDetailClient({
             <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
             <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
           </div>
+
+          {/* Practice growth / ROI calculator */}
+          <PracticeGrowthCalculator
+            defaultSpecialty={doctor.specialty[0]}
+            ctaHref="#get-started"
+          />
         </section>
 
         {/* Sticky bottom CTA bar */}
