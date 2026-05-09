@@ -43,18 +43,17 @@ export function CertificatesPromo() {
           </Link>
         </div>
 
-        {/* Right — branded preview card */}
+        {/* Right — certificate preview */}
         <div className="flex justify-center lg:justify-end">
           <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-[28px] bg-[#0a0a0d] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)]">
-            {/* Center brand lockup */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <p className="font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                OphthaXP
-              </p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-[0.32em] text-white/90 sm:text-sm">
-                Certificates
-              </p>
-            </div>
+            <Image
+              src="/Ophtha_Certificate.png"
+              alt="OphthaXP certificate of completion"
+              fill
+              sizes="(max-width: 1024px) 90vw, 28rem"
+              className="object-contain p-6"
+              priority={false}
+            />
           </div>
         </div>
       </div>
