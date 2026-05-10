@@ -157,51 +157,46 @@ export function DoctorDetailClient({
       <Navbar />
       <main className="bg-[#06070a] pb-24 text-white">
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 1 — Hero Spotlight                                   */}
+        {/* SECTION 1 — Hero: image + trailer (75%) | info (25%)         */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           aria-labelledby="featured-title"
-          className="grid w-full grid-cols-1 lg:grid-cols-2"
+          className="grid w-full grid-cols-1 lg:grid-cols-4"
         >
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#06070a] lg:aspect-auto lg:min-h-[640px]">
-            <Image
-              src={doctor.imageUrl}
-              alt={`${doctor.name}, ${doctor.title}`}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-top"
-            />
+          <div className="bg-[#06070a] lg:col-span-3">
+            {/* Trailer */}
             <div
-              aria-hidden
-              className="absolute inset-0 mix-blend-soft-light"
-              style={{
-                background:
-                  "radial-gradient(110% 70% at 50% 10%, rgba(168,130,81,0.9) 0%, rgba(168,130,81,0) 65%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(150% 100% at 50% 45%, transparent 38%, rgba(6,7,10,0.55) 100%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-[#06070a]/45 via-transparent to-transparent"
-            />
+              id="trailer"
+              className="relative aspect-video w-full overflow-hidden bg-black"
+            >
+              {doctor.trailerVideoUrl ? (
+                <TrailerPlayer
+                  src={doctor.trailerVideoUrl}
+                  poster={doctor.imageUrl}
+                  title={`${doctor.name} — Trailer`}
+                  className="absolute inset-0 h-full w-full"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0d]">
+                  <div className="text-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]">
+                      Trailer
+                    </p>
+                    <p className="mt-2 text-sm text-white/55">Coming soon</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-14 sm:px-12 lg:px-16">
-            <div className="w-full max-w-md">
+          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-12 sm:px-8 lg:col-span-1 lg:px-6 lg:py-10">
+            <div className="w-full">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
                 {courseName}
               </p>
               <h1
                 id="featured-title"
-                className="mt-3 font-serif text-4xl leading-tight tracking-tight sm:text-5xl"
+                className="mt-3 font-serif text-3xl leading-tight tracking-tight sm:text-4xl"
               >
                 {doctor.name}
               </h1>
@@ -226,11 +221,11 @@ export function DoctorDetailClient({
                 </div>
               ) : null}
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-8">
                 <button
                   type="button"
                   onClick={openApply}
-                  className="rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                  className="w-full rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
                 >
                   Apply Now
                 </button>
@@ -240,130 +235,47 @@ export function DoctorDetailClient({
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 2 — Steps strip                                      */}
+        {/* SECTION 2 — About the mentor (bio)                           */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {description ? (
+          <section
+            aria-labelledby="bio-title"
+            className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+              About the mentor
+            </p>
+            <h2
+              id="bio-title"
+              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
+            >
+              {doctor.name}
+            </h2>
+            <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75">
+              {description}
+            </p>
+          </section>
+        ) : null}
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 3 — ROI calculator                                   */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
-          aria-labelledby="steps-title"
-          className="relative overflow-hidden border-y border-white/5 bg-[#0a0a0d]"
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 60% at 50% 0%, rgba(168,130,81,0.08) 0%, transparent 70%)",
-            }}
-          />
-
-          <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]">
-                How it works
-              </p>
-              <h2
-                id="steps-title"
-                className="mt-4 font-serif text-3xl leading-[1.15] sm:text-[44px]"
-              >
-                Three steps from interest to your first cohort call
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/55">
-                A simple, mentor-led path designed to align outcomes from day one.
-              </p>
-            </div>
-
-            <div className="relative mt-16">
-              {/* Connector line — desktop only, masked by icon bubble shadows */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute left-0 right-0 top-[50px] hidden sm:block"
-              >
-                <div className="mx-auto h-px max-w-[66%] bg-gradient-to-r from-transparent via-[#a88251]/40 to-transparent" />
-              </div>
-
-              <ol className="relative grid gap-14 sm:grid-cols-3 sm:gap-8">
-                {STEPS.map(({ icon: Icon, num, title, desc }) => (
-                  <li key={num} className="group relative text-center">
-                    <div className="relative mx-auto flex h-[100px] items-center justify-center">
-                      <span
-                        aria-hidden
-                        className="select-none font-serif text-[96px] font-light leading-none text-white/[0.06]"
-                      >
-                        {num}
-                      </span>
-                      <span
-                        aria-hidden
-                        className="absolute inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#a88251]/40 bg-[#0a0a0d] text-[#a88251] shadow-[0_0_0_6px_#0a0a0d] transition duration-300 group-hover:scale-105 group-hover:border-[#a88251] group-hover:shadow-[0_0_0_6px_#0a0a0d,0_0_30px_-4px_rgba(168,130,81,0.55)]"
-                      >
-                        <Icon className="h-5 w-5" />
-                      </span>
-                    </div>
-
-                    <p className="mt-6 text-[10px] font-bold tracking-[0.32em] text-[#a88251]">
-                      STEP {num}
-                    </p>
-                    <h3 className="mt-2 font-serif text-2xl leading-tight text-white">
-                      {title}
-                    </h3>
-                    <p className="mx-auto mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
-                      {desc}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 3 — Trailer (top) + ROI calculator (below)           */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        <section
-          id="trailer"
-          aria-labelledby="trailer-title"
+          aria-labelledby="roi-title"
           className="mx-auto max-w-7xl px-5 py-16 sm:px-8"
         >
-          <h2 id="trailer-title" className="sr-only">
-            Trailer and ROI estimator
+          <h2 id="roi-title" className="sr-only">
+            ROI estimator
           </h2>
-          <div className="grid gap-10">
-            {/* Video */}
-            <div className="relative mx-auto aspect-video w-full max-w-5xl overflow-hidden rounded-md bg-black">
-              {doctor.trailerVideoUrl ? (
-                <TrailerPlayer
-                  src={doctor.trailerVideoUrl}
-                  poster={doctor.imageUrl}
-                  title={`${doctor.name} — Trailer`}
-                  className="absolute inset-0 h-full w-full"
-                />
-              ) : (
-                <>
-                  <Image
-                    src={doctor.imageUrl}
-                    alt={`${doctor.name} trailer poster`}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover opacity-70"
-                  />
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="absolute right-5 top-4 flex items-center gap-5 text-sm text-white">
-                    <span className="font-semibold">Trailer</span>
-                    <span className="text-white/60">Coming soon</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* ROI calculator — full left/right layout */}
-            <PracticeGrowthCalculator
-              defaultSpecialty={doctor.specialty[0]}
-              courseTuitionInr={doctor.priceInr}
-              ctaHref="#apply"
-            />
-          </div>
+          <PracticeGrowthCalculator
+            defaultSpecialty={doctor.specialty[0]}
+            courseTuitionInr={doctor.priceInr}
+            ctaHref="#apply"
+          />
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 4 — What You'll Learn                                */}
+        {/* SECTION 4 — Curriculum                                       */}
         {/* ──────────────────────────────────────────────────────────── */}
         {learnItems.length > 0 ? (
           <section
@@ -496,27 +408,79 @@ export function DoctorDetailClient({
         )}
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 6.5 — About the mentor (bio)                         */}
+        {/* SECTION 7 — Steps strip (final)                              */}
         {/* ──────────────────────────────────────────────────────────── */}
-        {description ? (
-          <section
-            aria-labelledby="bio-title"
-            className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              About the mentor
-            </p>
-            <h2
-              id="bio-title"
-              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
-            >
-              {doctor.name}
-            </h2>
-            <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75">
-              {description}
-            </p>
-          </section>
-        ) : null}
+        <section
+          aria-labelledby="steps-title"
+          className="relative overflow-hidden border-y border-white/5 bg-[#0a0a0d]"
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(70% 60% at 50% 0%, rgba(168,130,81,0.08) 0%, transparent 70%)",
+            }}
+          />
+
+          <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]">
+                How it works
+              </p>
+              <h2
+                id="steps-title"
+                className="mt-4 font-serif text-3xl leading-[1.15] sm:text-[44px]"
+              >
+                Three steps from interest to your first cohort call
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/55">
+                A simple, mentor-led path designed to align outcomes from day one.
+              </p>
+            </div>
+
+            <div className="relative mt-16">
+              {/* Connector line — desktop only, masked by icon bubble shadows */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-0 right-0 top-[50px] hidden sm:block"
+              >
+                <div className="mx-auto h-px max-w-[66%] bg-gradient-to-r from-transparent via-[#a88251]/40 to-transparent" />
+              </div>
+
+              <ol className="relative grid gap-14 sm:grid-cols-3 sm:gap-8">
+                {STEPS.map(({ icon: Icon, num, title, desc }) => (
+                  <li key={num} className="group relative text-center">
+                    <div className="relative mx-auto flex h-[100px] items-center justify-center">
+                      <span
+                        aria-hidden
+                        className="select-none font-serif text-[96px] font-light leading-none text-white/[0.06]"
+                      >
+                        {num}
+                      </span>
+                      <span
+                        aria-hidden
+                        className="absolute inline-flex h-14 w-14 items-center justify-center rounded-full border border-[#a88251]/40 bg-[#0a0a0d] text-[#a88251] shadow-[0_0_0_6px_#0a0a0d] transition duration-300 group-hover:scale-105 group-hover:border-[#a88251] group-hover:shadow-[0_0_0_6px_#0a0a0d,0_0_30px_-4px_rgba(168,130,81,0.55)]"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </span>
+                    </div>
+
+                    <p className="mt-6 text-[10px] font-bold tracking-[0.32em] text-[#a88251]">
+                      STEP {num}
+                    </p>
+                    <h3 className="mt-2 font-serif text-2xl leading-tight text-white">
+                      {title}
+                    </h3>
+                    <p className="mx-auto mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
+                      {desc}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 7 — Other mentors rail                               */}
