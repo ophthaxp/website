@@ -89,7 +89,7 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
     name,
     specialty:
       (pickString(rec, "specialty", "Specialty") as Program["specialty"]) ||
-      ("popular" as Program["specialty"]),
+      ("ophthalmology-practice-mastery" as Program["specialty"]),
     description:
       pickString(rec, "description", "summary", "bio", "shortBio") || "",
     durationWeeks: pickNumber(rec, "durationWeeks", "duration_weeks", "duration") ?? 0,
@@ -167,7 +167,10 @@ function mapRecordToDoctor(rec: RawRecord): Doctor | null {
     slug,
     name,
     title: pickString(rec, "title", "designation") ?? "",
-    specialty: specialty.length > 0 ? specialty : (["popular"] as Doctor["specialty"]),
+    specialty:
+      specialty.length > 0
+        ? specialty
+        : (["ophthalmology-practice-mastery"] as Doctor["specialty"]),
     city: pickString(rec, "city", "location") ?? "",
     experienceYears: pickNumber(rec, "experienceYears", "experience_years") ?? 0,
     imageUrl: absoluteUrl(pickString(rec, "imageUrl", "image_url", "image")) ?? "",

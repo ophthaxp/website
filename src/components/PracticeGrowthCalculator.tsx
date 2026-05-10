@@ -12,55 +12,39 @@ interface SpecialtyInfo {
 }
 
 const SPECIALTY_DATA: Record<string, SpecialtyInfo> = {
-  cataract: {
-    label: "Cataract",
+  "cornea-ocular-surface": {
+    label: "Cornea & Ocular Surface",
     factsBlurb:
-      "Cataract is India's leading cause of blindness — over 9 million affected, with consistent surgical demand year-round.",
-    avgSellingPriceInr: 50_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 10,
-  },
-  glaucoma: {
-    label: "Glaucoma",
-    factsBlurb:
-      "Over 11 million Indian adults live with glaucoma, driving sustained demand for diagnostic and surgical care.",
-    avgSellingPriceInr: 75_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 4,
-  },
-  retina: {
-    label: "Retina",
-    factsBlurb:
-      "Diabetic retinopathy affects ~30% of diabetics. India's diabetic population is projected to cross 100M by 2030.",
-    avgSellingPriceInr: 90_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 6,
-  },
-  "vitreo-retinal": {
-    label: "Vitreo-Retinal",
-    factsBlurb:
-      "Vitreo-retinal cases are highly under-served outside metros — premium pricing power and low competition.",
-    avgSellingPriceInr: 110_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 5,
-  },
-  cornea: {
-    label: "Cornea",
-    factsBlurb:
-      "Corneal blindness affects nearly 1.2 million Indians. DALK and DSAEK demand continues to outpace surgeon supply.",
+      "Corneal blindness affects nearly 1.2 million Indians. DALK, DSAEK and ocular surface reconstruction demand continues to outpace surgeon supply.",
     avgSellingPriceInr: 65_000,
     populationServiceable: 1_000_000,
     prevalencePct: 3,
   },
-  refractive: {
-    label: "Refractive",
+  "phaco-refractive-surgery": {
+    label: "Phaco & Refractive Surgery",
     factsBlurb:
-      "Over 250 million Indians need refractive correction. Premium LASIK and SMILE volumes are growing ~18% year-over-year.",
-    avgSellingPriceInr: 80_000,
+      "Cataract is India's leading cause of blindness — over 9 million affected. Combined with 250M+ Indians needing refractive correction, phaco and LASIK/SMILE drive year-round volume.",
+    avgSellingPriceInr: 65_000,
     populationServiceable: 1_000_000,
-    prevalencePct: 25,
+    prevalencePct: 12,
   },
-  pediatric: {
+  "retina-vitreo-retinal-surgery": {
+    label: "Retina & Vitreo-Retinal Surgery",
+    factsBlurb:
+      "Diabetic retinopathy affects ~30% of diabetics, and India's diabetic population is projected to cross 100M by 2030. Vitreo-retinal cases remain under-served outside metros.",
+    avgSellingPriceInr: 100_000,
+    populationServiceable: 1_000_000,
+    prevalencePct: 6,
+  },
+  glaucoma: {
+    label: "Glaucoma",
+    factsBlurb:
+      "Over 11 million Indian adults live with glaucoma, driving sustained demand for diagnostic, medical and MIGS care.",
+    avgSellingPriceInr: 75_000,
+    populationServiceable: 1_000_000,
+    prevalencePct: 4,
+  },
+  "pediatric-ophthalmology": {
     label: "Pediatric Ophthalmology",
     factsBlurb:
       "Childhood blindness affects ~280,000 Indian children. Pediatric refractive and strabismus services are scarce.",
@@ -68,21 +52,21 @@ const SPECIALTY_DATA: Record<string, SpecialtyInfo> = {
     populationServiceable: 1_000_000,
     prevalencePct: 2,
   },
-  uveitis: {
-    label: "Uveitis",
+  oculoplasty: {
+    label: "Oculoplasty",
     factsBlurb:
-      "Uveitis causes ~10% of blindness in working-age adults. Sub-specialty access remains limited across Tier-2 cities.",
-    avgSellingPriceInr: 45_000,
+      "Oculoplasty combines reconstructive and aesthetic eye surgery — a rapidly growing premium-priced segment with limited specialists per metro.",
+    avgSellingPriceInr: 85_000,
     populationServiceable: 1_000_000,
-    prevalencePct: 1.5,
+    prevalencePct: 2,
   },
-  neuro: {
-    label: "Neuro-Ophthalmology",
+  "ophthalmology-practice-mastery": {
+    label: "Ophthalmology Practice Mastery",
     factsBlurb:
-      "Less than 0.5% of practicing Indian ophthalmologists sub-specialize in neuro-ophthalmology — premium consult demand.",
-    avgSellingPriceInr: 4_000,
+      "Practice-management training drives the biggest delta in earnings: better case selection, premium IOL conversion and clinic operations compound across every sub-specialty.",
+    avgSellingPriceInr: 60_000,
     populationServiceable: 1_000_000,
-    prevalencePct: 1,
+    prevalencePct: 8,
   },
 };
 
@@ -101,7 +85,7 @@ interface Props {
 }
 
 export function PracticeGrowthCalculator({
-  defaultSpecialty = "cataract",
+  defaultSpecialty = "phaco-refractive-surgery",
   courseTuitionInr = 350_000,
   ctaHref = "#get-started",
   compact = false,
@@ -109,11 +93,12 @@ export function PracticeGrowthCalculator({
   const initialKey =
     defaultSpecialty && defaultSpecialty in SPECIALTY_DATA
       ? defaultSpecialty
-      : "cataract";
+      : "phaco-refractive-surgery";
   const [specialty, setSpecialty] = useState<string>(initialKey);
   const [patients, setPatients] = useState<number>(60);
 
-  const data = SPECIALTY_DATA[specialty] ?? SPECIALTY_DATA.cataract;
+  const data =
+    SPECIALTY_DATA[specialty] ?? SPECIALTY_DATA["phaco-refractive-surgery"];
 
   const { lowerBound, upperBound, roiMultiplier, impactPct } = useMemo(() => {
     const projectedRevenue = patients * data.avgSellingPriceInr;

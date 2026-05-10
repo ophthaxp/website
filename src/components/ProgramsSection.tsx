@@ -12,14 +12,14 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
   // When the parent passes `doctors` (even an empty array), use it as the source of truth.
   // Only fall back to static data when the prop is omitted entirely (e.g. preview mode).
   const data: Doctor[] = doctors !== undefined ? doctors : DOCTORS;
-  const [active, setActive] = useState<Specialty>("popular");
+  const [active, setActive] = useState<Specialty>("all");
   const [pageCount, setPageCount] = useState(1);
   const [activePage, setActivePage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
-    if (active === "popular") return data;
+    if (active === "all") return data;
     return data.filter((d) => d.specialty.includes(active));
   }, [active, data]);
 

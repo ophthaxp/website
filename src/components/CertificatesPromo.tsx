@@ -36,7 +36,7 @@ export function CertificatesPromo() {
             href="#programs"
             className="mt-8 inline-flex items-center gap-3 rounded-full bg-black py-3 pl-6 pr-2 text-sm font-semibold text-white transition hover:bg-[#1a1a1a]"
           >
-            Explore Certificates
+            Explore Courses
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#c5e833] text-black">
               <ArrowRight className="h-4 w-4" aria-hidden />
             </span>
