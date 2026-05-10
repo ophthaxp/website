@@ -62,6 +62,7 @@ export function DoctorDetailClient({
   const [footerVisible, setFooterVisible] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyIntent, setApplyIntent] = useState<"apply" | "brochure">("apply");
+  const [bioExpanded, setBioExpanded] = useState(false);
   const openApply = () => {
     setApplyIntent("apply");
     setApplyOpen(true);
@@ -91,7 +92,14 @@ export function DoctorDetailClient({
 
   // Course-side fields with sensible fallbacks
   const courseName = doctor.courseName ?? doctor.title;
-  const description = doctor.description ?? doctor.bio;
+  const baseDescription =
+    doctor.description ??
+    doctor.bio ??
+    `${doctor.name} is a senior ${doctor.title.toLowerCase()} with two decades of operating-room experience and a portfolio of mentees now leading practices across India and abroad. In this masterclass, ${doctor.name.split(" ")[0]} distills the clinical judgement, surgical decision-making and practice-building habits that compound into a high-trust referral practice — moving beyond textbook protocols into the nuance you only learn at the table.`;
+  const extendedDescription = `Across the cohort, ${doctor.name.split(" ")[0]} walks through unedited case breakdowns from a personal archive — including the cases that did not go to plan and what they taught about pre-operative selection, intra-operative composure and post-op communication. You will see the decision tree for borderline presentations, the small habits that prevent the most common complications, and the patient-conversation scripts that consistently convert second opinions into long-term trust.
+
+Beyond the OR, the program goes deep into the business of a modern specialty practice: how to position yourself in a crowded market, build a referral engine through clinical reputation rather than discounts, design pricing and packages that respect your time, and scale from solo practitioner to a multi-doctor clinic without losing the craft. Mentees graduate with a written 12-month practice plan, a complications playbook tailored to their case mix, and lifetime access to the alumni circle for second opinions on real cases.`;
+  const description = baseDescription;
   const lessonsLabel = doctor.lessonsCount
     ? `${doctor.lessonsCount} Lessons`
     : null;
@@ -116,10 +124,22 @@ export function DoctorDetailClient({
           ? "one-time payment"
           : null;
 
+  const FALLBACK_LEARN_ITEMS = [
+    "Pre-operative assessment frameworks for complex cases",
+    "Step-by-step intra-operative decision-making under pressure",
+    "Managing complications with confidence and composure",
+    "Post-op protocols that reduce revisions and improve outcomes",
+    "Building a referral engine through clinical reputation",
+    "Pricing, packaging and positioning your specialty practice",
+    "Patient communication that converts consultations to surgeries",
+    "Scaling from solo practitioner to a multi-doctor clinic",
+  ];
   const learnItems =
     doctor.learningOutcomes && doctor.learningOutcomes.length > 0
       ? doctor.learningOutcomes
-      : doctor.highlights ?? [];
+      : doctor.highlights && doctor.highlights.length > 0
+        ? doctor.highlights
+        : FALLBACK_LEARN_ITEMS;
 
   const TESTIMONIALS = [
     {
@@ -161,7 +181,7 @@ export function DoctorDetailClient({
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           aria-labelledby="featured-title"
-          className="grid w-full grid-cols-1 lg:grid-cols-4"
+          className="grid w-full grid-cols-1 lg:grid-cols-5"
         >
           <div className="bg-[#06070a] lg:col-span-3">
             {/* Trailer */}
@@ -189,7 +209,7 @@ export function DoctorDetailClient({
             </div>
           </div>
 
-          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-12 sm:px-8 lg:col-span-1 lg:px-6 lg:py-10">
+          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-12 sm:px-8 lg:col-span-2 lg:px-10 lg:py-12">
             <div className="w-full">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
                 {courseName}
@@ -235,27 +255,59 @@ export function DoctorDetailClient({
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 2 — About the mentor (bio)                           */}
+        {/* SECTION 2 — About the mentor (bio) with Know More expand     */}
         {/* ──────────────────────────────────────────────────────────── */}
-        {description ? (
-          <section
-            aria-labelledby="bio-title"
-            className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              About the mentor
-            </p>
-            <h2
-              id="bio-title"
-              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
+        {(() => {
+          const fullBio = `${description}\n\n${extendedDescription}`;
+          const PREVIEW_LEN = 500;
+          const needsTruncation = fullBio.length > PREVIEW_LEN;
+          const previewText = needsTruncation
+            ? `${fullBio.slice(0, PREVIEW_LEN).trimEnd()}…`
+            : fullBio;
+          return (
+            <section
+              aria-labelledby="bio-title"
+              className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
             >
-              {doctor.name}
-            </h2>
-            <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75">
-              {description}
-            </p>
-          </section>
-        ) : null}
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                About the mentor
+              </p>
+              <h2
+                id="bio-title"
+                className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
+              >
+                {doctor.name}
+              </h2>
+
+              <p
+                id="bio-text"
+                className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75"
+              >
+                {bioExpanded ? fullBio : previewText}
+              </p>
+
+              {needsTruncation ? (
+                <button
+                  type="button"
+                  onClick={() => setBioExpanded((v) => !v)}
+                  aria-expanded={bioExpanded}
+                  aria-controls="bio-text"
+                  className="mt-6 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/85 transition hover:bg-white/10"
+                >
+                  {bioExpanded ? "Show less" : "Know more"}
+                  <span
+                    aria-hidden
+                    className={`inline-block transition-transform duration-300 ${
+                      bioExpanded ? "rotate-180" : ""
+                    }`}
+                  >
+                    ↓
+                  </span>
+                </button>
+              ) : null}
+            </section>
+          );
+        })()}
 
         {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 3 — ROI calculator                                   */}
@@ -343,13 +395,6 @@ export function DoctorDetailClient({
             </div>
 
             <div className="flex flex-wrap gap-3 lg:flex-nowrap">
-              <button
-                type="button"
-                onClick={openApply}
-                className="rounded-md border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Register
-              </button>
               <button
                 type="button"
                 onClick={openApply}
@@ -596,31 +641,38 @@ export function DoctorDetailClient({
               ))}
             </div>
             <div className="text-xs leading-tight">
-              <p className="font-semibold text-white">
-                {priceLabel ? (
-                  <>
-                    From <span className="font-bold">{priceLabel}</span>
-                  </>
-                ) : perDayLabel ? (
-                  <>
-                    Starting at <span className="font-bold">{perDayLabel}</span>
-                  </>
-                ) : (
-                  "Custom pricing"
-                )}
+              <p
+                className="line-clamp-1 max-w-[200px] font-semibold text-white sm:max-w-[420px]"
+                title={courseName}
+              >
+                {courseName}
               </p>
-              {billingLabel ? (
-                <p className="text-white/55">{billingLabel}</p>
-              ) : null}
+              <p className="text-white/55">
+                {doctor.name}
+              </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={openApply}
-            className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
-          >
-            Apply Now
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setBioExpanded(true);
+                document
+                  .getElementById("bio-title")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Know More
+            </button>
+            <button
+              type="button"
+              onClick={openApply}
+              className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+            >
+              Apply Now
+            </button>
+          </div>
         </div>
       </div>
 

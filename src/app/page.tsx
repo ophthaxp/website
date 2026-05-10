@@ -4,6 +4,7 @@ import { LegendsVideo } from "@/components/LegendsVideo";
 import { ProgramsSection } from "@/components/ProgramsSection";
 import { CertificatesPromo } from "@/components/CertificatesPromo";
 import { SmartAssist } from "@/components/SmartAssist";
+import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
 import { courseListJsonLd } from "@/lib/seo";
 import {
@@ -38,6 +39,7 @@ export default async function HomePage() {
         <ProgramsSection doctors={doctors} />
         <CertificatesPromo />
         <SmartAssist />
+        <FaqSection />
       </main>
       <Footer />
     </>
