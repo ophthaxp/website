@@ -42,7 +42,7 @@ function absoluteUrl(value?: string): string | undefined {
   if (!value) return undefined;
   if (value.startsWith("data:")) return value;
   const fileMatch = /\/api\/public\/files\/(.+)$/i.exec(value);
-  if (fileMatch) return `/_proxy/files/${fileMatch[1]}`;
+  if (fileMatch) return `/api/media/${fileMatch[1]}`;
   if (/^https?:\/\//i.test(value)) return value;
   if (!NOCODE_BASE) return value;
   return value.startsWith("/") ? `${NOCODE_BASE}${value}` : `${NOCODE_BASE}/${value}`;

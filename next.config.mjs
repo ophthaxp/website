@@ -28,15 +28,6 @@ const nextConfig = {
       ...(nocodeRemotePattern ? [nocodeRemotePattern] : []),
     ],
   },
-  async rewrites() {
-    if (!nocodeBase) return [];
-    return [
-      {
-        source: "/_proxy/files/:path*",
-        destination: `${nocodeBase}/api/public/files/:path*`,
-      },
-    ];
-  },
   async headers() {
     return [
       {
