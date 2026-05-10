@@ -186,7 +186,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
                 {d.imageUrl ? (
                   <Image
                     src={d.imageUrl}
-                    alt={`${d.name}, ${d.title} — ${d.city}`}
+                    alt={`${d.name}${d.courseName ? `, ${d.courseName}` : ""}${d.city ? ` — ${d.city}` : ""}`}
                     fill
                     sizes="(max-width: 640px) 170px, 210px"
                     className="object-cover object-top transition duration-500 group-hover:scale-105"
@@ -200,13 +200,17 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
                   <p className="font-serif text-lg leading-tight text-white sm:text-xl">
                     {d.name}
                   </p>
-                  <span
-                    className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
-                    aria-hidden
-                  />
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
-                    {d.title}
-                  </p>
+                  {d.courseName ? (
+                    <>
+                      <span
+                        className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                        aria-hidden
+                      />
+                      <p className="mt-1.5 line-clamp-2 text-[11px] font-semibold text-white/85 sm:text-xs">
+                        {d.courseName}
+                      </p>
+                    </>
+                  ) : null}
                 </div>
               </Link>
             ))

@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Download,
   GraduationCap,
   PhoneCall,
 } from "lucide-react";
@@ -65,10 +64,6 @@ export function DoctorDetailClient({
   const [applyIntent, setApplyIntent] = useState<"apply" | "brochure">("apply");
   const openApply = () => {
     setApplyIntent("apply");
-    setApplyOpen(true);
-  };
-  const openBrochure = () => {
-    setApplyIntent("brochure");
     setApplyOpen(true);
   };
   const closeApply = () => setApplyOpen(false);
@@ -214,22 +209,9 @@ export function DoctorDetailClient({
               <div className="mt-4 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  TEACHES {doctor.title.toUpperCase()}
+                  TEACHES {courseName.toUpperCase()}
                 </span>
               </div>
-
-              <p className="mt-6 text-sm font-semibold text-white/90">
-                {doctor.city}
-                {doctor.experienceYears
-                  ? ` · ${doctor.experienceYears} years of experience`
-                  : ""}
-              </p>
-
-              {description ? (
-                <p className="mt-4 line-clamp-3 text-[15px] leading-relaxed text-white/70">
-                  {description}
-                </p>
-              ) : null}
 
               {metaPills.length > 0 ? (
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -252,24 +234,7 @@ export function DoctorDetailClient({
                 >
                   Apply Now
                 </button>
-                <button
-                  type="button"
-                  onClick={openBrochure}
-                  className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Brochure
-                </button>
               </div>
-
-              {doctor.trailerVideoUrl ? (
-                <Link
-                  href="#trailer"
-                  className="mt-4 inline-block text-xs font-semibold text-white/70 underline-offset-4 hover:text-white hover:underline"
-                >
-                  ▶ Watch Trailer
-                </Link>
-              ) : null}
             </div>
           </div>
         </section>
@@ -531,6 +496,29 @@ export function DoctorDetailClient({
         )}
 
         {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 6.5 — About the mentor (bio)                         */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {description ? (
+          <section
+            aria-labelledby="bio-title"
+            className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+              About the mentor
+            </p>
+            <h2
+              id="bio-title"
+              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
+            >
+              {doctor.name}
+            </h2>
+            <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75">
+              {description}
+            </p>
+          </section>
+        ) : null}
+
+        {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 7 — Other mentors rail                               */}
         {/* ──────────────────────────────────────────────────────────── */}
         {otherDoctors.length > 0 ? (
@@ -574,37 +562,44 @@ export function DoctorDetailClient({
               ref={railRef}
               className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
             >
-              {otherDoctors.map((d) => (
-                <Link
-                  key={d.id}
-                  href={`/doctors/${d.slug}`}
-                  className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
-                >
-                  <Image
-                    src={d.imageUrl}
-                    alt={`${d.name}, ${d.title}`}
-                    fill
-                    sizes="(max-width: 640px) 170px, 210px"
-                    className="object-cover object-top transition duration-500 group-hover:scale-105"
-                  />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
-                    <p className="font-serif text-lg leading-tight text-white sm:text-xl">
-                      {d.name}
-                    </p>
-                    <span
-                      className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
-                      aria-hidden
+              {otherDoctors.map((d) => {
+                const subtitle = d.courseName ?? d.title;
+                return (
+                  <Link
+                    key={d.id}
+                    href={`/doctors/${d.slug}`}
+                    className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
+                  >
+                    <Image
+                      src={d.imageUrl}
+                      alt={`${d.name}, ${subtitle}`}
+                      fill
+                      sizes="(max-width: 640px) 170px, 210px"
+                      className="object-cover object-top transition duration-500 group-hover:scale-105"
                     />
-                    <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
-                      {d.title}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
+                      <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                        {d.name}
+                      </p>
+                      {subtitle ? (
+                        <>
+                          <span
+                            className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                            aria-hidden
+                          />
+                          <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
+                            {subtitle}
+                          </p>
+                        </>
+                      ) : null}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         ) : null}

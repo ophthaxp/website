@@ -33,7 +33,7 @@ export function CertificatesPromo() {
           </p>
 
           <Link
-            href="#programs"
+            href="programs"
             className="mt-8 inline-flex items-center gap-3 rounded-full bg-black py-3 pl-6 pr-2 text-sm font-semibold text-white transition hover:bg-[#1a1a1a]"
           >
             Explore Courses
