@@ -107,7 +107,7 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
   const durationWeekLabel = doctor.durationWeeks
     ? `${doctor.durationWeeks} weeks`
     : null;
-  const metaPills = [durationWeekLabel, lessonsLabel, durationMinLabel].filter(
+  const metaPills = [durationWeekLabel, lessonsLabel].filter(
     Boolean,
   ) as string[];
 
@@ -211,12 +211,9 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
 
           <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-12 sm:px-8 lg:col-span-2 lg:px-10 lg:py-12">
             <div className="w-full">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-                {courseName}
-              </p>
               <h1
                 id="featured-title"
-                className="mt-3 font-serif text-3xl leading-tight tracking-tight sm:text-4xl"
+                className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl"
               >
                 {doctor.name}
               </h1>
@@ -224,7 +221,7 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
               <div className="mt-4 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  TEACHES {courseName.toUpperCase()}
+                  TEACHES BY {doctor.name.toUpperCase()}
                 </span>
               </div>
 
@@ -241,11 +238,15 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
                 </div>
               ) : null}
 
+              <p className="mt-6 line-clamp-4 text-sm leading-relaxed text-white/70">
+                {baseDescription}
+              </p>
+
               <div className="mt-8">
                 <button
                   type="button"
                   onClick={openApply}
-                  className="w-full rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                  className="inline-flex rounded-md bg-[#a88251] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
                 >
                   Apply Now
                 </button>
@@ -327,38 +328,74 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 4 — Curriculum                                       */}
+        {/* SECTION 4 — Curriculum (left: What You'll Learn, right: Highlights) */}
         {/* ──────────────────────────────────────────────────────────── */}
         {learnItems.length > 0 ? (
           <section
             aria-labelledby="learn-title"
-            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
+            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+            <p className="font-serif text-5xl leading-tight tracking-tight text-accent-soft sm:text-6xl">
               Curriculum
             </p>
-            <h2
-              id="learn-title"
-              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
-            >
-              What You&rsquo;ll Learn
-            </h2>
 
-            <ul className="mt-10 grid gap-x-10 gap-y-4 sm:grid-cols-2">
-              {learnItems.map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <span
-                    aria-hidden
-                    className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-[15px] leading-relaxed text-white/85">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-16">
+              {/* LEFT — What You'll Learn */}
+              <div>
+                <h2
+                  id="learn-title"
+                  className="font-serif text-4xl leading-tight sm:text-5xl"
+                >
+                  What You&rsquo;ll Learn
+                </h2>
+                <ul className="mt-10 space-y-5">
+                  {learnItems.map((item) => (
+                    <li key={item} className="flex items-start gap-4">
+                      <span
+                        aria-hidden
+                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
+                      >
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* RIGHT — Curriculum Highlights */}
+              <div>
+                <h2 className="font-serif text-4xl leading-tight sm:text-5xl">
+                  Curriculum Highlights
+                </h2>
+                <ul className="mt-10 space-y-5">
+                  {[
+                    "12+ unedited OR case breakdowns from the mentor's archive",
+                    "Live case clinics with second-opinion review of your patients",
+                    "Step-by-step decision trees for borderline presentations",
+                    "Complications playbook tailored to your case mix",
+                    "1:1 office hours and private cohort community access",
+                    "Practice growth playbook — pricing, packaging, referrals",
+                    "12-month written practice plan you graduate with",
+                    "Lifetime alumni circle for second opinions on real cases",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-4">
+                      <span
+                        aria-hidden
+                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#a88251]/15 text-[#a88251] ring-1 ring-[#a88251]/30"
+                      >
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </section>
         ) : null}
 
