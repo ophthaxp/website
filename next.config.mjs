@@ -1,4 +1,20 @@
 /** @type {import('next').NextConfig} */
+const nocodeBase = (process.env.NOCODE_API_BASE_URL || "").replace(/\/$/, "");
+
+let nocodeRemotePattern;
+if (nocodeBase) {
+  try {
+    const u = new URL(nocodeBase);
+    nocodeRemotePattern = {
+      protocol: u.protocol.replace(":", ""),
+      hostname: u.hostname,
+      ...(u.port ? { port: u.port } : {}),
+    };
+  } catch {
+    nocodeRemotePattern = undefined;
+  }
+}
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -9,7 +25,17 @@ const nextConfig = {
       { protocol: "https", hostname: "**" },
       { protocol: "http", hostname: "localhost" },
       { protocol: "http", hostname: "127.0.0.1" },
+      ...(nocodeRemotePattern ? [nocodeRemotePattern] : []),
     ],
+  },
+  async rewrites() {
+    if (!nocodeBase) return [];
+    return [
+      {
+        source: "/_proxy/files/:path*",
+        destination: `${nocodeBase}/api/public/files/:path*`,
+      },
+    ];
   },
   async headers() {
     return [

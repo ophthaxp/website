@@ -31,13 +31,19 @@ function pickNumber(rec: RawRecord, ...keys: string[]): number | undefined {
 }
 
 /**
- * If the value is a relative path coming from the nocode backend (e.g.
- * "/api/public/files/foo.jpg"), prefix it with the backend base URL so the
- * browser can load it. Absolute URLs are returned as-is.
+ * Normalise a media URL coming from the nocode backend. Public-file URLs
+ * (relative or absolute) are routed through the same-origin `/_proxy/files/*`
+ * rewrite defined in next.config.mjs — that lets HTTPS pages load assets from
+ * an HTTP backend without mixed-content blocking and without leaking the
+ * backend host. Other absolute URLs pass through; other relative paths are
+ * resolved against the backend base.
  */
 function absoluteUrl(value?: string): string | undefined {
   if (!value) return undefined;
-  if (/^https?:\/\//i.test(value) || value.startsWith("data:")) return value;
+  if (value.startsWith("data:")) return value;
+  const fileMatch = /\/api\/public\/files\/(.+)$/i.exec(value);
+  if (fileMatch) return `/_proxy/files/${fileMatch[1]}`;
+  if (/^https?:\/\//i.test(value)) return value;
   if (!NOCODE_BASE) return value;
   return value.startsWith("/") ? `${NOCODE_BASE}${value}` : `${NOCODE_BASE}/${value}`;
 }

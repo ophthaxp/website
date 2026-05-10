@@ -51,7 +51,7 @@ export function CertificatesPromo() {
               alt="OphthaXP certificate of completion"
               fill
               sizes="(max-width: 1024px) 90vw, 28rem"
-              className="object-contain p-6"
+              className="object-contain"
               priority={false}
             />
           </div>
