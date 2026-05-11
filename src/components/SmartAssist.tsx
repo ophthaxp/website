@@ -60,6 +60,7 @@ export function SmartAssist() {
 
   useEffect(() => {
     let cancelled = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
     (async () => {
       try {
         await loadScript(INJECT_SRC);
@@ -70,12 +71,21 @@ export function SmartAssist() {
           if (!cancelled) setReady(true);
         });
         await loadScript(SHARE_SRC);
+        if (cancelled) return;
+        // Fallback: if `webchat:ready` never fires (e.g. event missed during
+        // init, or bundle changed event name), `window.botpress.open()` is
+        // still callable once both scripts have loaded. Unblock the UI after
+        // a short grace period so the button does not get stuck on "Loading…".
+        fallbackTimer = setTimeout(() => {
+          if (!cancelled && window.botpress) setReady(true);
+        }, 2000);
       } catch (err) {
         console.error("[Botpress] failed to load", err);
       }
     })();
     return () => {
       cancelled = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, []);
 

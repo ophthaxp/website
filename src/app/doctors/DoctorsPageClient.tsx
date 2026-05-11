@@ -26,6 +26,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   }
 
   const FEATURED_DOCTOR = DOCTORS[0];
+  const FEATURED_COVER = FEATURED_DOCTOR.doctorImage ?? FEATURED_DOCTOR.imageUrl;
   const MEMBER_AVATARS = DOCTORS.slice(1, 6).map((d) => d.imageUrl);
   const TESTIMONIALS = [
     {
@@ -81,7 +82,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
               }}
             />
             <Image
-              src={FEATURED_DOCTOR.imageUrl}
+              src={FEATURED_COVER}
               alt={`${FEATURED_DOCTOR.name}, ${FEATURED_DOCTOR.title}`}
               fill
               priority
@@ -101,37 +102,47 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
                 id="featured-title"
                 className="font-serif text-4xl leading-tight tracking-tight sm:text-5xl"
               >
-                Master Ophthalmic
-                <br />
-                Excellence
+                {FEATURED_DOCTOR.courseName ?? FEATURED_DOCTOR.title}
               </h1>
 
               <div className="mt-5 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  WITH OPHTHAXP
+                  BY {FEATURED_DOCTOR.name.toUpperCase()}
                 </span>
               </div>
 
-              <p className="mt-8 text-base font-semibold">
-                Featuring {DOCTORS.length} Expert Mentors
+              <p className="mt-6 text-[15px] leading-relaxed text-white/70">
+                {FEATURED_DOCTOR.description ??
+                  FEATURED_DOCTOR.bio ??
+                  `Senior ophthalmologists show you how to turn live, cohort-based mentorship into surgical mastery — review real cases, refine technique, and operate with confidence.`}
               </p>
 
-              <p className="mt-5 text-[15px] leading-relaxed text-white/70">
-                Senior ophthalmologists show you how to turn live, cohort-based
-                mentorship into surgical mastery — review real cases, refine
-                technique, and operate with confidence.
-              </p>
-
-              <div className="mt-7 flex items-center gap-4 text-sm text-white/85">
-                <span>10 Lessons · 1hr 39mins</span>
-                <Link
-                  href="#trailer"
-                  className="font-semibold text-white underline-offset-4 hover:underline"
-                >
-                  Watch Trailer
-                </Link>
-              </div>
+              {(() => {
+                const months = FEATURED_DOCTOR.durationWeeks
+                  ? Math.max(1, Math.round(FEATURED_DOCTOR.durationWeeks / 4))
+                  : null;
+                const modules = FEATURED_DOCTOR.lessonsCount ?? null;
+                const parts: string[] = [];
+                if (months)
+                  parts.push(`${months} ${months === 1 ? "month" : "months"}`);
+                if (modules)
+                  parts.push(
+                    `${modules} ${modules === 1 ? "module" : "modules"}`,
+                  );
+                if (parts.length === 0) return null;
+                return (
+                  <div className="mt-7 flex items-center gap-4 text-sm text-white/85">
+                    <span>{parts.join(" · ")}</span>
+                    <Link
+                      href="#trailer"
+                      className="font-semibold text-white underline-offset-4 hover:underline"
+                    >
+                      Watch Trailer
+                    </Link>
+                  </div>
+                );
+              })()}
 
               <div className="mt-10 rounded-xl bg-[#141417] p-5">
                 <div className="flex items-center justify-center gap-3">
