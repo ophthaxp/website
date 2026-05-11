@@ -365,7 +365,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
 
               {/* COL 2 — Curriculum Highlights */}
               <div>
-                <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
+                <h2 className="font-serif text-3xl leading-tight sm:text-3xl">
                   Curriculum Highlights
                 </h2>
                 <ul className="mt-8 space-y-4">
@@ -396,7 +396,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
                 <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
                   Course format
                   <span className="mt-1 block whitespace-nowrap font-sans text-sm font-normal tracking-normal text-white/55">
-                    (blended learning)
+                    {/* (blended learning) */}
                   </span>
                 </h2>
                 <ul className="mt-8 space-y-4">
