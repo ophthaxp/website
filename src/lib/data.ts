@@ -26,7 +26,7 @@ export const HERO_IMAGES: { src: string; alt: string }[] = Array.from({ length: 
   }),
 );
 
-export const HERO_VIDEO_POSTER = "/mainvideothumnailimage.webp";
+export const HERO_VIDEO_POSTER = "/mainvideothumnailimage.png";
 // Override with NEXT_PUBLIC_HERO_VIDEO_SRC in your env to use a real OphthaXP trailer.
 // The default below points at Google's long-lived public test bucket so dev never breaks.
 export const HERO_VIDEO_SRC =
