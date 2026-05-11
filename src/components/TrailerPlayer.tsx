@@ -81,12 +81,27 @@ function DirectVideo({
         Your browser does not support the video tag.
       </video>
       {!started ? (
-        <button
-          type="button"
-          onClick={handleStart}
-          aria-label="Play trailer"
-          className="absolute inset-0 z-10 cursor-pointer bg-transparent"
-        />
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-4 right-4 z-20 inline-flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="h-3 w-3"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Watch Trailer
+          </span>
+          <button
+            type="button"
+            onClick={handleStart}
+            aria-label="Play trailer"
+            className="absolute inset-0 z-10 cursor-pointer bg-transparent"
+          />
+        </>
       ) : null}
     </div>
   );
