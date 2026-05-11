@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Download,
   GraduationCap,
   PhoneCall,
 } from "lucide-react";
@@ -63,12 +62,9 @@ export function DoctorDetailClient({
   const [footerVisible, setFooterVisible] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyIntent, setApplyIntent] = useState<"apply" | "brochure">("apply");
+  const [bioExpanded, setBioExpanded] = useState(false);
   const openApply = () => {
     setApplyIntent("apply");
-    setApplyOpen(true);
-  };
-  const openBrochure = () => {
-    setApplyIntent("brochure");
     setApplyOpen(true);
   };
   const closeApply = () => setApplyOpen(false);
@@ -96,7 +92,14 @@ export function DoctorDetailClient({
 
   // Course-side fields with sensible fallbacks
   const courseName = doctor.courseName ?? doctor.title;
-  const description = doctor.description ?? doctor.bio;
+  const baseDescription =
+    doctor.description ??
+    doctor.bio ??
+    `${doctor.name} is a senior ${doctor.title.toLowerCase()} with two decades of operating-room experience and a portfolio of mentees now leading practices across India and abroad. In this masterclass, ${doctor.name.split(" ")[0]} distills the clinical judgement, surgical decision-making and practice-building habits that compound into a high-trust referral practice — moving beyond textbook protocols into the nuance you only learn at the table.`;
+  const extendedDescription = `Across the cohort, ${doctor.name.split(" ")[0]} walks through unedited case breakdowns from a personal archive — including the cases that did not go to plan and what they taught about pre-operative selection, intra-operative composure and post-op communication. You will see the decision tree for borderline presentations, the small habits that prevent the most common complications, and the patient-conversation scripts that consistently convert second opinions into long-term trust.
+
+Beyond the OR, the program goes deep into the business of a modern specialty practice: how to position yourself in a crowded market, build a referral engine through clinical reputation rather than discounts, design pricing and packages that respect your time, and scale from solo practitioner to a multi-doctor clinic without losing the craft. Mentees graduate with a written 12-month practice plan, a complications playbook tailored to their case mix, and lifetime access to the alumni circle for second opinions on real cases.`;
+  const description = baseDescription;
   const lessonsLabel = doctor.lessonsCount
     ? `${doctor.lessonsCount} Lessons`
     : null;
@@ -104,7 +107,7 @@ export function DoctorDetailClient({
   const durationWeekLabel = doctor.durationWeeks
     ? `${doctor.durationWeeks} weeks`
     : null;
-  const metaPills = [durationWeekLabel, lessonsLabel, durationMinLabel].filter(
+  const metaPills = [durationWeekLabel, lessonsLabel].filter(
     Boolean,
   ) as string[];
 
@@ -121,10 +124,22 @@ export function DoctorDetailClient({
           ? "one-time payment"
           : null;
 
+  const FALLBACK_LEARN_ITEMS = [
+    "Pre-operative assessment frameworks for complex cases",
+    "Step-by-step intra-operative decision-making under pressure",
+    "Managing complications with confidence and composure",
+    "Post-op protocols that reduce revisions and improve outcomes",
+    "Building a referral engine through clinical reputation",
+    "Pricing, packaging and positioning your specialty practice",
+    "Patient communication that converts consultations to surgeries",
+    "Scaling from solo practitioner to a multi-doctor clinic",
+  ];
   const learnItems =
     doctor.learningOutcomes && doctor.learningOutcomes.length > 0
       ? doctor.learningOutcomes
-      : doctor.highlights ?? [];
+      : doctor.highlights && doctor.highlights.length > 0
+        ? doctor.highlights
+        : FALLBACK_LEARN_ITEMS;
 
   const TESTIMONIALS = [
     {
@@ -162,51 +177,43 @@ export function DoctorDetailClient({
       <Navbar />
       <main className="bg-[#06070a] pb-24 text-white">
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 1 — Hero Spotlight                                   */}
+        {/* SECTION 1 — Hero: image + trailer (75%) | info (25%)         */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           aria-labelledby="featured-title"
-          className="grid w-full grid-cols-1 lg:grid-cols-2"
+          className="grid w-full grid-cols-1 lg:grid-cols-5"
         >
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#06070a] lg:aspect-auto lg:min-h-[640px]">
-            <Image
-              src={doctor.imageUrl}
-              alt={`${doctor.name}, ${doctor.title}`}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-top"
-            />
+          <div className="bg-[#06070a] lg:col-span-3">
+            {/* Trailer */}
             <div
-              aria-hidden
-              className="absolute inset-0 mix-blend-soft-light"
-              style={{
-                background:
-                  "radial-gradient(110% 70% at 50% 10%, rgba(168,130,81,0.9) 0%, rgba(168,130,81,0) 65%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(150% 100% at 50% 45%, transparent 38%, rgba(6,7,10,0.55) 100%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-[#06070a]/45 via-transparent to-transparent"
-            />
+              id="trailer"
+              className="relative aspect-video w-full overflow-hidden bg-black"
+            >
+              {doctor.trailerVideoUrl ? (
+                <TrailerPlayer
+                  src={doctor.trailerVideoUrl}
+                  poster={doctor.imageUrl}
+                  title={`${doctor.name} — Trailer`}
+                  className="absolute inset-0 h-full w-full"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0d]">
+                  <div className="text-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]">
+                      Trailer
+                    </p>
+                    <p className="mt-2 text-sm text-white/55">Coming soon</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-14 sm:px-12 lg:px-16">
-            <div className="w-full max-w-md">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-                {courseName}
-              </p>
+          <div className="flex items-center justify-center bg-[#0a0a0d] px-6 py-12 sm:px-8 lg:col-span-2 lg:px-10 lg:py-12">
+            <div className="w-full">
               <h1
                 id="featured-title"
-                className="mt-3 font-serif text-4xl leading-tight tracking-tight sm:text-5xl"
+                className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl"
               >
                 {doctor.name}
               </h1>
@@ -214,22 +221,9 @@ export function DoctorDetailClient({
               <div className="mt-4 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  TEACHES {doctor.title.toUpperCase()}
+                  TEACHES BY {doctor.name.toUpperCase()}
                 </span>
               </div>
-
-              <p className="mt-6 text-sm font-semibold text-white/90">
-                {doctor.city}
-                {doctor.experienceYears
-                  ? ` · ${doctor.experienceYears} years of experience`
-                  : ""}
-              </p>
-
-              {description ? (
-                <p className="mt-4 line-clamp-3 text-[15px] leading-relaxed text-white/70">
-                  {description}
-                </p>
-              ) : null}
 
               {metaPills.length > 0 ? (
                 <div className="mt-6 flex flex-wrap gap-2">
@@ -244,38 +238,259 @@ export function DoctorDetailClient({
                 </div>
               ) : null}
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <p className="mt-6 line-clamp-4 text-sm leading-relaxed text-white/70">
+                {baseDescription}
+              </p>
+
+              <div className="mt-8">
                 <button
                   type="button"
                   onClick={openApply}
-                  className="rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                  className="inline-flex rounded-md bg-[#a88251] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
                 >
                   Apply Now
                 </button>
-                <button
-                  type="button"
-                  onClick={openBrochure}
-                  className="inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Brochure
-                </button>
               </div>
-
-              {doctor.trailerVideoUrl ? (
-                <Link
-                  href="#trailer"
-                  className="mt-4 inline-block text-xs font-semibold text-white/70 underline-offset-4 hover:text-white hover:underline"
-                >
-                  ▶ Watch Trailer
-                </Link>
-              ) : null}
             </div>
           </div>
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 2 — Steps strip                                      */}
+        {/* SECTION 2 — About the mentor (bio) with Know More expand     */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {(() => {
+          const fullBio = `${description}\n\n${extendedDescription}`;
+          const PREVIEW_LEN = 500;
+          const needsTruncation = fullBio.length > PREVIEW_LEN;
+          const previewText = needsTruncation
+            ? `${fullBio.slice(0, PREVIEW_LEN).trimEnd()}…`
+            : fullBio;
+          return (
+            <section
+              aria-labelledby="bio-title"
+              className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                About the mentor
+              </p>
+              <h2
+                id="bio-title"
+                className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
+              >
+                {doctor.name}
+              </h2>
+
+              <p
+                id="bio-text"
+                className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75"
+              >
+                {bioExpanded ? fullBio : previewText}
+              </p>
+
+              {needsTruncation ? (
+                <button
+                  type="button"
+                  onClick={() => setBioExpanded((v) => !v)}
+                  aria-expanded={bioExpanded}
+                  aria-controls="bio-text"
+                  className="mt-6 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/85 transition hover:bg-white/10"
+                >
+                  {bioExpanded ? "Show less" : "Know more"}
+                  <span
+                    aria-hidden
+                    className={`inline-block transition-transform duration-300 ${
+                      bioExpanded ? "rotate-180" : ""
+                    }`}
+                  >
+                    ↓
+                  </span>
+                </button>
+              ) : null}
+            </section>
+          );
+        })()}
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 3 — ROI calculator                                   */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        <section
+          aria-labelledby="roi-title"
+          className="mx-auto max-w-7xl px-5 py-16 sm:px-8"
+        >
+          <h2 id="roi-title" className="sr-only">
+            ROI estimator
+          </h2>
+          <PracticeGrowthCalculator
+            defaultSpecialty={doctor.specialty[0]}
+            courseTuitionInr={doctor.priceInr}
+            ctaHref="#apply"
+          />
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 4 — Curriculum (left: What You'll Learn, right: Highlights) */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {learnItems.length > 0 ? (
+          <section
+            aria-labelledby="learn-title"
+            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24"
+          >
+            <p className="font-serif text-5xl leading-tight tracking-tight text-accent-soft sm:text-6xl">
+              Curriculum
+            </p>
+
+            <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-16">
+              {/* LEFT — What You'll Learn */}
+              <div>
+                <h2
+                  id="learn-title"
+                  className="font-serif text-4xl leading-tight sm:text-5xl"
+                >
+                  What You&rsquo;ll Learn
+                </h2>
+                <ul className="mt-10 space-y-5">
+                  {learnItems.map((item) => (
+                    <li key={item} className="flex items-start gap-4">
+                      <span
+                        aria-hidden
+                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
+                      >
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* RIGHT — Curriculum Highlights */}
+              <div>
+                <h2 className="font-serif text-4xl leading-tight sm:text-5xl">
+                  Curriculum Highlights
+                </h2>
+                <ul className="mt-10 space-y-5">
+                  {[
+                    "12+ unedited OR case breakdowns from the mentor's archive",
+                    "Live case clinics with second-opinion review of your patients",
+                    "Step-by-step decision trees for borderline presentations",
+                    "Complications playbook tailored to your case mix",
+                    "1:1 office hours and private cohort community access",
+                    "Practice growth playbook — pricing, packaging, referrals",
+                    "12-month written practice plan you graduate with",
+                    "Lifetime alumni circle for second opinions on real cases",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-4">
+                      <span
+                        aria-hidden
+                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#a88251]/15 text-[#a88251] ring-1 ring-[#a88251]/30"
+                      >
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 5 — Pricing card + Register / Apply                  */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        <section
+          id="apply"
+          aria-labelledby="apply-title"
+          className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16"
+        >
+          <div className="grid gap-8 rounded-2xl bg-[#141417] p-8 ring-1 ring-white/5 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                Investment
+              </p>
+              <p
+                id="apply-title"
+                className="mt-3 font-serif text-4xl leading-none text-white sm:text-5xl"
+              >
+                {priceLabel ?? perDayLabel ?? "Custom pricing"}
+              </p>
+              <p className="mt-2 text-sm text-white/55">
+                {perDayLabel && priceLabel ? `Starting at ${perDayLabel}` : null}
+                {perDayLabel && priceLabel && billingLabel ? " · " : null}
+                {billingLabel ? billingLabel : null}
+                {doctor.moneyBackDays
+                  ? ` · ${doctor.moneyBackDays}-day money back`
+                  : null}
+              </p>
+              <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-soft">
+                <span aria-hidden>★</span> Scholarships available
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 lg:flex-nowrap">
+              <button
+                type="button"
+                onClick={openApply}
+                className="rounded-md bg-[#a88251] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              >
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 6 — Member Stories (hidden)                          */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        {false && (
+          <section
+            id="get-started"
+            aria-labelledby="stories-title"
+            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
+          >
+            <h2
+              id="stories-title"
+              className="text-center text-2xl font-bold sm:text-3xl"
+            >
+              Member Stories
+            </h2>
+
+            <div className="mt-10 grid gap-5 text-left sm:grid-cols-3">
+              {TESTIMONIALS.map((t) => (
+                <figure
+                  key={t.name}
+                  className="rounded-md bg-[#141417] p-7 text-center"
+                >
+                  <div className="mx-auto h-20 w-20 overflow-hidden rounded-[40%]">
+                    <div className="relative h-full w-full">
+                      <Image
+                        src={t.avatar}
+                        alt={t.name}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
+                  </div>
+                  <blockquote className="mt-5 text-sm leading-relaxed text-white/85">
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="mt-4 text-xs text-white/55">
+                    <p className="font-semibold text-white/80">{t.name}</p>
+                    <p>{t.role}</p>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 7 — Steps strip (final)                              */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
           aria-labelledby="steps-title"
@@ -350,187 +565,6 @@ export function DoctorDetailClient({
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 3 — Trailer (top) + ROI calculator (below)           */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        <section
-          id="trailer"
-          aria-labelledby="trailer-title"
-          className="mx-auto max-w-7xl px-5 py-16 sm:px-8"
-        >
-          <h2 id="trailer-title" className="sr-only">
-            Trailer and ROI estimator
-          </h2>
-          <div className="grid gap-10">
-            {/* Video */}
-            <div className="relative mx-auto aspect-video w-full max-w-5xl overflow-hidden rounded-md bg-black">
-              {doctor.trailerVideoUrl ? (
-                <TrailerPlayer
-                  src={doctor.trailerVideoUrl}
-                  poster={doctor.imageUrl}
-                  title={`${doctor.name} — Trailer`}
-                  className="absolute inset-0 h-full w-full"
-                />
-              ) : (
-                <>
-                  <Image
-                    src={doctor.imageUrl}
-                    alt={`${doctor.name} trailer poster`}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover opacity-70"
-                  />
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="absolute right-5 top-4 flex items-center gap-5 text-sm text-white">
-                    <span className="font-semibold">Trailer</span>
-                    <span className="text-white/60">Coming soon</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* ROI calculator — full left/right layout */}
-            <PracticeGrowthCalculator
-              defaultSpecialty={doctor.specialty[0]}
-              courseTuitionInr={doctor.priceInr}
-              ctaHref="#apply"
-            />
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 4 — What You'll Learn                                */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        {learnItems.length > 0 ? (
-          <section
-            aria-labelledby="learn-title"
-            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              Curriculum
-            </p>
-            <h2
-              id="learn-title"
-              className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
-            >
-              What You&rsquo;ll Learn
-            </h2>
-
-            <ul className="mt-10 grid gap-x-10 gap-y-4 sm:grid-cols-2">
-              {learnItems.map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <span
-                    aria-hidden
-                    className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-[15px] leading-relaxed text-white/85">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 5 — Pricing card + Register / Apply                  */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        <section
-          id="apply"
-          aria-labelledby="apply-title"
-          className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16"
-        >
-          <div className="grid gap-8 rounded-2xl bg-[#141417] p-8 ring-1 ring-white/5 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-                Investment
-              </p>
-              <p
-                id="apply-title"
-                className="mt-3 font-serif text-4xl leading-none text-white sm:text-5xl"
-              >
-                {priceLabel ?? perDayLabel ?? "Custom pricing"}
-              </p>
-              <p className="mt-2 text-sm text-white/55">
-                {perDayLabel && priceLabel ? `Starting at ${perDayLabel}` : null}
-                {perDayLabel && priceLabel && billingLabel ? " · " : null}
-                {billingLabel ? billingLabel : null}
-                {doctor.moneyBackDays
-                  ? ` · ${doctor.moneyBackDays}-day money back`
-                  : null}
-              </p>
-              <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-soft">
-                <span aria-hidden>★</span> Scholarships available
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 lg:flex-nowrap">
-              <button
-                type="button"
-                onClick={openApply}
-                className="rounded-md border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Register
-              </button>
-              <button
-                type="button"
-                onClick={openApply}
-                className="rounded-md bg-[#a88251] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
-              >
-                Apply Now
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 6 — Member Stories (hidden)                          */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        {false && (
-          <section
-            id="get-started"
-            aria-labelledby="stories-title"
-            className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20"
-          >
-            <h2
-              id="stories-title"
-              className="text-center text-2xl font-bold sm:text-3xl"
-            >
-              Member Stories
-            </h2>
-
-            <div className="mt-10 grid gap-5 text-left sm:grid-cols-3">
-              {TESTIMONIALS.map((t) => (
-                <figure
-                  key={t.name}
-                  className="rounded-md bg-[#141417] p-7 text-center"
-                >
-                  <div className="mx-auto h-20 w-20 overflow-hidden rounded-[40%]">
-                    <div className="relative h-full w-full">
-                      <Image
-                        src={t.avatar}
-                        alt={t.name}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-                  <blockquote className="mt-5 text-sm leading-relaxed text-white/85">
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <figcaption className="mt-4 text-xs text-white/55">
-                    <p className="font-semibold text-white/80">{t.name}</p>
-                    <p>{t.role}</p>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 7 — Other mentors rail                               */}
         {/* ──────────────────────────────────────────────────────────── */}
         {otherDoctors.length > 0 ? (
@@ -574,37 +608,44 @@ export function DoctorDetailClient({
               ref={railRef}
               className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
             >
-              {otherDoctors.map((d) => (
-                <Link
-                  key={d.id}
-                  href={`/doctors/${d.slug}`}
-                  className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
-                >
-                  <Image
-                    src={d.imageUrl}
-                    alt={`${d.name}, ${d.title}`}
-                    fill
-                    sizes="(max-width: 640px) 170px, 210px"
-                    className="object-cover object-top transition duration-500 group-hover:scale-105"
-                  />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
-                    <p className="font-serif text-lg leading-tight text-white sm:text-xl">
-                      {d.name}
-                    </p>
-                    <span
-                      className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
-                      aria-hidden
+              {otherDoctors.map((d) => {
+                const subtitle = d.courseName ?? d.title;
+                return (
+                  <Link
+                    key={d.id}
+                    href={`/doctors/${d.slug}`}
+                    className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
+                  >
+                    <Image
+                      src={d.imageUrl}
+                      alt={`${d.name}, ${subtitle}`}
+                      fill
+                      sizes="(max-width: 640px) 170px, 210px"
+                      className="object-cover object-top transition duration-500 group-hover:scale-105"
                     />
-                    <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
-                      {d.title}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
+                      <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                        {d.name}
+                      </p>
+                      {subtitle ? (
+                        <>
+                          <span
+                            className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                            aria-hidden
+                          />
+                          <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
+                            {subtitle}
+                          </p>
+                        </>
+                      ) : null}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         ) : null}
@@ -637,31 +678,38 @@ export function DoctorDetailClient({
               ))}
             </div>
             <div className="text-xs leading-tight">
-              <p className="font-semibold text-white">
-                {priceLabel ? (
-                  <>
-                    From <span className="font-bold">{priceLabel}</span>
-                  </>
-                ) : perDayLabel ? (
-                  <>
-                    Starting at <span className="font-bold">{perDayLabel}</span>
-                  </>
-                ) : (
-                  "Custom pricing"
-                )}
+              <p
+                className="line-clamp-1 max-w-[200px] font-semibold text-white sm:max-w-[420px]"
+                title={courseName}
+              >
+                {courseName}
               </p>
-              {billingLabel ? (
-                <p className="text-white/55">{billingLabel}</p>
-              ) : null}
+              <p className="text-white/55">
+                {doctor.name}
+              </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={openApply}
-            className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
-          >
-            Apply Now
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setBioExpanded(true);
+                document
+                  .getElementById("bio-title")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              Know More
+            </button>
+            <button
+              type="button"
+              onClick={openApply}
+              className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+            >
+              Apply Now
+            </button>
+          </div>
         </div>
       </div>
 

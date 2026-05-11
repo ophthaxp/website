@@ -1,17 +1,12 @@
 export type Specialty =
-  | "popular"
-  | "cataract"
-  | "retina"
+  | "all"
+  | "cornea-ocular-surface"
+  | "phaco-refractive-surgery"
+  | "retina-vitreo-retinal-surgery"
   | "glaucoma"
-  | "cornea"
-  | "pediatric"
-  | "neuro"
-  | "vitreo-retinal"
-  | "anterior-segment"
-  | "case-based"
-  | "refractive"
-  | "advanced"
-  | "uveitis";
+  | "pediatric-ophthalmology"
+  | "oculoplasty"
+  | "ophthalmology-practice-mastery";
 
 export interface Doctor {
   id: string;

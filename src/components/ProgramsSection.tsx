@@ -12,14 +12,14 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
   // When the parent passes `doctors` (even an empty array), use it as the source of truth.
   // Only fall back to static data when the prop is omitted entirely (e.g. preview mode).
   const data: Doctor[] = doctors !== undefined ? doctors : DOCTORS;
-  const [active, setActive] = useState<Specialty>("popular");
+  const [active, setActive] = useState<Specialty>("all");
   const [pageCount, setPageCount] = useState(1);
   const [activePage, setActivePage] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
 
   const filtered = useMemo(() => {
-    if (active === "popular") return data;
+    if (active === "all") return data;
     return data.filter((d) => d.specialty.includes(active));
   }, [active, data]);
 
@@ -186,7 +186,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
                 {d.imageUrl ? (
                   <Image
                     src={d.imageUrl}
-                    alt={`${d.name}, ${d.title} — ${d.city}`}
+                    alt={`${d.name}${d.courseName ? `, ${d.courseName}` : ""}${d.city ? ` — ${d.city}` : ""}`}
                     fill
                     sizes="(max-width: 640px) 170px, 210px"
                     className="object-cover object-top transition duration-500 group-hover:scale-105"
@@ -200,13 +200,17 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
                   <p className="font-serif text-lg leading-tight text-white sm:text-xl">
                     {d.name}
                   </p>
-                  <span
-                    className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
-                    aria-hidden
-                  />
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/85 sm:text-xs">
-                    {d.title}
-                  </p>
+                  {d.courseName ? (
+                    <>
+                      <span
+                        className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                        aria-hidden
+                      />
+                      <p className="mt-1.5 line-clamp-2 text-[11px] font-semibold text-white/85 sm:text-xs">
+                        {d.courseName}
+                      </p>
+                    </>
+                  ) : null}
                 </div>
               </Link>
             ))

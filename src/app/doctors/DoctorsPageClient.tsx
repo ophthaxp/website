@@ -259,42 +259,47 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
             ref={railRef}
             className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
           >
-            {DOCTORS.map((d, i) => (
-              <Link
-                key={d.id}
-                href={`/doctors/${d.slug}`}
-                className="group relative w-[220px] shrink-0 snap-start overflow-hidden rounded-md bg-[#141417] sm:w-[240px]"
-              >
-                <div className="relative aspect-[3/4] w-full">
-                  <Image
-                    src={d.imageUrl}
-                    alt={`${d.name}, ${d.title}`}
-                    fill
-                    sizes="240px"
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  {i === 4 || i === 5 ? (
-                    <span className="absolute left-3 top-3 rounded-sm bg-white/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-black">
-                      New
-                    </span>
-                  ) : null}
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="font-serif text-lg leading-tight">
-                      {d.name.replace("Dr. ", "")}
-                    </p>
-                    <p className="mt-1 text-xs text-white/70">{d.title}</p>
-                    <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white">
-                      <Play className="h-3 w-3 fill-white text-white" />
-                      Watch Trailer
-                    </span>
+            {DOCTORS.map((d, i) => {
+              const subtitle = d.courseName ?? d.title;
+              return (
+                <Link
+                  key={d.id}
+                  href={`/doctors/${d.slug}`}
+                  className="group relative w-[220px] shrink-0 snap-start overflow-hidden rounded-md bg-[#141417] sm:w-[240px]"
+                >
+                  <div className="relative aspect-[3/4] w-full">
+                    <Image
+                      src={d.imageUrl}
+                      alt={`${d.name}, ${subtitle}`}
+                      fill
+                      sizes="240px"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    {i === 4 || i === 5 ? (
+                      <span className="absolute left-3 top-3 rounded-sm bg-white/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-black">
+                        New
+                      </span>
+                    ) : null}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 p-4">
+                      <p className="font-serif text-lg leading-tight">
+                        {d.name.replace("Dr. ", "")}
+                      </p>
+                      {subtitle ? (
+                        <p className="mt-1 text-xs text-white/70">{subtitle}</p>
+                      ) : null}
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white">
+                        <Play className="h-3 w-3 fill-white text-white" />
+                        Watch Trailer
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Pagination dots (decorative) */}
