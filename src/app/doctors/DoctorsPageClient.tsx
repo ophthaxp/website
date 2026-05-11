@@ -26,6 +26,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   }
 
   const FEATURED_DOCTOR = DOCTORS[0];
+  const FEATURED_COVER = FEATURED_DOCTOR.doctorImage ?? FEATURED_DOCTOR.imageUrl;
   const MEMBER_AVATARS = DOCTORS.slice(1, 6).map((d) => d.imageUrl);
   const TESTIMONIALS = [
     {
@@ -81,7 +82,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
               }}
             />
             <Image
-              src={FEATURED_DOCTOR.imageUrl}
+              src={FEATURED_COVER}
               alt={`${FEATURED_DOCTOR.name}, ${FEATURED_DOCTOR.title}`}
               fill
               priority

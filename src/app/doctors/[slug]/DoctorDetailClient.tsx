@@ -191,7 +191,7 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
               {doctor.trailerVideoUrl ? (
                 <TrailerPlayer
                   src={doctor.trailerVideoUrl}
-                  poster={doctor.imageUrl}
+                  poster={doctor.doctorImage ?? doctor.imageUrl}
                   title={`${doctor.name} — Trailer`}
                   className="absolute inset-0 h-full w-full"
                 />
