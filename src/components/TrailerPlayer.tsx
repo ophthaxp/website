@@ -1,8 +1,12 @@
+"use client";
+
 /**
  * Universal trailer player. Pass any URL that came from the nocode `trailerVideo`
  * field — direct video file (mp4/webm/mov/...), YouTube, or Vimeo — and it picks
  * the right embed. Renders a poster-only block if `src` is empty.
  */
+
+import { useRef, useState } from "react";
 
 type Props = {
   src?: string;
@@ -37,6 +41,55 @@ function vimeoId(url: string): string | null {
   } catch {
     return null;
   }
+}
+
+function DirectVideo({
+  src,
+  poster,
+  className,
+}: {
+  src: string;
+  poster?: string;
+  className?: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [started, setStarted] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  const handleStart = () => {
+    setStarted(true);
+    requestAnimationFrame(() => {
+      videoRef.current?.play().catch(() => {});
+    });
+  };
+
+  return (
+    <div
+      className={`relative bg-black ${className ?? ""}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <video
+        ref={videoRef}
+        playsInline
+        preload="metadata"
+        poster={poster}
+        controls={started && hovered}
+        className="absolute inset-0 h-full w-full"
+      >
+        <source src={src} />
+        Your browser does not support the video tag.
+      </video>
+      {!started ? (
+        <button
+          type="button"
+          onClick={handleStart}
+          aria-label="Play trailer"
+          className="absolute inset-0 z-10 cursor-pointer bg-transparent"
+        />
+      ) : null}
+    </div>
+  );
 }
 
 export function TrailerPlayer({ src, poster, title = "Trailer", className }: Props) {
@@ -84,18 +137,7 @@ export function TrailerPlayer({ src, poster, title = "Trailer", className }: Pro
   // Direct video file — covers /api/public/files/<name>.mp4 from the backend
   // upload endpoint, plus any external mp4/webm.
   if (VIDEO_EXT.test(src) || src.startsWith("blob:") || src.startsWith("data:")) {
-    return (
-      <video
-        controls
-        playsInline
-        preload="metadata"
-        poster={poster}
-        className={className}
-      >
-        <source src={src} />
-        Your browser does not support the video tag.
-      </video>
-    );
+    return <DirectVideo src={src} poster={poster} className={className} />;
   }
 
   // Unknown URL — try a generic iframe (works for many hosted players)
