@@ -256,7 +256,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
         {/* SECTION 2 — About the mentor (bio) with Know More expand     */}
         {/* ──────────────────────────────────────────────────────────── */}
         {(() => {
-          const fullBio = `${description}\n\n${extendedDescription}`;
+          const fullBio = extendedDescription;
           const PREVIEW_LEN = 500;
           const needsTruncation = fullBio.length > PREVIEW_LEN;
           const previewText = needsTruncation
@@ -365,8 +365,8 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
 
               {/* COL 2 — Curriculum Highlights */}
               <div>
-                <h2 className="font-serif text-3xl leading-tight sm:text-3xl">
-                  Curriculum Highlights
+                <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
+                  Highlights
                 </h2>
                 <ul className="mt-8 space-y-4">
                   {[
