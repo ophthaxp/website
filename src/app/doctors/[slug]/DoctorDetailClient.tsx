@@ -221,12 +221,16 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
               <div className="mt-4 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  TEACHES BY {doctor.name.toUpperCase()}
+                  TEACHES {courseName.toUpperCase()}
                 </span>
               </div>
 
+              <p className="mt-6 line-clamp-4 text-sm leading-relaxed text-white/70">
+                {baseDescription}
+              </p>
+
               {metaPills.length > 0 ? (
-                <div className="mt-6 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {metaPills.map((p) => (
                     <span
                       key={p}
@@ -237,10 +241,6 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
                   ))}
                 </div>
               ) : null}
-
-              <p className="mt-6 line-clamp-4 text-sm leading-relaxed text-white/70">
-                {baseDescription}
-              </p>
 
               <div className="mt-8">
                 <button
