@@ -80,6 +80,10 @@ interface Props {
   defaultSpecialty?: string;
   courseTuitionInr?: number;
   ctaHref?: string;
+  /** When provided, the CTA renders as a button and calls this instead of navigating. */
+  onCtaClick?: () => void;
+  /** When true, the specialty dropdown is prefilled and locked (non-editable). */
+  lockSpecialty?: boolean;
   /** When true, renders a single-column layout sized to sit next to a video. */
   compact?: boolean;
 }
@@ -88,6 +92,8 @@ export function PracticeGrowthCalculator({
   defaultSpecialty = "phaco-refractive-surgery",
   courseTuitionInr = 350_000,
   ctaHref = "#get-started",
+  onCtaClick,
+  lockSpecialty = false,
   compact = false,
 }: Props) {
   const initialKey =
@@ -165,7 +171,13 @@ export function PracticeGrowthCalculator({
               id="growth-specialty"
               value={specialty}
               onChange={(e) => setSpecialty(e.target.value)}
-              className="w-full cursor-pointer appearance-none rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-accent"
+              disabled={lockSpecialty}
+              aria-readonly={lockSpecialty}
+              className={`w-full appearance-none rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-accent ${
+                lockSpecialty
+                  ? "cursor-not-allowed opacity-80"
+                  : "cursor-pointer"
+              }`}
             >
               {Object.entries(SPECIALTY_DATA).map(([k, v]) => (
                 <option key={k} value={k} className="bg-ink-800">
@@ -173,10 +185,12 @@ export function PracticeGrowthCalculator({
                 </option>
               ))}
             </select>
-            <ChevronDown
-              aria-hidden
-              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
-            />
+            {!lockSpecialty ? (
+              <ChevronDown
+                aria-hidden
+                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
+              />
+            ) : null}
           </div>
 
           {/* Specialty fact card */}
@@ -244,12 +258,22 @@ export function PracticeGrowthCalculator({
             Ready to reimagine your practice?
           </p>
           <div className="mt-3 flex justify-center">
-            <a
-              href={ctaHref}
-              className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
-            >
-              Know more
-            </a>
+            {onCtaClick ? (
+              <button
+                type="button"
+                onClick={onCtaClick}
+                className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
+              >
+                Know more
+              </button>
+            ) : (
+              <a
+                href={ctaHref}
+                className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
+              >
+                Know more
+              </a>
+            )}
           </div>
         </div>
       </div>

@@ -95,10 +95,12 @@ export function DoctorDetailClient({
   const baseDescription =
     doctor.description ??
     doctor.bio ??
-    `${doctor.name} is a senior ${doctor.title.toLowerCase()} with two decades of operating-room experience and a portfolio of mentees now leading practices across India and abroad. In this masterclass, ${doctor.name.split(" ")[0]} distills the clinical judgement, surgical decision-making and practice-building habits that compound into a high-trust referral practice — moving beyond textbook protocols into the nuance you only learn at the table.`;
-  const extendedDescription = `Across the cohort, ${doctor.name.split(" ")[0]} walks through unedited case breakdowns from a personal archive — including the cases that did not go to plan and what they taught about pre-operative selection, intra-operative composure and post-op communication. You will see the decision tree for borderline presentations, the small habits that prevent the most common complications, and the patient-conversation scripts that consistently convert second opinions into long-term trust.
+    `In Indian ophthalmology, few names are as inseparable from Cornea as Dr. Srinivas K Rao. Long before advanced corneal reconstruction became mainstream in India, surgeons across the country were already studying Dr. Rao’s methods for solving cases many believed had no solutions. At a time when complex corneal blindness was still considered untreatable and anterior segment surgery was evolving globally, Dr. Rao was quietly expanding India’s surgical horizons—pioneering limbal stem cell transplantation, lamellar corneal surgery, keratoprosthesis and complex cataract reconstruction years before they became widely adopted.`;
+  const extendedDescription = `Over time, difficult corneal cases across hospitals often ended with a familiar conclusion: “Send it to Dr. Rao.” Revered for his surgical instinct, composure and uncompromising standards, he became one of the defining forces behind modern corneal practice in India and across Asia. His contributions to blindness prevention were internationally recognised when the Asia-Pacific Academy of Ophthalmology honoured him with the Outstanding Service in the Prevention of Blindness Award—an honour reserved for those whose work fundamentally changes the future of eye care.
 
-Beyond the OR, the program goes deep into the business of a modern specialty practice: how to position yourself in a crowded market, build a referral engine through clinical reputation rather than discounts, design pricing and packages that respect your time, and scale from solo practitioner to a multi-doctor clinic without losing the craft. Mentees graduate with a written 12-month practice plan, a complications playbook tailored to their case mix, and lifetime access to the alumni circle for second opinions on real cases.`;
+But legends are rarely remembered only for what they performed. They are remembered for what the field became because they existed. Beyond the operating room, Dr. Rao shaped the very culture of Cornea in India—mentoring generations of surgeons, influencing how complex anterior segment surgery is practiced, and eventually founding the Cornea Society of India itself.
+
+For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; he is a benchmark for mastery itself. His techniques are studied, his judgment is quoted and his philosophy continues to influence how Cornea is practiced, taught and imagined even today. In many ways, learning Cornea from Dr. Rao is not simply learning a specialty—it is learning from one of the surgeons who helped define the specialty itself.`;
   const description = baseDescription;
   const lessonsLabel = doctor.lessonsCount
     ? `${doctor.lessonsCount} Lessons`
@@ -115,14 +117,7 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
   const perDayLabel = doctor.pricePerDayInr
     ? `₹${doctor.pricePerDayInr}/day`
     : null;
-  const billingLabel =
-    doctor.billingPeriod === "annual"
-      ? "billed annually"
-      : doctor.billingPeriod === "monthly"
-        ? "billed monthly"
-        : doctor.billingPeriod === "onetime"
-          ? "one-time payment"
-          : null;
+  const billingLabel = "excluding GST";
 
   const FALLBACK_LEARN_ITEMS = [
     "How to set up eye banking and initiate a transplant program in your hospital",
@@ -322,7 +317,8 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
           <PracticeGrowthCalculator
             defaultSpecialty={doctor.specialty[0]}
             courseTuitionInr={doctor.priceInr}
-            ctaHref="#apply"
+            lockSpecialty
+            onCtaClick={openApply}
           />
         </section>
 
@@ -418,9 +414,6 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
                 {perDayLabel && priceLabel ? `Starting at ${perDayLabel}` : null}
                 {perDayLabel && priceLabel && billingLabel ? " · " : null}
                 {billingLabel ? billingLabel : null}
-                {doctor.moneyBackDays
-                  ? ` · ${doctor.moneyBackDays}-day money back`
-                  : null}
               </p>
               <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent-soft">
                 <span aria-hidden>★</span> Scholarships available
