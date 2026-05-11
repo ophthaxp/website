@@ -125,14 +125,13 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
           : null;
 
   const FALLBACK_LEARN_ITEMS = [
-    "Pre-operative assessment frameworks for complex cases",
-    "Step-by-step intra-operative decision-making under pressure",
-    "Managing complications with confidence and composure",
-    "Post-op protocols that reduce revisions and improve outcomes",
-    "Building a referral engine through clinical reputation",
-    "Pricing, packaging and positioning your specialty practice",
-    "Patient communication that converts consultations to surgeries",
-    "Scaling from solo practitioner to a multi-doctor clinic",
+    "How to set up eye banking and initiate a transplant program in your hospital",
+    "Principles of donor tissue selection and grading",
+    "Techniques for DMEK, DSAEK, and DALK",
+    "Patient selection and pre-operative evaluation and planning",
+    "Post-operative care and complication management",
+    "Graft survival optimisation and long-term follow-up",
+    "Clear decision pathways for choosing the right lamellar technique in real clinical settings",
   ];
   const learnItems =
     doctor.learningOutcomes && doctor.learningOutcomes.length > 0
@@ -372,14 +371,11 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
                 </h2>
                 <ul className="mt-10 space-y-5">
                   {[
-                    "12+ unedited OR case breakdowns from the mentor's archive",
-                    "Live case clinics with second-opinion review of your patients",
-                    "Step-by-step decision trees for borderline presentations",
-                    "Complications playbook tailored to your case mix",
-                    "1:1 office hours and private cohort community access",
-                    "Practice growth playbook — pricing, packaging, referrals",
-                    "12-month written practice plan you graduate with",
-                    "Lifetime alumni circle for second opinions on real cases",
+                    "End-to-end exposure from infrastructure to surgical execution",
+                    "Practical, technique-focused approach",
+                    "Case discussions covering routine and complex transplants",
+                    "Ideal for ophthalmologists expanding into corneal surgery",
+                    "Structured learning that accelerates your shift from theory to hands-on surgical confidence",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-4">
                       <span
