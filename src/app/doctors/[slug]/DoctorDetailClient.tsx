@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
+  CalendarClock,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -96,18 +97,20 @@ export function DoctorDetailClient({
     doctor.description ??
     doctor.bio ??
     `In Indian ophthalmology, few names are as inseparable from Cornea as Dr. Srinivas K Rao. Long before advanced corneal reconstruction became mainstream in India, surgeons across the country were already studying Dr. Rao’s methods for solving cases many believed had no solutions. At a time when complex corneal blindness was still considered untreatable and anterior segment surgery was evolving globally, Dr. Rao was quietly expanding India’s surgical horizons—pioneering limbal stem cell transplantation, lamellar corneal surgery, keratoprosthesis and complex cataract reconstruction years before they became widely adopted.`;
-  const extendedDescription = `Over time, difficult corneal cases across hospitals often ended with a familiar conclusion: “Send it to Dr. Rao.” Revered for his surgical instinct, composure and uncompromising standards, he became one of the defining forces behind modern corneal practice in India and across Asia. His contributions to blindness prevention were internationally recognised when the Asia-Pacific Academy of Ophthalmology honoured him with the Outstanding Service in the Prevention of Blindness Award—an honour reserved for those whose work fundamentally changes the future of eye care.
+  const extendedDescription = `In Indian ophthalmology, few names are as inseparable from Cornea as Dr. Srinivas K Rao. Long before advanced corneal reconstruction became mainstream in India, surgeons across the country were already studying Dr. Rao’s methods for solving cases many believed had no solutions. At a time when complex corneal blindness was still considered untreatable and anterior segment surgery was evolving globally, Dr. Rao was quietly expanding India’s surgical horizons—pioneering limbal stem cell transplantation, lamellar corneal surgery, keratoprosthesis and complex cataract reconstruction years before they became widely adopted.
+
+Over time, difficult corneal cases across hospitals often ended with a familiar conclusion: “Send it to Dr. Rao.” Revered for his surgical instinct, composure and uncompromising standards, he became one of the defining forces behind modern corneal practice in India and across Asia. His contributions to blindness prevention were internationally recognised when the Asia-Pacific Academy of Ophthalmology honoured him with the Outstanding Service in the Prevention of Blindness Award—an honour reserved for those whose work fundamentally changes the future of eye care.
 
 But legends are rarely remembered only for what they performed. They are remembered for what the field became because they existed. Beyond the operating room, Dr. Rao shaped the very culture of Cornea in India—mentoring generations of surgeons, influencing how complex anterior segment surgery is practiced, and eventually founding the Cornea Society of India itself.
 
 For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; he is a benchmark for mastery itself. His techniques are studied, his judgment is quoted and his philosophy continues to influence how Cornea is practiced, taught and imagined even today. In many ways, learning Cornea from Dr. Rao is not simply learning a specialty—it is learning from one of the surgeons who helped define the specialty itself.`;
   const description = baseDescription;
   const lessonsLabel = doctor.lessonsCount
-    ? `${doctor.lessonsCount} Lessons`
+    ? `${doctor.lessonsCount} Modules`
     : null;
   const durationMinLabel = formatDuration(doctor.durationMinutes);
   const durationWeekLabel = doctor.durationWeeks
-    ? `${doctor.durationWeeks} weeks`
+    ? `${doctor.durationWeeks} Months`
     : null;
   const metaPills = [durationWeekLabel, lessonsLabel].filter(
     Boolean,
@@ -209,13 +212,13 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
                 id="featured-title"
                 className="font-serif text-3xl leading-tight tracking-tight sm:text-4xl"
               >
-                {doctor.name}
+                {courseName}
               </h1>
 
               <div className="mt-4 flex items-center gap-3">
                 <span className="h-px w-8 bg-white/40" />
                 <span className="text-xs font-semibold tracking-[0.18em] text-white/70">
-                  TEACHES {courseName.toUpperCase()}
+                  BY {doctor.name.toUpperCase()}
                 </span>
               </div>
 
@@ -334,25 +337,25 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
               Curriculum
             </p>
 
-            <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-16">
-              {/* LEFT — What You'll Learn */}
+            <div className="mt-14 grid gap-12 md:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+              {/* COL 1 — What You'll Learn */}
               <div>
                 <h2
                   id="learn-title"
-                  className="font-serif text-4xl leading-tight sm:text-5xl"
+                  className="font-serif text-3xl leading-tight sm:text-4xl"
                 >
                   What You&rsquo;ll Learn
                 </h2>
-                <ul className="mt-10 space-y-5">
+                <ul className="mt-8 space-y-4">
                   {learnItems.map((item) => (
-                    <li key={item} className="flex items-start gap-4">
+                    <li key={item} className="flex items-start gap-3">
                       <span
                         aria-hidden
-                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
+                        className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3.5 w-3.5" />
                       </span>
-                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                      <span className="text-base leading-relaxed text-white/90 sm:text-lg">
                         {item}
                       </span>
                     </li>
@@ -360,12 +363,12 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
                 </ul>
               </div>
 
-              {/* RIGHT — Curriculum Highlights */}
+              {/* COL 2 — Curriculum Highlights */}
               <div>
-                <h2 className="font-serif text-4xl leading-tight sm:text-5xl">
+                <h2 className="font-serif text-3xl leading-tight sm:text-3xl">
                   Curriculum Highlights
                 </h2>
-                <ul className="mt-10 space-y-5">
+                <ul className="mt-8 space-y-4">
                   {[
                     "End-to-end exposure from infrastructure to surgical execution",
                     "Practical, technique-focused approach",
@@ -373,15 +376,60 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
                     "Ideal for ophthalmologists expanding into corneal surgery",
                     "Structured learning that accelerates your shift from theory to hands-on surgical confidence",
                   ].map((item) => (
-                    <li key={item} className="flex items-start gap-4">
+                    <li key={item} className="flex items-start gap-3">
                       <span
                         aria-hidden
-                        className="mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#a88251]/15 text-[#a88251] ring-1 ring-[#a88251]/30"
+                        className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#a88251]/15 text-[#a88251] ring-1 ring-[#a88251]/30"
                       >
-                        <Check className="h-4 w-4" />
+                        <Check className="h-3.5 w-3.5" />
                       </span>
-                      <span className="text-lg leading-relaxed text-white/90 sm:text-xl">
+                      <span className="text-base leading-relaxed text-white/90 sm:text-lg">
                         {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* COL 3 — Course format (blended learning) */}
+              <div>
+                <h2 className="font-serif text-3xl leading-tight sm:text-4xl">
+                  Course format
+                  <span className="mt-1 block whitespace-nowrap font-sans text-sm font-normal tracking-normal text-white/55">
+                    {/* (blended learning) */}
+                  </span>
+                </h2>
+                <ul className="mt-8 space-y-4">
+                  {[
+                    {
+                      when: "Month 1",
+                      what: "2-Day In-Person Transplant Training Program",
+                    },
+                    {
+                      when: "Months 2–5",
+                      what: "Online Surgical Theory & Case Modules",
+                    },
+                    {
+                      when: "Month 6",
+                      what: "2-Day In-Person Advanced Lamellar Surgery Workshop",
+                    },
+                    {
+                      when: "Months 7–10",
+                      what: "Online Surgical Case Reviews & Mentorship Sessions",
+                    },
+                  ].map((item) => (
+                    <li key={item.when} className="flex items-start gap-3">
+                      <span
+                        aria-hidden
+                        className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-soft ring-1 ring-accent/30"
+                      >
+                        <CalendarClock className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-base leading-relaxed text-white/90 sm:text-lg">
+                        <span className="font-semibold text-white">
+                          {item.when}:
+                        </span>{" "}
+                        {item.what}
                       </span>
                     </li>
                   ))}
@@ -650,22 +698,15 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <div className="flex items-center gap-3">
-            <div className="hidden -space-x-2 sm:flex">
-              {memberAvatars.slice(0, 4).map((src, i) => (
-                <span
-                  key={i}
-                  className="relative h-7 w-7 overflow-hidden rounded-full border-2 border-[#0a0a0d]"
-                >
-                  <Image
-                    src={src}
-                    alt=""
-                    fill
-                    sizes="28px"
-                    className="object-cover"
-                  />
-                </span>
-              ))}
-            </div>
+            <span className="relative h-9 w-9 overflow-hidden rounded-full border border-white/10">
+              <Image
+                src={doctor.imageUrl}
+                alt={doctor.name}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </span>
             <div className="text-xs leading-tight">
               <p
                 className="line-clamp-1 max-w-[200px] font-semibold text-white sm:max-w-[420px]"
