@@ -688,12 +688,7 @@ Beyond the OR, the program goes deep into the business of a modern specialty pra
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={() => {
-                setBioExpanded(true);
-                document
-                  .getElementById("bio-title")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
+              onClick={openApply}
               className="rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               Know More
