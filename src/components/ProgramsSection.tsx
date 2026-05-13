@@ -249,16 +249,16 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
 
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
-          href="/doctors"
-          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
-        >
-          Explore Legends
-        </Link>
-        <Link
           href="/programs"
           className="rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
         >
           Explore Courses
+        </Link>
+        <Link
+          href="/programs"
+          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
+        >
+          Explore Legends
         </Link>
       </div>
     </section>
