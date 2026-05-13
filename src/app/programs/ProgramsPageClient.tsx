@@ -191,10 +191,14 @@ export function ProgramsPageClient({
                 p.city,
               ].filter(Boolean);
 
+              const href = legend
+                ? `/doctors/${legend.slug}`
+                : `/programs/${p.slug}`;
+
               return (
                 <Link
                   key={p.id}
-                  href={`/programs/${p.slug}`}
+                  href={href}
                   className="group block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:bg-white/[0.06]"
                 >
                   {p.doctorImage ? (
