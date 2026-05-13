@@ -2,12 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight, Play, Volume2, Maximize2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Play, Volume2, Maximize2, Search } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { HERO_VIDEO_POSTER } from "@/lib/data";
-import type { Doctor } from "@/types";
+import { HERO_VIDEO_POSTER, SPECIALTY_TABS } from "@/lib/data";
+import type { Doctor, Specialty } from "@/types";
+
+const DURATION_BUCKETS: { key: string; label: string; matches: (weeks?: number) => boolean }[] = [
+  { key: "all", label: "Any duration", matches: () => true },
+  { key: "short", label: "≤ 8 weeks", matches: (w) => typeof w === "number" && w > 0 && w <= 8 },
+  { key: "mid", label: "9 – 12 weeks", matches: (w) => typeof w === "number" && w >= 9 && w <= 12 },
+  { key: "long", label: "13+ weeks", matches: (w) => typeof w === "number" && w >= 13 },
+];
 
 export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   if (DOCTORS.length === 0) {
@@ -53,11 +60,33 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   ];
   const railRef = useRef<HTMLDivElement>(null);
 
+  const [specialty, setSpecialty] = useState<Specialty>("all");
+  const [nameQuery, setNameQuery] = useState("");
+  const [durationKey, setDurationKey] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    const q = nameQuery.trim().toLowerCase();
+    const bucket =
+      DURATION_BUCKETS.find((b) => b.key === durationKey) ?? DURATION_BUCKETS[0];
+    return DOCTORS.filter((d) => {
+      if (specialty !== "all" && !d.specialty.includes(specialty)) return false;
+      if (q && !d.name.toLowerCase().includes(q)) return false;
+      if (!bucket.matches(d.durationWeeks)) return false;
+      return true;
+    });
+  }, [DOCTORS, specialty, nameQuery, durationKey]);
+
   const scrollRail = (dir: "left" | "right") => {
     const el = railRef.current;
     if (!el) return;
     const amount = el.clientWidth * 0.8;
     el.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
+  };
+
+  const resetFilters = () => {
+    setSpecialty("all");
+    setNameQuery("");
+    setDurationKey("all");
   };
 
   return (
@@ -265,12 +294,97 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
             </div>
           </div>
 
+          {/* Filter bar — Specialisation / Legend Name / Duration */}
+          <div
+            role="search"
+            aria-label="Filter legends"
+            className="mt-6 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+          >
+            <div>
+              <label
+                htmlFor="legend-specialty"
+                className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
+              >
+                Specialisation
+              </label>
+              <select
+                id="legend-specialty"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value as Specialty)}
+                className="mt-2 w-full cursor-pointer appearance-none rounded-lg bg-[#141417] px-3 py-2.5 text-sm text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
+              >
+                {SPECIALTY_TABS.map((t) => (
+                  <option key={t.key} value={t.key} className="bg-[#141417]">
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="legend-name"
+                className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
+              >
+                Legend Name
+              </label>
+              <div className="relative mt-2">
+                <Search
+                  aria-hidden
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
+                />
+                <input
+                  id="legend-name"
+                  type="search"
+                  value={nameQuery}
+                  onChange={(e) => setNameQuery(e.target.value)}
+                  placeholder="Search by name…"
+                  className="w-full rounded-lg bg-[#141417] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/35 ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="legend-duration"
+                className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
+              >
+                Duration
+              </label>
+              <select
+                id="legend-duration"
+                value={durationKey}
+                onChange={(e) => setDurationKey(e.target.value)}
+                className="mt-2 w-full cursor-pointer appearance-none rounded-lg bg-[#141417] px-3 py-2.5 text-sm text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
+              >
+                {DURATION_BUCKETS.map((b) => (
+                  <option key={b.key} value={b.key} className="bg-[#141417]">
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="rounded-lg border border-white/15 bg-transparent px-4 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10"
+            >
+              Reset
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-white/55">
+            Showing {filtered.length} of {DOCTORS.length} legends
+          </p>
+
           {/* Horizontal mentor rail */}
           <div
             ref={railRef}
             className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
           >
-            {DOCTORS.map((d, i) => {
+            {filtered.length === 0 ? (
+              <div className="w-full rounded-md border border-dashed border-white/10 bg-white/[0.02] p-8 text-center text-sm text-white/55">
+                No legends match these filters.
+              </div>
+            ) : null}
+            {filtered.map((d, i) => {
               const subtitle = d.courseName ?? d.title;
               return (
                 <Link

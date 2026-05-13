@@ -15,7 +15,6 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
-import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import { ApplyFormModal } from "@/components/ApplyFormModal";
 import { formatINR } from "@/lib/utils";
 import type { Doctor } from "@/types";
@@ -306,24 +305,6 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
             </section>
           );
         })()}
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 3 — ROI calculator                                   */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        <section
-          aria-labelledby="roi-title"
-          className="mx-auto max-w-7xl px-5 py-16 sm:px-8"
-        >
-          <h2 id="roi-title" className="sr-only">
-            ROI estimator
-          </h2>
-          <PracticeGrowthCalculator
-            defaultSpecialty={doctor.specialty[0]}
-            courseTuitionInr={doctor.priceInr}
-            lockSpecialty
-            onCtaClick={openApply}
-          />
-        </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 4 — Curriculum (left: What You'll Learn, right: Highlights) */}
