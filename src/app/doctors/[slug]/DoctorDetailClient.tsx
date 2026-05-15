@@ -470,6 +470,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
             defaultSpecialty={doctor.specialty?.[0]}
             courseTuitionInr={doctor.priceInr}
             onCtaClick={openBrochure}
+            lockSpecialty
           />
         </section>
 
