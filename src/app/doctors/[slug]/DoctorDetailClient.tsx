@@ -602,9 +602,9 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
         </section>
 
         {/* ──────────────────────────────────────────────────────────── */}
-        {/* SECTION 7 — Other mentors rail                               */}
+        {/* SECTION 7 — Other mentors rail (hidden)                      */}
         {/* ──────────────────────────────────────────────────────────── */}
-        {otherDoctors.length > 0 ? (
+        {false && otherDoctors.length > 0 ? (
           <section
             aria-labelledby="rail-title"
             className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16"
