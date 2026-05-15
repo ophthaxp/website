@@ -16,6 +16,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { ApplyFormModal } from "@/components/ApplyFormModal";
+import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import { formatINR } from "@/lib/utils";
 import type { Doctor } from "@/types";
 
@@ -65,6 +66,10 @@ export function DoctorDetailClient({
   const [bioExpanded, setBioExpanded] = useState(false);
   const openApply = () => {
     setApplyIntent("apply");
+    setApplyOpen(true);
+  };
+  const openBrochure = () => {
+    setApplyIntent("brochure");
     setApplyOpen(true);
   };
   const closeApply = () => setApplyOpen(false);
@@ -421,6 +426,20 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
         ) : null}
 
         {/* ──────────────────────────────────────────────────────────── */}
+        {/* SECTION 4.5 — Practice growth / ROI calculator               */}
+        {/* ──────────────────────────────────────────────────────────── */}
+        <section
+          aria-label="Practice growth calculator"
+          className="mx-auto max-w-6xl px-5 sm:px-8"
+        >
+          <PracticeGrowthCalculator
+            defaultSpecialty={doctor.specialty?.[0]}
+            courseTuitionInr={doctor.priceInr}
+            onCtaClick={openBrochure}
+          />
+        </section>
+
+        {/* ──────────────────────────────────────────────────────────── */}
         {/* SECTION 5 — Pricing card + Register / Apply                  */}
         {/* ──────────────────────────────────────────────────────────── */}
         <section
@@ -703,7 +722,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={openApply}
+              onClick={openBrochure}
               className="rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               Know More

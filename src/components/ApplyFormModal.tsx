@@ -99,6 +99,7 @@ export function ApplyFormModal({
   brochureUrl?: string;
 }) {
   const copy = COPY[intent];
+  const isBrochure = intent === "brochure";
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const firstFieldRef = useRef<HTMLInputElement>(null);
@@ -128,35 +129,39 @@ export function ApplyFormModal({
     const lastName = String(data.get("lastName") ?? "").trim();
     const phone = String(data.get("phone") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
-    const qualification = String(data.get("qualification") ?? "").trim();
-    const state = String(data.get("state") ?? "").trim();
-    const city = String(data.get("city") ?? "").trim();
-    const pincode = String(data.get("pincode") ?? "").trim();
+    const qualification = isBrochure ? "" : String(data.get("qualification") ?? "").trim();
+    const state = isBrochure ? "" : String(data.get("state") ?? "").trim();
+    const city = isBrochure ? "" : String(data.get("city") ?? "").trim();
+    const pincode = isBrochure ? "" : String(data.get("pincode") ?? "").trim();
     const hiddenCourseId = String(data.get("courseId") ?? "").trim();
 
     setStatus("submitting");
     setErrorMsg(null);
 
     try {
+      const payload: Record<string, unknown> = {
+        fullName: `${firstName} ${lastName}`.trim(),
+        firstName,
+        lastName,
+        phone,
+        email,
+        courseId: hiddenCourseId,
+        courseName,
+        intent,
+        source: isBrochure ? "brochure-form-modal" : "apply-form-modal",
+      };
+      if (isBrochure) {
+        payload.brochureUrl = brochureUrl;
+      } else {
+        payload.qualification = qualification;
+        payload.state = state;
+        payload.city = city;
+        payload.pincode = pincode;
+      }
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fullName: `${firstName} ${lastName}`.trim(),
-          firstName,
-          lastName,
-          phone,
-          email,
-          qualification,
-          state,
-          city,
-          pincode,
-          courseId: hiddenCourseId,
-          courseName,
-          intent,
-          brochureUrl: intent === "brochure" ? brochureUrl : undefined,
-          source: intent === "brochure" ? "brochure-form-modal" : "apply-form-modal",
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -276,53 +281,57 @@ export function ApplyFormModal({
                 />
               </Field>
 
-              <Field label="Qualification" required>
-                <select name="qualification" required className={selectCls}>
-                  <option value="" className={optionCls}>
-                    Select qualification
-                  </option>
-                  {QUALIFICATIONS.map((q) => (
-                    <option key={q} value={q} className={optionCls}>
-                      {q}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              {!isBrochure ? (
+                <>
+                  <Field label="Qualification" required>
+                    <select name="qualification" required className={selectCls}>
+                      <option value="" className={optionCls}>
+                        Select qualification
+                      </option>
+                      {QUALIFICATIONS.map((q) => (
+                        <option key={q} value={q} className={optionCls}>
+                          {q}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-              <Field label="State (India)">
-                <select name="state" className={selectCls}>
-                  <option value="" className={optionCls}>
-                    Select state
-                  </option>
-                  {INDIAN_STATES.map((s) => (
-                    <option key={s} value={s} className={optionCls}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+                  <Field label="State (India)">
+                    <select name="state" className={selectCls}>
+                      <option value="" className={optionCls}>
+                        Select state
+                      </option>
+                      {INDIAN_STATES.map((s) => (
+                        <option key={s} value={s} className={optionCls}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="City">
-                  <input
-                    name="city"
-                    type="text"
-                    autoComplete="address-level2"
-                    className={inputCls}
-                  />
-                </Field>
-                <Field label="Pincode">
-                  <input
-                    name="pincode"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    autoComplete="postal-code"
-                    className={inputCls}
-                  />
-                </Field>
-              </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="City">
+                      <input
+                        name="city"
+                        type="text"
+                        autoComplete="address-level2"
+                        className={inputCls}
+                      />
+                    </Field>
+                    <Field label="Pincode">
+                      <input
+                        name="pincode"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]{6}"
+                        maxLength={6}
+                        autoComplete="postal-code"
+                        className={inputCls}
+                      />
+                    </Field>
+                  </div>
+                </>
+              ) : null}
 
               {status === "error" && errorMsg ? (
                 <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">

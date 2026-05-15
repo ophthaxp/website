@@ -264,7 +264,7 @@ export function PracticeGrowthCalculator({
                 onClick={onCtaClick}
                 className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
               >
-                Speak to Ophthaxp Concierge
+                Know more
               </button>
             ) : (
               <a
