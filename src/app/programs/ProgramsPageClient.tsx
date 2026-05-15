@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ThemedSelect } from "@/components/ThemedSelect";
 import { formatINR } from "@/lib/utils";
 import type { Doctor, Program } from "@/types";
 
@@ -96,21 +97,17 @@ export function ProgramsPageClient({
             >
               Legend Name
             </label>
-            <select
+            <ThemedSelect
               id="course-legend"
+              ariaLabel="Filter by legend"
               value={legendSlug}
-              onChange={(e) => setLegendSlug(e.target.value)}
-              className="mt-2 w-full cursor-pointer appearance-none rounded-lg bg-[#141417] px-3 py-2.5 text-sm text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
-            >
-              <option value="all" className="bg-[#141417]">
-                All legends
-              </option>
-              {legendOptions.map((l) => (
-                <option key={l.slug} value={l.slug} className="bg-[#141417]">
-                  {l.name}
-                </option>
-              ))}
-            </select>
+              onChange={setLegendSlug}
+              options={[
+                { value: "all", label: "All legends" },
+                ...legendOptions.map((l) => ({ value: l.slug, label: l.name })),
+              ]}
+              className="mt-2"
+            />
           </div>
           <div>
             <label
@@ -130,7 +127,7 @@ export function ProgramsPageClient({
                 value={nameQuery}
                 onChange={(e) => setNameQuery(e.target.value)}
                 placeholder="Search courses…"
-                className="w-full rounded-lg bg-[#141417] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/35 ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
+                className="w-full rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/35 transition hover:border-[#ab834d] focus:border-[#ab834d] focus:outline-none focus:ring-2 focus:ring-[#ab834d]/40"
               />
             </div>
           </div>
@@ -141,23 +138,19 @@ export function ProgramsPageClient({
             >
               Course Duration
             </label>
-            <select
+            <ThemedSelect
               id="course-duration"
+              ariaLabel="Filter by duration"
               value={durationKey}
-              onChange={(e) => setDurationKey(e.target.value)}
-              className="mt-2 w-full cursor-pointer appearance-none rounded-lg bg-[#141417] px-3 py-2.5 text-sm text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-[#ab834d]"
-            >
-              {DURATION_BUCKETS.map((b) => (
-                <option key={b.key} value={b.key} className="bg-[#141417]">
-                  {b.label}
-                </option>
-              ))}
-            </select>
+              onChange={setDurationKey}
+              options={DURATION_BUCKETS.map((b) => ({ value: b.key, label: b.label }))}
+              className="mt-2"
+            />
           </div>
           <button
             type="button"
             onClick={resetFilters}
-            className="rounded-lg border border-white/15 bg-transparent px-4 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10"
+            className="rounded-lg border border-[#ab834d] bg-[#ab834d]/10 px-4 py-2.5 text-sm font-semibold text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white"
           >
             Reset
           </button>
