@@ -201,6 +201,82 @@ async function sendWelcomeEmail(
   }
 }
 
+// ─── WhatsApp helpers ─────────────────────────────────────────────────────────
+
+/** Normalise phone to E.164. Handles Indian 10-digit numbers automatically. */
+function toE164(raw: string): string {
+  // strip everything except digits and leading +
+  let digits = raw.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits;          // already E.164
+  if (digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`; // IN mobile
+  if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`; // 91XXXXXXXXXX
+  return `+${digits}`;                                // best-effort
+}
+
+function buildApplyWhatsApp(firstName: string, courseName: string): string {
+  return (
+    `Hi ${firstName}! 👋\n\n` +
+    `Thank you for applying${courseName ? ` for *${courseName}*` : " to OphthaXP"}.\n\n` +
+    `Our team will review your application and reach out shortly to schedule your discovery call.\n\n` +
+    `— Team OphthaXP`
+  );
+}
+
+function buildBrochureWhatsApp(firstName: string, courseName: string, brochureUrl: string): string {
+  return (
+    `Hi ${firstName}! 👋\n\n` +
+    `Here's the brochure you requested${courseName ? ` for *${courseName}*` : ""}:\n` +
+    `${brochureUrl}\n\n` +
+    `Feel free to reply if you have any questions. We'd love to tell you more!\n\n` +
+    `— Team OphthaXP`
+  );
+}
+
+async function sendWhatsApp(
+  intent: Intent,
+  rawPhone: string,
+  firstName: string,
+  courseName: string,
+  brochureUrl?: string,
+) {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+
+  if (!sid || !token || !from || sid.startsWith("YOUR_")) {
+    console.warn("[leads/whatsapp] Twilio env not configured — skipping WhatsApp message");
+    return;
+  }
+
+  const to = `whatsapp:${toE164(rawPhone)}`;
+  const body =
+    intent === "brochure"
+      ? buildBrochureWhatsApp(firstName, courseName, brochureUrl ?? "")
+      : buildApplyWhatsApp(firstName, courseName);
+
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+  const creds = Buffer.from(`${sid}:${token}`).toString("base64");
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${creds}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error(`[leads/whatsapp] Twilio error ${res.status}:`, data);
+    } else {
+      console.log(`[leads/whatsapp] WhatsApp sent to ${to} sid=${(data as any).sid}`);
+    }
+  } catch (err) {
+    console.error("[leads/whatsapp] failed to send WhatsApp:", err);
+  }
+}
+
 // ─── route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
@@ -296,14 +372,9 @@ export async function POST(req: Request) {
         /* non-JSON */
       }
 
-      // send welcome email after successful DB insert (non-blocking)
-      void sendWelcomeEmail(
-        intent,
-        email,
-        firstName,
-        payload.courseName ?? "",
-        payload.brochureUrl,
-      );
+      // send welcome email + WhatsApp after successful DB insert (non-blocking)
+      void sendWelcomeEmail(intent, email, firstName, payload.courseName ?? "", payload.brochureUrl);
+      void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
 
       return NextResponse.json({ ok: true, intent, data });
     } catch (err) {
@@ -331,14 +402,9 @@ export async function POST(req: Request) {
     }
   }
 
-  // send welcome email for webhook/echo path too
-  void sendWelcomeEmail(
-    intent,
-    email,
-    firstName,
-    payload.courseName ?? "",
-    payload.brochureUrl,
-  );
+  // send welcome email + WhatsApp for webhook/echo path too
+  void sendWelcomeEmail(intent, email, firstName, payload.courseName ?? "", payload.brochureUrl);
+  void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
 
   return NextResponse.json({
     ok: true,
