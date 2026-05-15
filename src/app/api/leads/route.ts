@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
 const NOCODE_APP_ID = process.env.NOCODE_APP_ID || "";
+const NOCODE_ORG_ID = process.env.NOCODE_ORG_ID || "";
 const NOCODE_LEADS_USER_ID = process.env.NOCODE_LEADS_USER_ID || "";
 const APPLY_MODULE =
   process.env.NOCODE_APPLY_LEADS_MODULE || "ophthaxp_apply_leads";
@@ -81,15 +82,15 @@ export async function POST(req: Request) {
     record.pincode = payload.pincode ?? "";
   }
 
-  if (!NOCODE_BASE || !NOCODE_APP_ID || !NOCODE_LEADS_USER_ID) {
+  if (!NOCODE_BASE || !NOCODE_APP_ID || !NOCODE_ORG_ID || !NOCODE_LEADS_USER_ID) {
     console.warn(
-      `[leads] nocode env not fully set — NOCODE_API_BASE_URL="${NOCODE_BASE}" NOCODE_APP_ID="${NOCODE_APP_ID}" NOCODE_LEADS_USER_ID set=${Boolean(
+      `[leads] nocode env not fully set — NOCODE_API_BASE_URL="${NOCODE_BASE}" NOCODE_APP_ID="${NOCODE_APP_ID}" NOCODE_ORG_ID set=${Boolean(NOCODE_ORG_ID)} NOCODE_LEADS_USER_ID set=${Boolean(
         NOCODE_LEADS_USER_ID,
       )}. Lead NOT written to DB; falling through to webhook/echo.`,
     );
   } else {
     const moduleTitle = isBrochure ? BROCHURE_MODULE : APPLY_MODULE;
-    const url = `${NOCODE_BASE}/api/public/data/${NOCODE_APP_ID}/${encodeURIComponent(
+    const url = `${NOCODE_BASE}/api/public/data/${NOCODE_APP_ID}/${NOCODE_ORG_ID}/${encodeURIComponent(
       moduleTitle,
     )}`;
     console.log(`[leads] POST → ${url} intent=${intent}`);
