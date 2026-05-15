@@ -18,9 +18,11 @@ const DURATION_BUCKETS: { key: string; label: string; matches: (weeks: number) =
 export function ProgramsPageClient({
   programs,
   doctors,
+  view = "courses",
 }: {
   programs: Program[];
   doctors: Doctor[];
+  view?: "courses" | "legends";
 }) {
   // Resolve a legend (doctor) for each program when possible. In the merged
   // doctors-as-courses backend, doctor.courseSlug === program.slug.
@@ -74,7 +76,9 @@ export function ProgramsPageClient({
     <>
       <Navbar />
       <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
-        <h1 className="font-serif text-4xl text-white sm:text-5xl">All Programs</h1>
+        <h1 className="font-serif text-4xl text-white sm:text-5xl">
+          {view === "legends" ? "All Legends" : "All Programs"}
+        </h1>
         <p className="mt-3 max-w-2xl text-white/60">
           Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
         </p>

@@ -12,11 +12,18 @@ export const metadata: Metadata = buildMetadata({
   alternates: { canonical: "/programs" },
 });
 
-export default async function ProgramsIndexPage() {
-  const [programs, doctors] = await Promise.all([
+export default async function ProgramsIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const [programs, doctors, sp] = await Promise.all([
     fetchCoursesFromBackend(),
     fetchDoctorsFromBackend(),
+    searchParams,
   ]);
 
-  return <ProgramsPageClient programs={programs} doctors={doctors} />;
+  const view = sp.view === "legends" ? "legends" : "courses";
+
+  return <ProgramsPageClient programs={programs} doctors={doctors} view={view} />;
 }

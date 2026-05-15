@@ -255,7 +255,7 @@ export function ProgramsSection({ doctors }: { doctors?: Doctor[] }) {
           Explore Courses
         </Link>
         <Link
-          href="/programs"
+          href="/programs?view=legends"
           className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
         >
           Explore Legends
