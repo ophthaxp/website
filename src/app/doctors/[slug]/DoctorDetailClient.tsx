@@ -11,6 +11,7 @@ import {
   ClipboardList,
   GraduationCap,
   PhoneCall,
+  Plus,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -261,52 +262,85 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
         {/* ──────────────────────────────────────────────────────────── */}
         {(() => {
           const fullBio = extendedDescription;
-          const PREVIEW_LEN = 500;
+          const PREVIEW_LEN = 280;
           const needsTruncation = fullBio.length > PREVIEW_LEN;
           const previewText = needsTruncation
             ? `${fullBio.slice(0, PREVIEW_LEN).trimEnd()}…`
             : fullBio;
+          const panelId = "bio-panel";
+          const buttonId = "bio-toggle";
           return (
             <section
               aria-labelledby="bio-title"
               className="mx-auto max-w-4xl px-5 py-16 sm:px-8 sm:py-20"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-                About the mentor
-              </p>
-              <h2
-                id="bio-title"
-                className="mt-2 font-serif text-3xl leading-tight sm:text-4xl"
-              >
-                {doctor.name}
-              </h2>
-
-              <p
-                id="bio-text"
-                className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-white/75"
-              >
-                {bioExpanded ? fullBio : previewText}
-              </p>
-
-              {needsTruncation ? (
+              <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0d] shadow-2xl shadow-black/30">
                 <button
                   type="button"
-                  onClick={() => setBioExpanded((v) => !v)}
+                  id={buttonId}
                   aria-expanded={bioExpanded}
-                  aria-controls="bio-text"
-                  className="mt-6 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/85 transition hover:bg-white/10"
+                  aria-controls={panelId}
+                  onClick={() => needsTruncation && setBioExpanded((v) => !v)}
+                  className={`flex w-full items-start justify-between gap-6 px-5 py-5 text-left transition sm:px-7 sm:py-6 ${
+                    needsTruncation ? "cursor-pointer hover:bg-white/[0.02]" : "cursor-default"
+                  }`}
                 >
-                  {bioExpanded ? "Show less" : "Know more"}
-                  <span
-                    aria-hidden
-                    className={`inline-block transition-transform duration-300 ${
-                      bioExpanded ? "rotate-180" : ""
-                    }`}
-                  >
-                    ↓
-                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#ab834d]">
+                      About the mentor
+                    </p>
+                    <h2
+                      id="bio-title"
+                      className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl"
+                    >
+                      {doctor.name}
+                    </h2>
+                  </div>
+                  {needsTruncation ? (
+                    <span
+                      aria-hidden
+                      className={`mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/80 transition-all duration-300 ${
+                        bioExpanded
+                          ? "rotate-45 border-[#ab834d] bg-[#ab834d]/10 text-[#ab834d]"
+                          : "hover:border-[#ab834d] hover:text-[#ab834d]"
+                      }`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </span>
+                  ) : null}
                 </button>
-              ) : null}
+
+                <div className="border-t border-white/5 px-5 py-5 sm:px-7 sm:py-6">
+                  <p
+                    id={panelId}
+                    role="region"
+                    aria-labelledby={buttonId}
+                    className="whitespace-pre-line text-[15px] leading-relaxed text-white/75"
+                  >
+                    {bioExpanded || !needsTruncation ? fullBio : previewText}
+                  </p>
+
+                  {needsTruncation ? (
+                    <button
+                      type="button"
+                      onClick={() => setBioExpanded((v) => !v)}
+                      aria-expanded={bioExpanded}
+                      aria-controls={panelId}
+                      className="mt-5 inline-flex items-center gap-2 rounded-md border border-[#ab834d] bg-[#ab834d]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white"
+                    >
+                      {bioExpanded ? "Show less" : "Know more"}
+                      <span
+                        aria-hidden
+                        className={`inline-block transition-transform duration-300 ${
+                          bioExpanded ? "rotate-180" : ""
+                        }`}
+                      >
+                        ↓
+                      </span>
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </section>
           );
         })()}
@@ -436,6 +470,7 @@ For many ophthalmologists, Dr. Rao is not merely a surgeon, teacher or speaker; 
             defaultSpecialty={doctor.specialty?.[0]}
             courseTuitionInr={doctor.priceInr}
             onCtaClick={openBrochure}
+            lockSpecialty
           />
         </section>
 

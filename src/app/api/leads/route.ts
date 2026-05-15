@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
 const NOCODE_APP_ID = process.env.NOCODE_APP_ID || "";
+const NOCODE_ORG_ID = process.env.NOCODE_ORG_ID || "";
 const NOCODE_LEADS_USER_ID = process.env.NOCODE_LEADS_USER_ID || "";
 const APPLY_MODULE =
   process.env.NOCODE_APPLY_LEADS_MODULE || "ophthaxp_apply_leads";
@@ -26,6 +28,256 @@ interface IncomingPayload {
   intent?: Intent;
   source?: string;
 }
+
+// ─── email helpers ────────────────────────────────────────────────────────────
+
+function getTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
+
+function buildApplyEmail(firstName: string, courseName: string) {
+  const subject = `Welcome to OphthaXP${courseName ? ` — ${courseName}` : ""}`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#0a0a0d;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0d;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#0f0f12;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);max-width:600px;width:100%;">
+
+        <!-- header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1a1408 0%,#0f0f12 100%);padding:40px 40px 32px;border-bottom:1px solid rgba(168,130,81,0.2);">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#a88251;">OphthaXP</p>
+            <h1 style="margin:0;font-size:28px;font-weight:700;color:#ffffff;line-height:1.2;">
+              We've received your application.
+            </h1>
+          </td>
+        </tr>
+
+        <!-- body -->
+        <tr>
+          <td style="padding:36px 40px;">
+            <p style="margin:0 0 20px;font-size:16px;color:rgba(255,255,255,0.85);line-height:1.6;">
+              Hi <strong style="color:#ffffff;">${firstName}</strong>,
+            </p>
+            <p style="margin:0 0 20px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">
+              Thank you for applying${courseName ? ` for <strong style="color:#a88251;">${courseName}</strong>` : " to OphthaXP"}. Our team will review your application and reach out shortly to schedule your discovery call.
+            </p>
+            <p style="margin:0 0 32px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">
+              While you wait, feel free to explore our programs and learn more about what makes OphthaXP unique — small cohorts, world-class mentors, and hands-on surgical training.
+            </p>
+
+            <!-- CTA -->
+            <table cellpadding="0" cellspacing="0"><tr><td>
+              <a href="https://ophthaxp.com/programs"
+                 style="display:inline-block;background:#a88251;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 28px;border-radius:8px;letter-spacing:0.03em;">
+                Explore Programs →
+              </a>
+            </td></tr></table>
+          </td>
+        </tr>
+
+        <!-- divider -->
+        <tr><td style="padding:0 40px;"><hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0;"></td></tr>
+
+        <!-- footer -->
+        <tr>
+          <td style="padding:28px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;">
+              © ${new Date().getFullYear()} OphthaXP. All rights reserved.<br>
+              You received this email because you applied on ophthaxp.com.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+  return { subject, html };
+}
+
+function buildBrochureEmail(firstName: string, courseName: string, brochureUrl: string) {
+  const subject = `Your OphthaXP brochure${courseName ? ` — ${courseName}` : ""} is here`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#0a0a0d;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0d;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#0f0f12;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);max-width:600px;width:100%;">
+
+        <!-- header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1a1408 0%,#0f0f12 100%);padding:40px 40px 32px;border-bottom:1px solid rgba(168,130,81,0.2);">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#a88251;">OphthaXP</p>
+            <h1 style="margin:0;font-size:28px;font-weight:700;color:#ffffff;line-height:1.2;">
+              Your brochure is ready.
+            </h1>
+          </td>
+        </tr>
+
+        <!-- body -->
+        <tr>
+          <td style="padding:36px 40px;">
+            <p style="margin:0 0 20px;font-size:16px;color:rgba(255,255,255,0.85);line-height:1.6;">
+              Hi <strong style="color:#ffffff;">${firstName}</strong>,
+            </p>
+            <p style="margin:0 0 20px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">
+              Here is the brochure you requested${courseName ? ` for <strong style="color:#a88251;">${courseName}</strong>` : ""}. Click the button below to download it.
+            </p>
+            <p style="margin:0 0 32px;font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">
+              Have questions? Our team is happy to walk you through the program. Apply today and take the next step in your ophthalmic career.
+            </p>
+
+            <!-- CTA -->
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td>
+              <a href="${brochureUrl}"
+                 style="display:inline-block;background:#a88251;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 28px;border-radius:8px;letter-spacing:0.03em;">
+                Download Brochure →
+              </a>
+            </td></tr></table>
+          </td>
+        </tr>
+
+        <!-- divider -->
+        <tr><td style="padding:0 40px;"><hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:0;"></td></tr>
+
+        <!-- footer -->
+        <tr>
+          <td style="padding:28px 40px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;">
+              © ${new Date().getFullYear()} OphthaXP. All rights reserved.<br>
+              You received this email because you requested a brochure on ophthaxp.com.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+  return { subject, html };
+}
+
+async function sendWelcomeEmail(
+  intent: Intent,
+  to: string,
+  firstName: string,
+  courseName: string,
+  brochureUrl?: string,
+) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn("[leads/email] SMTP_USER or SMTP_PASS not set — skipping welcome email");
+    return;
+  }
+  const { subject, html } =
+    intent === "brochure"
+      ? buildBrochureEmail(firstName, courseName, brochureUrl ?? "")
+      : buildApplyEmail(firstName, courseName);
+
+  try {
+    const transporter = getTransporter();
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+    console.log(`[leads/email] welcome email sent to ${to} (${intent})`);
+  } catch (err) {
+    console.error("[leads/email] failed to send welcome email:", err);
+  }
+}
+
+// ─── WhatsApp helpers ─────────────────────────────────────────────────────────
+
+/** Normalise phone to E.164. Handles Indian 10-digit numbers automatically. */
+function toE164(raw: string): string {
+  // strip everything except digits and leading +
+  let digits = raw.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits;          // already E.164
+  if (digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`; // IN mobile
+  if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`; // 91XXXXXXXXXX
+  return `+${digits}`;                                // best-effort
+}
+
+function buildApplyWhatsApp(firstName: string, courseName: string): string {
+  return (
+    `Hi ${firstName}! 👋\n\n` +
+    `Thank you for applying${courseName ? ` for *${courseName}*` : " to OphthaXP"}.\n\n` +
+    `Our team will review your application and reach out shortly to schedule your discovery call.\n\n` +
+    `— Team OphthaXP`
+  );
+}
+
+function buildBrochureWhatsApp(firstName: string, courseName: string, brochureUrl: string): string {
+  return (
+    `Hi ${firstName}! 👋\n\n` +
+    `Here's the brochure you requested${courseName ? ` for *${courseName}*` : ""}:\n` +
+    `${brochureUrl}\n\n` +
+    `Feel free to reply if you have any questions. We'd love to tell you more!\n\n` +
+    `— Team OphthaXP`
+  );
+}
+
+async function sendWhatsApp(
+  intent: Intent,
+  rawPhone: string,
+  firstName: string,
+  courseName: string,
+  brochureUrl?: string,
+) {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+
+  if (!sid || !token || !from || sid.startsWith("YOUR_")) {
+    console.warn("[leads/whatsapp] Twilio env not configured — skipping WhatsApp message");
+    return;
+  }
+
+  const to = `whatsapp:${toE164(rawPhone)}`;
+  const body =
+    intent === "brochure"
+      ? buildBrochureWhatsApp(firstName, courseName, brochureUrl ?? "")
+      : buildApplyWhatsApp(firstName, courseName);
+
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+  const creds = Buffer.from(`${sid}:${token}`).toString("base64");
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${creds}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error(`[leads/whatsapp] Twilio error ${res.status}:`, data);
+    } else {
+      console.log(`[leads/whatsapp] WhatsApp sent to ${to} sid=${(data as any).sid}`);
+    }
+  } catch (err) {
+    console.error("[leads/whatsapp] failed to send WhatsApp:", err);
+  }
+}
+
+// ─── route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
   let payload: IncomingPayload;
@@ -81,15 +333,15 @@ export async function POST(req: Request) {
     record.pincode = payload.pincode ?? "";
   }
 
-  if (!NOCODE_BASE || !NOCODE_APP_ID || !NOCODE_LEADS_USER_ID) {
+  if (!NOCODE_BASE || !NOCODE_APP_ID || !NOCODE_ORG_ID || !NOCODE_LEADS_USER_ID) {
     console.warn(
-      `[leads] nocode env not fully set — NOCODE_API_BASE_URL="${NOCODE_BASE}" NOCODE_APP_ID="${NOCODE_APP_ID}" NOCODE_LEADS_USER_ID set=${Boolean(
+      `[leads] nocode env not fully set — NOCODE_API_BASE_URL="${NOCODE_BASE}" NOCODE_APP_ID="${NOCODE_APP_ID}" NOCODE_ORG_ID set=${Boolean(NOCODE_ORG_ID)} NOCODE_LEADS_USER_ID set=${Boolean(
         NOCODE_LEADS_USER_ID,
       )}. Lead NOT written to DB; falling through to webhook/echo.`,
     );
   } else {
     const moduleTitle = isBrochure ? BROCHURE_MODULE : APPLY_MODULE;
-    const url = `${NOCODE_BASE}/api/public/data/${NOCODE_APP_ID}/${encodeURIComponent(
+    const url = `${NOCODE_BASE}/api/public/data/${NOCODE_APP_ID}/${NOCODE_ORG_ID}/${encodeURIComponent(
       moduleTitle,
     )}`;
     console.log(`[leads] POST → ${url} intent=${intent}`);
@@ -119,6 +371,11 @@ export async function POST(req: Request) {
       } catch {
         /* non-JSON */
       }
+
+      // send welcome email + WhatsApp after successful DB insert (non-blocking)
+      void sendWelcomeEmail(intent, email, firstName, payload.courseName ?? "", payload.brochureUrl);
+      void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
+
       return NextResponse.json({ ok: true, intent, data });
     } catch (err) {
       console.error("[leads] nocode insert threw", err);
@@ -144,6 +401,10 @@ export async function POST(req: Request) {
       console.error("[leads] webhook forward failed", err);
     }
   }
+
+  // send welcome email + WhatsApp for webhook/echo path too
+  void sendWelcomeEmail(intent, email, firstName, payload.courseName ?? "", payload.brochureUrl);
+  void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
 
   return NextResponse.json({
     ok: true,
