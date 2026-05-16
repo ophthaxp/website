@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { ThemedSelect } from "@/components/ThemedSelect";
 
 const QUALIFICATIONS = [
   "MBBS",
@@ -102,12 +103,16 @@ export function ApplyFormModal({
   const isBrochure = intent === "brochure";
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [qualification, setQualification] = useState<string>("");
+  const [stateValue, setStateValue] = useState<string>("");
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     setStatus("idle");
     setErrorMsg(null);
+    setQualification("");
+    setStateValue("");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -134,6 +139,12 @@ export function ApplyFormModal({
     const city = isBrochure ? "" : String(data.get("city") ?? "").trim();
     const pincode = isBrochure ? "" : String(data.get("pincode") ?? "").trim();
     const hiddenCourseId = String(data.get("courseId") ?? "").trim();
+
+    if (!isBrochure && !qualification) {
+      setStatus("error");
+      setErrorMsg("Please select your qualification.");
+      return;
+    }
 
     setStatus("submitting");
     setErrorMsg(null);
@@ -284,29 +295,27 @@ export function ApplyFormModal({
               {!isBrochure ? (
                 <>
                   <Field label="Qualification" required>
-                    <select name="qualification" required className={selectCls}>
-                      <option value="" className={optionCls}>
-                        Select qualification
-                      </option>
-                      {QUALIFICATIONS.map((q) => (
-                        <option key={q} value={q} className={optionCls}>
-                          {q}
-                        </option>
-                      ))}
-                    </select>
+                    <ThemedSelect
+                      id="apply-qualification"
+                      ariaLabel="Qualification"
+                      value={qualification}
+                      onChange={setQualification}
+                      placeholder="Select qualification"
+                      options={QUALIFICATIONS.map((q) => ({ value: q, label: q }))}
+                    />
+                    <input type="hidden" name="qualification" value={qualification} />
                   </Field>
 
                   <Field label="State (India)">
-                    <select name="state" className={selectCls}>
-                      <option value="" className={optionCls}>
-                        Select state
-                      </option>
-                      {INDIAN_STATES.map((s) => (
-                        <option key={s} value={s} className={optionCls}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    <ThemedSelect
+                      id="apply-state"
+                      ariaLabel="State"
+                      value={stateValue}
+                      onChange={setStateValue}
+                      placeholder="Select state"
+                      options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                    />
+                    <input type="hidden" name="state" value={stateValue} />
                   </Field>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -356,10 +365,6 @@ export function ApplyFormModal({
 
 const inputCls =
   "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
-
-const selectCls = `${inputCls} appearance-none bg-[#0f0f12] [color-scheme:dark]`;
-
-const optionCls = "bg-[#0f0f12] text-white";
 
 function Field({
   label,
