@@ -236,25 +236,42 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Portrait — parallax layer */}
+          {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
           <div
             ref={heroImgRef}
-            className="absolute inset-0 will-change-transform"
-            style={{ top: "-10%", bottom: "-10%" }}
+            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[52%]"
+            style={{ top: "-8%", bottom: "-8%" }}
           >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="100vw"
-              className="object-cover object-top"
+              sizes="(max-width: 1024px) 100vw, 52vw"
+              className="object-cover object-center"
+            />
+            {/* Tone the photo background into the dark theme */}
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
+            />
+            {/* Soft left feather on the image itself — kills the hard vertical edge */}
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
+            />
+            {/* Subtle bottom fade so the page flows into the next section */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06070a] to-transparent"
             />
           </div>
 
-          {/* Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#06070a] via-[#06070a]/88 to-[#06070a]/25 lg:to-[#06070a]/10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-transparent to-[#06070a]/55" />
+          {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
+
+          {/* Desktop: long, gentle left→right fade carrying the dark over the image edge */}
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
