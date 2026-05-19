@@ -54,14 +54,44 @@ function absoluteUrl(value?: string): string | undefined {
   return value.startsWith("/") ? `${NOCODE_BASE}${value}` : `${NOCODE_BASE}/${value}`;
 }
 
+/**
+ * Coerce one array element to a display string. Plain strings pass through;
+ * objects are probed for common text-bearing keys (text/value/label/name/
+ * description/title/item) so a curriculum item stored as `{text: "..."}` or
+ * `{label: "..."}` still renders correctly instead of "[object Object]".
+ * Anything else falls back to JSON so the value is at least visible.
+ */
+function coerceArrayItem(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (typeof v === "object") {
+    const obj = v as Record<string, unknown>;
+    for (const k of ["text", "value", "label", "name", "description", "title", "item"]) {
+      const candidate = obj[k];
+      if (typeof candidate === "string" && candidate.trim()) return candidate;
+    }
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
 function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
   for (const k of keys) {
     const v = rec[k];
-    if (Array.isArray(v)) return v.map(String).filter(Boolean);
+    if (Array.isArray(v)) {
+      return v.map(coerceArrayItem).map((s) => s.trim()).filter(Boolean);
+    }
     if (typeof v === "string" && v.trim()) {
       try {
         const parsed = JSON.parse(v);
-        if (Array.isArray(parsed)) return parsed.map(String);
+        if (Array.isArray(parsed)) {
+          return parsed.map(coerceArrayItem).map((s) => s.trim()).filter(Boolean);
+        }
       } catch {
         return v.split(/[\n,;]/).map((s) => s.trim()).filter(Boolean);
       }
