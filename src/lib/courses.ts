@@ -1,4 +1,10 @@
-import type { Doctor, Program } from "@/types";
+import type {
+  CourseFaq,
+  CourseFormatPhase,
+  Doctor,
+  Faculty,
+  Program,
+} from "@/types";
 import { DOCTORS, PROGRAMS } from "@/lib/data";
 
 const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
@@ -65,6 +71,26 @@ function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
 }
 
 /**
+ * Read a JSON-stored array of objects (jsonb field type in the admin).
+ * Accepts either an already-parsed array or a JSON string.
+ */
+function pickObjectArray<T>(rec: RawRecord, ...keys: string[]): T[] {
+  for (const k of keys) {
+    const v = rec[k];
+    if (Array.isArray(v)) return v as T[];
+    if (typeof v === "string" && v.trim()) {
+      try {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed)) return parsed as T[];
+      } catch {
+        // ignore — fall through to next key
+      }
+    }
+  }
+  return [];
+}
+
+/**
  * Map a raw record from the nocode-backend public module endpoint into the
  * Program shape this app already uses. Field names map flexibly so the user
  * can name them either camelCase or snake_case in the admin panel.
@@ -83,6 +109,13 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
   );
   if (!slug || !name) return null;
 
+  const heroImage = absoluteUrl(
+    pickString(rec, "heroImage", "hero_image", "courseHeroImage", "course_hero_image"),
+  );
+  const doctorImageFallback = absoluteUrl(
+    pickString(rec, "doctorImage", "doctor_image", "imageUrl", "image_url"),
+  );
+
   return {
     id: String(pickString(rec, "id") ?? rec.id ?? slug),
     slug,
@@ -99,15 +132,19 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
       new Date().toISOString().slice(0, 10),
     priceInr: pickNumber(rec, "priceInr", "price_inr", "price", "fee") ?? 0,
     highlights: pickStringArray(rec, "highlights", "Highlights"),
-    doctorImage: absoluteUrl(
-      pickString(rec, "doctorImage", "doctor_image", "imageUrl", "image_url"),
-    ),
+    headline: pickString(rec, "headline", "Headline"),
+    tagline: pickString(rec, "tagline", "Tagline"),
+    heroImage: heroImage ?? doctorImageFallback,
+    doctorImage: heroImage ?? doctorImageFallback,
     specialistTitle: pickString(rec, "specialistTitle", "specialist_title", "title"),
     city: pickString(rec, "city", "location"),
     experienceYears: pickNumber(rec, "experienceYears", "experience_years", "experience"),
     bio: pickString(rec, "bio", "shortBio", "short_bio"),
     lessonsCount: pickNumber(rec, "lessonsCount", "lessons_count", "lessons"),
     durationMinutes: pickNumber(rec, "durationMinutes", "duration_minutes", "totalMinutes"),
+    durationMonths: pickNumber(rec, "durationMonths", "duration_months"),
+    launchMonth: pickString(rec, "launchMonth", "launch_month"),
+    launchYear: pickNumber(rec, "launchYear", "launch_year"),
     trailerVideoUrl: absoluteUrl(
       pickString(
         rec,
@@ -129,6 +166,41 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
       "related_doctor_slugs",
       "relatedDoctors",
     ),
+    eligibility: pickString(rec, "eligibility", "Eligibility"),
+    whatYouWillLearn: pickStringArray(
+      rec,
+      "whatYouWillLearn",
+      "what_you_will_learn",
+      "learningOutcomes",
+      "learning_outcomes",
+    ),
+    curriculumHighlights: pickStringArray(
+      rec,
+      "curriculumHighlights",
+      "curriculum_highlights",
+    ),
+    courseFormat: pickObjectArray<CourseFormatPhase>(
+      rec,
+      "courseFormat",
+      "course_format",
+    ),
+    faqs: pickObjectArray<CourseFaq>(rec, "faqs", "faq"),
+    certificateNote: pickString(rec, "certificateNote", "certificate_note"),
+    sampleCertificateImage: absoluteUrl(
+      pickString(
+        rec,
+        "sampleCertificateImage",
+        "sample_certificate_image",
+        "certificateImage",
+        "certificate_image",
+      ),
+    ),
+    ctaLabel: pickString(rec, "ctaLabel", "cta_label"),
+    brochureUrl: absoluteUrl(pickString(rec, "brochureUrl", "brochure_url", "brochure")),
+    isNew: pickBool(rec, "isNew", "is_new"),
+    isFeatured: pickBool(rec, "isFeatured", "is_featured"),
+    isActive: pickBool(rec, "isActive", "is_active"),
+    doctorSlug: pickString(rec, "doctorSlug", "doctor_slug"),
   };
 }
 
@@ -293,6 +365,50 @@ export async function fetchCoursesFromBackend(): Promise<Program[]> {
   return programs;
 }
 
+function doctorToFaculty(d: Doctor): Faculty {
+  return {
+    slug: d.slug,
+    name: d.name,
+    title: d.title,
+    city: d.city || undefined,
+    imageUrl: d.imageUrl || undefined,
+    qualification: d.qualification,
+    bio: d.bio || undefined,
+    experienceYears: d.experienceYears || undefined,
+  };
+}
+
+/**
+ * Look up the doctor referenced by `program.doctorSlug` (or fall back to the
+ * course's relatedDoctorSlugs[0]) and attach it as `program.faculty`. Also
+ * fills in display fields (city, experienceYears, bio, doctorImage) when the
+ * course record itself didn't carry them — convenient when authors keep all
+ * doctor metadata in the doctors module.
+ */
+async function attachFaculty(program: Program): Promise<Program> {
+  const refSlug =
+    program.doctorSlug ||
+    program.relatedDoctorSlugs?.[0] ||
+    undefined;
+  if (!refSlug) return program;
+
+  const doctors = await fetchDoctorsFromBackend();
+  const doctor = doctors.find((d) => d.slug === refSlug);
+  if (!doctor) return program;
+
+  return {
+    ...program,
+    faculty: doctorToFaculty(doctor),
+    // Use doctor's portrait as the course hero when the course didn't supply one
+    heroImage: program.heroImage || doctor.imageUrl,
+    doctorImage: program.doctorImage || doctor.imageUrl,
+    specialistTitle: program.specialistTitle || doctor.title,
+    city: program.city || doctor.city,
+    experienceYears: program.experienceYears ?? doctor.experienceYears,
+    bio: program.bio || doctor.bio,
+  };
+}
+
 export async function fetchCourseFromBackend(slug: string): Promise<Program | null> {
   if (!isBackendConfigured) {
     return PROGRAMS.find((p) => p.slug === slug) ?? null;
@@ -307,13 +423,14 @@ export async function fetchCourseFromBackend(slug: string): Promise<Program | nu
     const rows = extractRows(json);
     if (rows[0]) {
       const mapped = mapRecordToProgram(rows[0]);
-      if (mapped) return mapped;
+      if (mapped) return await attachFaculty(mapped);
     }
   }
 
   // Fallback: list all + find by slug
   const all = await fetchCoursesFromBackend();
-  return all.find((p) => p.slug === slug) ?? null;
+  const found = all.find((p) => p.slug === slug);
+  return found ? await attachFaculty(found) : null;
 }
 
 export async function fetchCourseSlugsFromBackend(): Promise<string[]> {

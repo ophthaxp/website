@@ -49,6 +49,28 @@ export interface Doctor {
   isActive?: boolean;
 }
 
+export interface CourseFormatPhase {
+  phase: string;
+  description: string;
+}
+
+export interface CourseFaq {
+  question: string;
+  answer: string;
+}
+
+/** Compact doctor projection embedded into a Program as `faculty`. */
+export interface Faculty {
+  slug: string;
+  name: string;
+  title: string;
+  city?: string;
+  imageUrl?: string;
+  qualification?: string;
+  bio?: string;
+  experienceYears?: number;
+}
+
 export interface Program {
   id: string;
   slug: string;
@@ -60,7 +82,10 @@ export interface Program {
   startDate: string; // ISO
   priceInr: number;
   highlights: string[];
-  // Course detail page extras (optional — populated when sourced from nocode backend)
+  // Detail page presentation
+  headline?: string;
+  tagline?: string;
+  heroImage?: string;
   doctorImage?: string;
   specialistTitle?: string;
   city?: string;
@@ -68,11 +93,31 @@ export interface Program {
   bio?: string;
   lessonsCount?: number;
   durationMinutes?: number;
+  durationMonths?: number;
+  launchMonth?: string;
+  launchYear?: number;
   trailerVideoUrl?: string;
   pricePerDayInr?: number;
   billingPeriod?: "annual" | "monthly" | "onetime";
   moneyBackDays?: number;
   relatedDoctorSlugs?: string[];
+  // Rich content sections
+  eligibility?: string;
+  whatYouWillLearn?: string[];
+  curriculumHighlights?: string[];
+  courseFormat?: CourseFormatPhase[];
+  faqs?: CourseFaq[];
+  certificateNote?: string;
+  sampleCertificateImage?: string;
+  // CTA / flags
+  ctaLabel?: string;
+  brochureUrl?: string;
+  isNew?: boolean;
+  isFeatured?: boolean;
+  isActive?: boolean;
+  // Faculty resolved from `doctorSlug` reference
+  doctorSlug?: string;
+  faculty?: Faculty;
 }
 
 export interface ChatMessage {
