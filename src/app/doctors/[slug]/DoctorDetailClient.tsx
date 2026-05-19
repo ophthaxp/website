@@ -996,6 +996,7 @@ export function DoctorDetailClient({
         intent={applyIntent}
         courseId={doctor.id}
         courseName={courseName}
+        mentorName={doctor.name}
         brochureUrl={doctor.brochureUrl}
       />
 

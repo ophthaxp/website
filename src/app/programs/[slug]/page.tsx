@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import { CourseFaqList } from "@/components/CourseFaqList";
+import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
@@ -191,12 +192,16 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               <p className="text-center text-sm font-semibold text-white">
                 Reserve your seat in the next cohort
               </p>
-              <button
-                type="button"
-                className="mt-4 w-full rounded-full bg-accent py-3 text-sm font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent/90"
-              >
-                {cta}
-              </button>
+              <div className="mt-4">
+                <CourseApplyButton
+                  courseId={p.id}
+                  courseName={p.name}
+                  mentorName={p.faculty?.name}
+                  brochureUrl={p.brochureUrl}
+                  label={cta}
+                  block
+                />
+              </div>
               {p.brochureUrl && (
                 <a
                   href={p.brochureUrl}
@@ -548,12 +553,13 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 Seats are limited each cohort. Join the waitlist and we&apos;ll reach out the moment enrolment opens.
               </p>
             </div>
-            <button
-              type="button"
-              className="rounded-full bg-accent px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent/90"
-            >
-              {cta}
-            </button>
+            <CourseApplyButton
+              courseId={p.id}
+              courseName={p.name}
+              mentorName={p.faculty?.name}
+              brochureUrl={p.brochureUrl}
+              label={cta}
+            />
           </div>
         </section>
       </main>

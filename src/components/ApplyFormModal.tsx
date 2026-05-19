@@ -89,6 +89,8 @@ export function ApplyFormModal({
   onClose,
   courseId,
   courseName,
+  mentorName,
+  payUrl,
   intent = "apply",
   brochureUrl,
 }: {
@@ -96,6 +98,10 @@ export function ApplyFormModal({
   onClose: () => void;
   courseId: string;
   courseName?: string;
+  /** Faculty name shown in the welcome email hero, e.g. "Dr. Srinivas K Rao". */
+  mentorName?: string;
+  /** Optional payment link for the exploratory call. Falls back to APPLY_PAY_URL on the server. */
+  payUrl?: string;
   intent?: Intent;
   brochureUrl?: string;
 }) {
@@ -158,6 +164,7 @@ export function ApplyFormModal({
         email,
         courseId: hiddenCourseId,
         courseName,
+        mentorName,
         intent,
         source: isBrochure ? "brochure-form-modal" : "apply-form-modal",
       };
@@ -168,6 +175,7 @@ export function ApplyFormModal({
         payload.state = state;
         payload.city = city;
         payload.pincode = pincode;
+        if (payUrl) payload.payUrl = payUrl;
       }
       const res = await fetch("/api/leads", {
         method: "POST",
