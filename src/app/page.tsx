@@ -37,7 +37,7 @@ export default async function HomePage() {
       <main>
         <Hero images={heroImages} />
         <LegendsVideo />
-        <ProgramsSection doctors={doctors} />
+        <ProgramsSection doctors={doctors} programs={programs} />
         <HomeRoiSection />
         <CertificatesPromo />
         <SmartAssist />
