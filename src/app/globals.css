@@ -61,11 +61,26 @@ body {
   border-radius: 14px;
 }
 
-/* Pretty focus ring */
-:where(button, a, input, textarea):focus-visible {
+/* Pretty focus ring — only applied where no component-level focus-visible:ring exists */
+:where(button, a, input, textarea, select):focus-visible {
   outline: 2px solid #7c5cff;
   outline-offset: 2px;
   border-radius: 8px;
+}
+
+/* Smooth defaults for interactive elements */
+:where(button, a) {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+/* Better text selection in modals + cards */
+:where(input, textarea, select)::placeholder {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 /* ---------- PageLoader animations ---------- */
@@ -158,4 +173,67 @@ body {
   .loader-dot {
     animation: none;
   }
+}
+
+/* ---------- Modal animations ---------- */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes success-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-fade-in {
+  animation: modal-fade-in 180ms ease-out both;
+}
+.modal-pop-in {
+  animation: modal-pop-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.success-pop {
+  animation: success-pop 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-fade-in,
+  .modal-pop-in,
+  .success-pop {
+    animation: none;
+  }
+}
+
+/* ---------- Reusable card hover lift ---------- */
+.card-lift {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
 }

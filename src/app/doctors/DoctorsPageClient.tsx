@@ -197,7 +197,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
                 </p>
                 <Link
                   href="#get-started"
-                  className="mt-4 block rounded-md bg-[#a88251] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                  className="mt-4 block rounded-md bg-[#ab834d] px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
                 >
                   Get Mentorship
                 </Link>
@@ -270,7 +270,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
               >
                 From Here, Go Anywhere
               </h2>
-              <p className="mt-1 text-sm text-white/55">
+              <p className="mt-1 text-sm text-white/75">
                 Included with a membership. And {DOCTORS.length}+ more
               </p>
             </div>
@@ -298,7 +298,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
           <div
             role="search"
             aria-label="Filter legends"
-            className="mt-6 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+            className="mt-6 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.2fr_1fr_1fr_auto]"
           >
             <div>
               <label
@@ -458,7 +458,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
             </div>
             <Link
               href="#get-started"
-              className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              className="rounded-md bg-[#ab834d] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
             >
               Get Mentorship
             </Link>
@@ -487,7 +487,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
           </p>
           <Link
             href="/programs"
-            className="mt-8 inline-flex rounded-md bg-[#a88251] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+            className="mt-8 inline-flex rounded-md bg-[#ab834d] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
           >
             Get Mentorship
           </Link>

@@ -326,7 +326,7 @@ export function DoctorDetailClient({
                 <button
                   type="button"
                   onClick={openApply}
-                  className="rounded-md bg-[#a88251] px-7 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                  className="rounded-md bg-[#ab834d] px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
                 >
                   Apply Now
                 </button>
@@ -764,7 +764,7 @@ export function DoctorDetailClient({
               <button
                 type="button"
                 onClick={openApply}
-                className="rounded-md bg-[#a88251] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                className="rounded-md bg-[#ab834d] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
               >
                 Apply Now
               </button>
@@ -982,7 +982,7 @@ export function DoctorDetailClient({
             <button
               type="button"
               onClick={openApply}
-              className="rounded-md bg-[#a88251] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              className="rounded-md bg-[#ab834d] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
             >
               Apply Now
             </button>

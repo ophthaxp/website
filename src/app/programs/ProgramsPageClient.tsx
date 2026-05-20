@@ -82,7 +82,7 @@ export function ProgramsPageClient({
         <h1 className="font-serif text-4xl text-white sm:text-5xl">
           {view === "legends" ? "All Legends" : "All Programs"}
         </h1>
-        <p className="mt-3 max-w-2xl text-white/60">
+        <p className="mt-3 max-w-2xl text-white/75">
           Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
         </p>
 
@@ -90,7 +90,7 @@ export function ProgramsPageClient({
         <div
           role="search"
           aria-label="Filter courses"
-          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.2fr_1fr_1fr_auto]"
         >
           <div>
             <label
@@ -242,7 +242,7 @@ export function ProgramsPageClient({
                       {p.name}
                     </h2>
                     {p.tagline || p.description ? (
-                      <p className="mt-2 line-clamp-3 text-sm text-white/60">
+                      <p className="mt-2 line-clamp-3 text-sm text-white/75">
                         {p.tagline || p.description}
                       </p>
                     ) : null}

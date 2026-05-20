@@ -281,13 +281,13 @@ export function ProgramsSection({
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
           href="/programs"
-          className="rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+          className="rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_28px_-12px_rgba(171,131,77,0.6)] transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
         >
           Explore Courses
         </Link>
         <Link
           href="/doctors"
-          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10"
+          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/85 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
         >
           Explore Legends
         </Link>

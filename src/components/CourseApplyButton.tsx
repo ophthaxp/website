@@ -28,8 +28,8 @@ export function CourseApplyButton({
   const widthCls = block ? "w-full" : "";
   const cls =
     variant === "primary"
-      ? `${widthCls} rounded-full bg-accent px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent/90`
-      : `${widthCls} rounded-full border border-white/15 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10`;
+      ? `${widthCls} rounded-full bg-[#ab834d] px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950`
+      : `${widthCls} rounded-full border border-[#ab834d]/50 bg-[#ab834d]/10 px-8 py-3 text-sm font-semibold text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950`;
 
   return (
     <>
