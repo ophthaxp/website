@@ -8,7 +8,7 @@ export function CourseApplyButton({
   courseName,
   mentorName,
   payUrl,
-  label = "Join the waitlist",
+  label = "Apply Now",
   variant = "primary",
   block = false,
   brochureUrl,

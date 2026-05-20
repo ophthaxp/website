@@ -65,7 +65,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
   const related = await fetchRelatedDoctors(p.relatedDoctorSlugs ?? []);
   const durationLabel = formatDuration(p.durationMinutes);
   const launchLabel = formatLaunch(p);
-  const cta = p.ctaLabel || "Join the waitlist";
+  const cta = "Apply Now";
 
   const courseLd = {
     "@context": "https://schema.org",
@@ -550,7 +550,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 Ready to shift from theory to surgical confidence?
               </h3>
               <p className="mt-2 text-sm text-white/65 sm:text-base">
-                Seats are limited each cohort. Join the waitlist and we&apos;ll reach out the moment enrolment opens.
+                Seats are limited each cohort. Apply now and we&apos;ll reach out as soon as your application is reviewed.
               </p>
             </div>
             <CourseApplyButton
