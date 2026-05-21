@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { ThemedSelect } from "@/components/ThemedSelect";
 
 const QUALIFICATIONS = [
   "MBBS",
@@ -88,6 +89,8 @@ export function ApplyFormModal({
   onClose,
   courseId,
   courseName,
+  mentorName,
+  payUrl,
   intent = "apply",
   brochureUrl,
 }: {
@@ -95,6 +98,10 @@ export function ApplyFormModal({
   onClose: () => void;
   courseId: string;
   courseName?: string;
+  /** Faculty name shown in the welcome email hero, e.g. "Dr. Srinivas K Rao". */
+  mentorName?: string;
+  /** Optional payment link for the exploratory call. Falls back to APPLY_PAY_URL on the server. */
+  payUrl?: string;
   intent?: Intent;
   brochureUrl?: string;
 }) {
@@ -102,12 +109,16 @@ export function ApplyFormModal({
   const isBrochure = intent === "brochure";
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [qualification, setQualification] = useState<string>("");
+  const [stateValue, setStateValue] = useState<string>("");
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     setStatus("idle");
     setErrorMsg(null);
+    setQualification("");
+    setStateValue("");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -135,6 +146,12 @@ export function ApplyFormModal({
     const pincode = isBrochure ? "" : String(data.get("pincode") ?? "").trim();
     const hiddenCourseId = String(data.get("courseId") ?? "").trim();
 
+    if (!isBrochure && !qualification) {
+      setStatus("error");
+      setErrorMsg("Please select your qualification.");
+      return;
+    }
+
     setStatus("submitting");
     setErrorMsg(null);
 
@@ -147,6 +164,7 @@ export function ApplyFormModal({
         email,
         courseId: hiddenCourseId,
         courseName,
+        mentorName,
         intent,
         source: isBrochure ? "brochure-form-modal" : "apply-form-modal",
       };
@@ -157,6 +175,7 @@ export function ApplyFormModal({
         payload.state = state;
         payload.city = city;
         payload.pincode = pincode;
+        if (payUrl) payload.payUrl = payUrl;
       }
       const res = await fetch("/api/leads", {
         method: "POST",
@@ -182,7 +201,7 @@ export function ApplyFormModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="apply-modal-title"
-      className="fixed inset-0 z-[60] flex items-center justify-center px-4 py-8"
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4 py-8 modal-fade-in"
     >
       <button
         type="button"
@@ -191,7 +210,7 @@ export function ApplyFormModal({
         className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm"
       />
 
-      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 sm:p-8">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 modal-pop-in sm:p-8">
         <button
           type="button"
           aria-label="Close"
@@ -202,18 +221,32 @@ export function ApplyFormModal({
         </button>
 
         {status === "success" ? (
-          <div className="py-8 text-center">
+          <div className="success-pop py-8 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
+              <svg
+                className="h-7 w-7 text-emerald-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
             <h3
               id="apply-modal-title"
-              className="font-serif text-2xl text-white"
+              className="mt-5 font-serif text-2xl text-white"
             >
               {copy.successTitle}
             </h3>
-            <p className="mt-3 text-sm text-white/70">{copy.successBody}</p>
+            <p className="mt-3 text-sm text-white/80">{copy.successBody}</p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-6 rounded-md bg-[#a88251] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              className="mt-6 rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12]"
             >
               Close
             </button>
@@ -230,7 +263,7 @@ export function ApplyFormModal({
               {copy.title}
             </h3>
             {courseName ? (
-              <p className="mt-1 text-sm text-white/55">For {courseName}</p>
+              <p className="mt-1 text-sm text-white/75">For {courseName}</p>
             ) : null}
 
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
@@ -284,29 +317,27 @@ export function ApplyFormModal({
               {!isBrochure ? (
                 <>
                   <Field label="Qualification" required>
-                    <select name="qualification" required className={selectCls}>
-                      <option value="" className={optionCls}>
-                        Select qualification
-                      </option>
-                      {QUALIFICATIONS.map((q) => (
-                        <option key={q} value={q} className={optionCls}>
-                          {q}
-                        </option>
-                      ))}
-                    </select>
+                    <ThemedSelect
+                      id="apply-qualification"
+                      ariaLabel="Qualification"
+                      value={qualification}
+                      onChange={setQualification}
+                      placeholder="Select qualification"
+                      options={QUALIFICATIONS.map((q) => ({ value: q, label: q }))}
+                    />
+                    <input type="hidden" name="qualification" value={qualification} />
                   </Field>
 
                   <Field label="State (India)">
-                    <select name="state" className={selectCls}>
-                      <option value="" className={optionCls}>
-                        Select state
-                      </option>
-                      {INDIAN_STATES.map((s) => (
-                        <option key={s} value={s} className={optionCls}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    <ThemedSelect
+                      id="apply-state"
+                      ariaLabel="State"
+                      value={stateValue}
+                      onChange={setStateValue}
+                      placeholder="Select state"
+                      options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+                    />
+                    <input type="hidden" name="state" value={stateValue} />
                   </Field>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -342,9 +373,19 @@ export function ApplyFormModal({
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="mt-2 rounded-md bg-[#a88251] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-[#ab834d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? copy.submittingLabel : copy.submitLabel}
+                {status === "submitting" ? (
+                  <>
+                    <span
+                      aria-hidden
+                      className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                    />
+                    {copy.submittingLabel}
+                  </>
+                ) : (
+                  copy.submitLabel
+                )}
               </button>
             </form>
           </>
@@ -356,10 +397,6 @@ export function ApplyFormModal({
 
 const inputCls =
   "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
-
-const selectCls = `${inputCls} appearance-none bg-[#0f0f12] [color-scheme:dark]`;
-
-const optionCls = "bg-[#0f0f12] text-white";
 
 function Field({
   label,
@@ -374,7 +411,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-white/70">
         {label}
-        {required ? <span className="ml-1 text-[#a88251]">*</span> : null}
+        {required ? <span className="ml-1 text-[#ab834d]">*</span> : null}
       </span>
       {children}
     </label>

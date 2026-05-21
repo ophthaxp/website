@@ -92,16 +92,25 @@ export function Hero({ images }: { images?: HeroImg[] }) {
             <br />
             <span className="italic">Legends</span>
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-white/60 sm:text-base">
+          <p className="mt-5 max-w-md text-sm leading-relaxed text-white/75 sm:text-base">
             Live, cohort-based mentorship for practicing ophthalmologists to
             advance surgical expertise. Selective cohorts. Multiple batches.
           </p>
-          <Link
-            href="#programs"
-            className="mt-7 inline-flex items-center justify-center rounded-[12px] border border-[#2A2A2A] bg-[#1A1A1A] px-7 py-2.5 text-sm font-medium text-white shadow-[0_8px_28px_-12px_rgba(0,0,0,0.8)] transition hover:border-[#ab834d] hover:bg-[#ab834d]"
-          >
-            Take me to Courses
-          </Link>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="#programs"
+              className="group inline-flex items-center justify-center gap-2 rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-7 py-2.5 text-sm font-semibold text-white shadow-[0_8px_28px_-12px_rgba(171,131,77,0.6)] transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+            >
+              Take me to Courses
+              <span aria-hidden className="translate-x-0 transition group-hover:translate-x-0.5">→</span>
+            </Link>
+            <Link
+              href="/doctors"
+              className="inline-flex items-center justify-center rounded-[12px] border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-white/85 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+            >
+              Meet the Legends
+            </Link>
+          </div>
         </div>
 
         <MarqueeColumn images={list} direction="up" offset={2} className="self-center" />

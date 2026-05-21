@@ -36,6 +36,10 @@ const config: Config = {
           "0%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0)" },
         },
+        scrollX: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
         fadeUp: {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -44,6 +48,7 @@ const config: Config = {
       animation: {
         scrollY: "scrollY 120s linear infinite",
         scrollYReverse: "scrollYReverse 140s linear infinite",
+        scrollX: "scrollX 40s linear infinite",
         fadeUp: "fadeUp 0.6s ease-out both",
       },
       backgroundImage: {

@@ -25,14 +25,16 @@ export function ProgramsPageClient({
   doctors: Doctor[];
   view?: "courses" | "legends";
 }) {
-  // Resolve a legend (doctor) for each program when possible. In the merged
-  // doctors-as-courses backend, doctor.courseSlug === program.slug.
+  // Resolve a legend (doctor) for each program. Priority:
+  // 1. New schema: program.doctorSlug → doctors.slug (course → faculty reference)
+  // 2. Legacy merged schema: doctor.courseSlug === program.slug
+  // 3. Legacy: doctor.slug === program.slug (one-doctor-one-course)
   const legendByProgramSlug = useMemo(() => {
     const map = new Map<string, Doctor>();
     for (const p of programs) {
-      const match = doctors.find(
-        (d) => d.courseSlug === p.slug || d.slug === p.slug,
-      );
+      const match =
+        (p.doctorSlug && doctors.find((d) => d.slug === p.doctorSlug)) ||
+        doctors.find((d) => d.courseSlug === p.slug || d.slug === p.slug);
       if (match) map.set(p.slug, match);
     }
     return map;
@@ -80,7 +82,7 @@ export function ProgramsPageClient({
         <h1 className="font-serif text-4xl text-white sm:text-5xl">
           {view === "legends" ? "All Legends" : "All Programs"}
         </h1>
-        <p className="mt-3 max-w-2xl text-white/60">
+        <p className="mt-3 max-w-2xl text-white/75">
           Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
         </p>
 
@@ -88,7 +90,7 @@ export function ProgramsPageClient({
         <div
           role="search"
           aria-label="Filter courses"
-          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-end"
+          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.2fr_1fr_1fr_auto]"
         >
           <div>
             <label
@@ -181,27 +183,45 @@ export function ProgramsPageClient({
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => {
               const legend = legendByProgramSlug.get(p.slug);
+              const launchLabel =
+                p.launchMonth && p.launchYear
+                  ? `Launches ${p.launchMonth} ${p.launchYear}`
+                  : p.launchMonth
+                    ? `Launches ${p.launchMonth}`
+                    : null;
+              const durationLabel = p.durationMonths
+                ? `${p.durationMonths} months`
+                : p.durationWeeks
+                  ? `${p.durationWeeks} weeks`
+                  : null;
               const meta = [
-                p.durationWeeks ? `${p.durationWeeks} weeks` : null,
+                durationLabel,
                 p.cohortSize ? `cohort of ${p.cohortSize}` : null,
-                p.experienceYears ? `${p.experienceYears} yrs experience` : null,
-                p.city,
+                legend?.experienceYears
+                  ? `${legend.experienceYears} yrs experience`
+                  : p.experienceYears
+                    ? `${p.experienceYears} yrs experience`
+                    : null,
+                p.city || legend?.city,
               ].filter(Boolean);
 
-              const href = legend
-                ? `/doctors/${legend.slug}`
-                : `/programs/${p.slug}`;
+              const cardImage = p.heroImage || p.doctorImage || legend?.imageUrl;
 
               return (
                 <Link
                   key={p.id}
-                  href={href}
-                  className="group block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:bg-white/[0.06]"
+                  href={`/programs/${p.slug}`}
+                  className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-0.5 hover:border-accent/40 hover:bg-white/[0.06] hover:shadow-xl hover:shadow-accent/10"
                 >
-                  {p.doctorImage ? (
+                  {p.isNew && (
+                    <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-400/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-950 shadow">
+                      New
+                    </span>
+                  )}
+                  {cardImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={p.doctorImage}
+                      src={cardImage}
                       alt={p.name}
                       className="aspect-[4/5] w-full object-cover transition group-hover:scale-[1.02]"
                     />
@@ -221,14 +241,20 @@ export function ProgramsPageClient({
                     <h2 className="mt-2 font-serif text-xl leading-tight text-white">
                       {p.name}
                     </h2>
-                    {p.description ? (
-                      <p className="mt-2 line-clamp-3 text-sm text-white/60">
-                        {p.description}
+                    {p.tagline || p.description ? (
+                      <p className="mt-2 line-clamp-3 text-sm text-white/75">
+                        {p.tagline || p.description}
                       </p>
                     ) : null}
 
+                    {launchLabel && (
+                      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#d6a76b]">
+                        {launchLabel}
+                      </p>
+                    )}
+
                     {meta.length > 0 ? (
-                      <p className="mt-4 text-xs text-white/55">{meta.join(" · ")}</p>
+                      <p className="mt-2 text-xs text-white/55">{meta.join(" · ")}</p>
                     ) : null}
 
                     {p.priceInr ? (

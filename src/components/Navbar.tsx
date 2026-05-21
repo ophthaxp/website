@@ -21,16 +21,18 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Desktop: full pill — Mobile: icon-only */}
           <Link
             href="#smart-assist"
-            className="hidden items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/80 transition hover:bg-white/10 sm:inline-flex"
+            aria-label="Ask OphthaXP"
+            className="inline-flex items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-white/85 transition hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3.5"
           >
             <Sparkles className="h-3.5 w-3.5 text-accent-soft" aria-hidden />
-            Ask OphthaXP
+            <span className="hidden sm:inline">Ask OphthaXP</span>
           </Link>
           <Link
             href="#get-started"
-            className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 transition hover:bg-[#ab834d] hover:text-white"
+            className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 shadow-sm transition hover:bg-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
           >
             Login
           </Link>
