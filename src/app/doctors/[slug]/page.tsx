@@ -77,37 +77,12 @@ export default async function DoctorDetailPage({
     },
   };
 
-  const courseLd = d.courseName
-    ? {
-        "@context": "https://schema.org",
-        "@type": "Course",
-        name: d.courseName,
-        description: d.description ?? d.bio,
-        url: `${SITE_URL}/doctors/${d.slug}`,
-        provider: {
-          "@type": "Organization",
-          name: SITE_NAME,
-          sameAs: SITE_URL,
-        },
-        instructor: { "@type": "Person", name: d.name },
-        ...(d.priceInr
-          ? { offers: { "@type": "Offer", price: d.priceInr, priceCurrency: "INR" } }
-          : {}),
-      }
-    : null;
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
       />
-      {courseLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
-        />
-      )}
       <DoctorDetailClient doctor={d} otherDoctors={others} />
     </>
   );
