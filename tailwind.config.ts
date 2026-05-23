@@ -19,8 +19,8 @@ const config: Config = {
           500: "#3A4150",
         },
         accent: {
-          DEFAULT: "#7C5CFF",
-          soft: "#A78BFA",
+          DEFAULT: "#ab834d",
+          soft: "#d6a76b",
         },
       },
       fontFamily: {
@@ -53,7 +53,7 @@ const config: Config = {
       },
       backgroundImage: {
         "radial-fade":
-          "radial-gradient(ellipse at center, rgba(124,92,255,0.18) 0%, rgba(6,7,10,0) 60%)",
+          "radial-gradient(ellipse at center, rgba(171,131,77,0.20) 0%, rgba(6,7,10,0) 60%)",
         "vignette-y":
           "linear-gradient(to bottom, #06070A 0%, transparent 14%, transparent 86%, #06070A 100%)",
       },
