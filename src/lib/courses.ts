@@ -153,11 +153,27 @@ function pickObjectArray<T>(rec: RawRecord, ...keys: string[]): T[] {
     const v = rec[k];
     if (Array.isArray(v)) return v as T[];
     if (typeof v === "string" && v.trim()) {
+      // 1. Plain JSON array string: `[{...},{...}]`
       try {
         const parsed = JSON.parse(v);
         if (Array.isArray(parsed)) return parsed as T[];
       } catch {
-        // ignore — fall through to next key
+        // fall through
+      }
+      // 2. Postgres array literal containing JSON-encoded objects:
+      //    `{"{\"question\":\"...\",\"answer\":\"...\"}", "{...}"}`
+      const pg = parsePgArrayLiteral(v);
+      if (pg && pg.length > 0) {
+        const out: T[] = [];
+        for (const elem of pg) {
+          try {
+            const parsed = JSON.parse(elem);
+            if (parsed && typeof parsed === "object") out.push(parsed as T);
+          } catch {
+            // skip non-JSON elements
+          }
+        }
+        if (out.length > 0) return out;
       }
     }
   }
