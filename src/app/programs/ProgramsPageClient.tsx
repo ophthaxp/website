@@ -2,19 +2,29 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ThemedSelect } from "@/components/ThemedSelect";
 import { formatINR } from "@/lib/utils";
 import type { Doctor, Program } from "@/types";
 
-const DURATION_BUCKETS: { key: string; label: string; matches: (weeks: number) => boolean }[] = [
+const DURATION_BUCKETS: { key: string; label: string; matches: (months: number) => boolean }[] = [
   { key: "all", label: "Any duration", matches: () => true },
-  { key: "short", label: "≤ 8 weeks", matches: (w) => w > 0 && w <= 8 },
-  { key: "mid", label: "9 – 12 weeks", matches: (w) => w >= 9 && w <= 12 },
-  { key: "long", label: "13+ weeks", matches: (w) => w >= 13 },
+  { key: "short", label: "≤ 3 months", matches: (m) => m > 0 && m <= 3 },
+  { key: "mid", label: "4 – 6 months", matches: (m) => m >= 4 && m <= 6 },
+  { key: "long", label: "7 – 12 months", matches: (m) => m >= 7 && m <= 12 },
+  { key: "xlong", label: "12+ months", matches: (m) => m > 12 },
 ];
+
+function programDurationInMonths(p: Program): number {
+  if (typeof p.durationMonths === "number" && p.durationMonths > 0) {
+    return p.durationMonths;
+  }
+  if (typeof p.durationWeeks === "number" && p.durationWeeks > 0) {
+    return Math.round(p.durationWeeks / 4.345);
+  }
+  return 0;
+}
 
 export function ProgramsPageClient({
   programs,
@@ -32,46 +42,43 @@ export function ProgramsPageClient({
   const legendByProgramSlug = useMemo(() => {
     const map = new Map<string, Doctor>();
     for (const p of programs) {
+      const ref = p.doctorSlug;
+      const refStr = ref != null ? String(ref) : "";
       const match =
-        (p.doctorSlug && doctors.find((d) => d.slug === p.doctorSlug)) ||
+        (refStr &&
+          doctors.find((d) => d.slug === refStr || String(d.id) === refStr)) ||
         doctors.find((d) => d.courseSlug === p.slug || d.slug === p.slug);
       if (match) map.set(p.slug, match);
     }
     return map;
   }, [programs, doctors]);
 
-  const legendOptions = useMemo(() => {
+  const courseOptions = useMemo(() => {
     const seen = new Map<string, string>();
-    for (const d of doctors) {
-      if (!seen.has(d.slug)) seen.set(d.slug, d.name);
+    for (const p of programs) {
+      const label = p.headline || p.name;
+      if (!seen.has(p.slug)) seen.set(p.slug, label);
     }
     return Array.from(seen.entries())
       .map(([slug, name]) => ({ slug, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [doctors]);
+  }, [programs]);
 
-  const [legendSlug, setLegendSlug] = useState<string>("all");
-  const [nameQuery, setNameQuery] = useState("");
+  const [courseSlug, setCourseSlug] = useState<string>("all");
   const [durationKey, setDurationKey] = useState<string>("all");
 
   const filtered = useMemo(() => {
-    const q = nameQuery.trim().toLowerCase();
     const bucket =
       DURATION_BUCKETS.find((b) => b.key === durationKey) ?? DURATION_BUCKETS[0];
     return programs.filter((p) => {
-      if (legendSlug !== "all") {
-        const d = legendByProgramSlug.get(p.slug);
-        if (!d || d.slug !== legendSlug) return false;
-      }
-      if (q && !p.name.toLowerCase().includes(q)) return false;
-      if (!bucket.matches(p.durationWeeks ?? 0)) return false;
+      if (courseSlug !== "all" && p.slug !== courseSlug) return false;
+      if (!bucket.matches(programDurationInMonths(p))) return false;
       return true;
     });
-  }, [programs, legendByProgramSlug, legendSlug, nameQuery, durationKey]);
+  }, [programs, courseSlug, durationKey]);
 
   const resetFilters = () => {
-    setLegendSlug("all");
-    setNameQuery("");
+    setCourseSlug("all");
     setDurationKey("all");
   };
 
@@ -86,31 +93,12 @@ export function ProgramsPageClient({
           Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
         </p>
 
-        {/* Filter bar — Legend Name / Course Name / Course Duration */}
+        {/* Filter bar — Course Name / Course Duration */}
         <div
           role="search"
           aria-label="Filter courses"
-          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.2fr_1fr_1fr_auto]"
+          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.5fr_1fr_auto]"
         >
-          <div>
-            <label
-              htmlFor="course-legend"
-              className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
-            >
-              Legend Name
-            </label>
-            <ThemedSelect
-              id="course-legend"
-              ariaLabel="Filter by legend"
-              value={legendSlug}
-              onChange={setLegendSlug}
-              options={[
-                { value: "all", label: "All legends" },
-                ...legendOptions.map((l) => ({ value: l.slug, label: l.name })),
-              ]}
-              className="mt-2"
-            />
-          </div>
           <div>
             <label
               htmlFor="course-name"
@@ -118,20 +106,17 @@ export function ProgramsPageClient({
             >
               Course Name
             </label>
-            <div className="relative mt-2">
-              <Search
-                aria-hidden
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
-              />
-              <input
-                id="course-name"
-                type="search"
-                value={nameQuery}
-                onChange={(e) => setNameQuery(e.target.value)}
-                placeholder="Search courses…"
-                className="w-full rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/35 transition hover:border-[#ab834d] focus:border-[#ab834d] focus:outline-none focus:ring-2 focus:ring-[#ab834d]/40"
-              />
-            </div>
+            <ThemedSelect
+              id="course-name"
+              ariaLabel="Filter by course"
+              value={courseSlug}
+              onChange={setCourseSlug}
+              options={[
+                { value: "all", label: "All courses" },
+                ...courseOptions.map((c) => ({ value: c.slug, label: c.name })),
+              ]}
+              className="mt-2"
+            />
           </div>
           <div>
             <label
@@ -234,9 +219,7 @@ export function ProgramsPageClient({
 
                   <div className="p-5">
                     <p className="text-[11px] uppercase tracking-[0.18em] text-accent-soft">
-                      {legend
-                        ? `By ${legend.name}`
-                        : `Teaches ${p.specialistTitle ?? p.specialty}`}
+                      Teaches {legend?.name ?? p.specialistTitle ?? p.specialty}
                     </p>
                     <h2 className="mt-2 font-serif text-xl leading-tight text-white">
                       {p.name}

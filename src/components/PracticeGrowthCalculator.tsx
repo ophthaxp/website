@@ -1,127 +1,242 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-interface SpecialtyInfo {
+interface Specialization {
+  slug: string;
   label: string;
-  factsBlurb: string;
   avgSellingPriceInr: number;
-  populationServiceable: number;
   prevalencePct: number;
+  factsBlurb: string | null;
 }
 
-const SPECIALTY_DATA: Record<string, SpecialtyInfo> = {
-  "cornea-ocular-surface": {
-    label: "Cornea & Ocular Surface",
+interface PincodeLookup {
+  pincode: string;
+  city?: string | null;
+  district?: string | null;
+  state?: string | null;
+  region?: string | null;
+  populationPerSqKm: number;
+}
+
+interface RoiResult {
+  specialization: { slug: string; label: string };
+  pincode: string;
+  city: string | null;
+  region: string | null;
+  radiusKm: number;
+  expectedPatients: number;
+  serviceablePopulation: number;
+  prevalencePct: number;
+  prevalenceCount: number;
+  avgSellingPriceInr: number;
+  projectedRevenue: number;
+  impactPct: number;
+  stature: string;
+}
+
+/** Fallback list used when the backend is unreachable — keeps the UI usable in dev. */
+const FALLBACK_SPECIALIZATIONS: Specialization[] = [
+  {
+    slug: "cataract",
+    label: "Cataract",
+    avgSellingPriceInr: 50_000,
+    prevalencePct: 10,
     factsBlurb:
-      "Corneal blindness affects nearly 1.2 million Indians. DALK, DSAEK and ocular surface reconstruction demand continues to outpace surgeon supply.",
-    avgSellingPriceInr: 65_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 3,
+      "Cataract is India's leading cause of blindness — over 9 million affected.",
   },
-  "phaco-refractive-surgery": {
-    label: "Phaco & Refractive Surgery",
-    factsBlurb:
-      "Cataract is India's leading cause of blindness — over 9 million affected. Combined with 250M+ Indians needing refractive correction, phaco and LASIK/SMILE drive year-round volume.",
-    avgSellingPriceInr: 65_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 12,
-  },
-  "retina-vitreo-retinal-surgery": {
-    label: "Retina & Vitreo-Retinal Surgery",
-    factsBlurb:
-      "Diabetic retinopathy affects ~30% of diabetics, and India's diabetic population is projected to cross 100M by 2030. Vitreo-retinal cases remain under-served outside metros.",
-    avgSellingPriceInr: 100_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 6,
-  },
-  glaucoma: {
+  {
+    slug: "glaucoma",
     label: "Glaucoma",
+    avgSellingPriceInr: 16_000,
+    prevalencePct: 10,
     factsBlurb:
-      "Over 11 million Indian adults live with glaucoma, driving sustained demand for diagnostic, medical and MIGS care.",
-    avgSellingPriceInr: 75_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 4,
+      "Over 11 million Indian adults live with glaucoma, sustaining steady demand for care.",
   },
-  "pediatric-ophthalmology": {
-    label: "Pediatric Ophthalmology",
+  {
+    slug: "phaco-refractive-surgery",
+    label: "Phaco & Refractive Surgery",
+    avgSellingPriceInr: 65_000,
+    prevalencePct: 12,
     factsBlurb:
-      "Childhood blindness affects ~280,000 Indian children. Pediatric refractive and strabismus services are scarce.",
-    avgSellingPriceInr: 35_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 2,
+      "Cataract + refractive correction drive year-round volume across India.",
   },
-  oculoplasty: {
-    label: "Oculoplasty",
-    factsBlurb:
-      "Oculoplasty combines reconstructive and aesthetic eye surgery — a rapidly growing premium-priced segment with limited specialists per metro.",
-    avgSellingPriceInr: 85_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 2,
-  },
-  "ophthalmology-practice-mastery": {
-    label: "Ophthalmology Practice Mastery",
-    factsBlurb:
-      "Practice-management training drives the biggest delta in earnings: better case selection, premium IOL conversion and clinic operations compound across every sub-specialty.",
-    avgSellingPriceInr: 60_000,
-    populationServiceable: 1_000_000,
-    prevalencePct: 8,
-  },
-};
+];
 
 function formatINRShort(n: number): string {
-  if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(1)} Cr`;
-  if (n >= 1_00_000) return `₹${(n / 1_00_000).toFixed(1)} L`;
-  return `₹${n.toLocaleString("en-IN")}`;
+  if (!Number.isFinite(n) || n <= 0) return "₹0";
+  if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(2)} Cr`;
+  if (n >= 1_00_000) return `₹${(n / 1_00_000).toFixed(2)} L`;
+  return `₹${Math.round(n).toLocaleString("en-IN")}`;
+}
+
+function formatNumber(n: number): string {
+  if (!Number.isFinite(n)) return "—";
+  return Math.round(n).toLocaleString("en-IN");
 }
 
 interface Props {
   defaultSpecialty?: string;
+  /** Retained for backward compatibility — unused in the new ROI model. */
   courseTuitionInr?: number;
   ctaHref?: string;
-  /** When provided, the CTA renders as a button and calls this instead of navigating. */
   onCtaClick?: () => void;
-  /** When true, the specialty dropdown is prefilled and locked (non-editable). */
   lockSpecialty?: boolean;
-  /** When true, renders a single-column layout sized to sit next to a video. */
   compact?: boolean;
+  defaultPincode?: string;
+  defaultRadiusKm?: number;
+  defaultExpectedPatients?: number;
 }
 
 export function PracticeGrowthCalculator({
-  defaultSpecialty = "phaco-refractive-surgery",
-  courseTuitionInr = 350_000,
+  defaultSpecialty = "cataract",
   ctaHref = "#get-started",
   onCtaClick,
   lockSpecialty = false,
   compact = false,
+  defaultPincode = "600037",
+  defaultRadiusKm = 5,
+  defaultExpectedPatients = 300,
 }: Props) {
-  const initialKey =
-    defaultSpecialty && defaultSpecialty in SPECIALTY_DATA
-      ? defaultSpecialty
-      : "phaco-refractive-surgery";
-  const [specialty, setSpecialty] = useState<string>(initialKey);
-  const [patients, setPatients] = useState<number>(60);
+  const [specs, setSpecs] = useState<Specialization[]>([]);
+  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty);
+  const [pincode, setPincode] = useState<string>(defaultPincode);
+  const [radiusKm, setRadiusKm] = useState<number>(defaultRadiusKm);
+  const [expectedPatients, setExpectedPatients] = useState<number>(
+    defaultExpectedPatients,
+  );
 
-  const data =
-    SPECIALTY_DATA[specialty] ?? SPECIALTY_DATA["phaco-refractive-surgery"];
+  const [pinLookup, setPinLookup] = useState<PincodeLookup | null>(null);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinLoading, setPinLoading] = useState(false);
 
-  const { lowerBound, upperBound, roiMultiplier, impactPct } = useMemo(() => {
-    const projectedRevenue = patients * data.avgSellingPriceInr;
-    // 2-year horizon, with a ±10% spread for the displayed range.
-    const twoYear = projectedRevenue * 2;
-    const lower = twoYear * 0.9;
-    const upper = twoYear * 1.1;
-    const roi = courseTuitionInr > 0 ? twoYear / courseTuitionInr : 0;
-    const prevalenceCount = (data.populationServiceable * data.prevalencePct) / 100;
-    const impact = prevalenceCount > 0 ? (patients / prevalenceCount) * 100 : 0;
-    return {
-      lowerBound: lower,
-      upperBound: upper,
-      roiMultiplier: roi,
-      impactPct: impact,
+  const [result, setResult] = useState<RoiResult | null>(null);
+  const [calcError, setCalcError] = useState<string | null>(null);
+  const [calcLoading, setCalcLoading] = useState(false);
+
+  // ─── load specializations once ────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/roi/specializations", { cache: "no-store" });
+        const body = await res.json();
+        if (cancelled) return;
+        if (body?.success && Array.isArray(body.data) && body.data.length > 0) {
+          setSpecs(body.data);
+          if (!body.data.some((s: Specialization) => s.slug === specSlug)) {
+            setSpecSlug(body.data[0].slug);
+          }
+        } else {
+          setSpecs(FALLBACK_SPECIALIZATIONS);
+        }
+      } catch {
+        if (!cancelled) setSpecs(FALLBACK_SPECIALIZATIONS);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-  }, [patients, data, courseTuitionInr]);
+    // We only want this on mount; specSlug seed is consumed once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── pincode lookup (debounced) ───────────────────────────────────────────
+  useEffect(() => {
+    if (!/^\d{6}$/.test(pincode)) {
+      setPinLookup(null);
+      setPinError(pincode ? "Enter a valid 6-digit pincode" : null);
+      return;
+    }
+    let cancelled = false;
+    setPinLoading(true);
+    setPinError(null);
+    const handle = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/roi/pincode/${pincode}`, { cache: "no-store" });
+        const body = await res.json();
+        if (cancelled) return;
+        if (body?.success && body.data) {
+          setPinLookup(body.data as PincodeLookup);
+        } else {
+          setPinLookup(null);
+          setPinError(body?.error || "Pincode not found");
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setPinLookup(null);
+        setPinError(err instanceof Error ? err.message : "Pincode lookup failed");
+      } finally {
+        if (!cancelled) setPinLoading(false);
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [pincode]);
+
+  // ─── ROI calculation (debounced; depends on all inputs) ───────────────────
+  const computeRoi = useCallback(async () => {
+    if (!specSlug || !/^\d{6}$/.test(pincode) || !pinLookup) {
+      setResult(null);
+      return;
+    }
+    setCalcLoading(true);
+    setCalcError(null);
+    try {
+      const res = await fetch("/api/roi/calculate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          specializationSlug: specSlug,
+          pincode,
+          radiusKm,
+          expectedPatients,
+        }),
+      });
+      const body = await res.json();
+      if (body?.success && body.data) {
+        setResult(body.data as RoiResult);
+      } else {
+        setResult(null);
+        setCalcError(body?.error || "Calculation failed");
+      }
+    } catch (err) {
+      setResult(null);
+      setCalcError(err instanceof Error ? err.message : "Calculation failed");
+    } finally {
+      setCalcLoading(false);
+    }
+  }, [specSlug, pincode, pinLookup, radiusKm, expectedPatients]);
+
+  const calcTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (calcTimer.current) window.clearTimeout(calcTimer.current);
+    calcTimer.current = window.setTimeout(computeRoi, 250);
+    return () => {
+      if (calcTimer.current) window.clearTimeout(calcTimer.current);
+    };
+  }, [computeRoi]);
+
+  const activeSpec = useMemo(
+    () => specs.find((s) => s.slug === specSlug) ?? null,
+    [specs, specSlug],
+  );
+
+  // ─── derived display values (use backend result when present) ─────────────
+  const serviceablePopulation = result?.serviceablePopulation ?? 0;
+  const prevalenceCount = result?.prevalenceCount ?? 0;
+  const projectedRevenue = result?.projectedRevenue ?? 0;
+  const impactPct = result?.impactPct ?? 0;
+  const stature = result?.stature ?? "—";
+  const regionLabel =
+    pinLookup?.city ||
+    pinLookup?.district ||
+    pinLookup?.region ||
+    result?.region ||
+    "";
 
   return (
     <section
@@ -154,34 +269,32 @@ export function PracticeGrowthCalculator({
           </h2>
           {!compact && (
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Select your specialty and see how your investment in advanced
-              learning can translate into higher earnings.
+              Pick a specialization, enter your pincode and serviceable radius —
+              we'll project your revenue and impact in that catchment.
             </p>
           )}
 
-          {/* Specialty dropdown */}
+          {/* Specialization dropdown */}
           <label
             htmlFor="growth-specialty"
             className="mt-8 block text-sm font-semibold text-white"
           >
-            Select your specialization
+            Specialization (Condition)
           </label>
           <div className="relative mt-2">
             <select
               id="growth-specialty"
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
-              disabled={lockSpecialty}
+              value={specSlug}
+              onChange={(e) => setSpecSlug(e.target.value)}
+              disabled={lockSpecialty || specs.length === 0}
               aria-readonly={lockSpecialty}
               className={`w-full appearance-none rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-accent ${
-                lockSpecialty
-                  ? "cursor-not-allowed opacity-80"
-                  : "cursor-pointer"
+                lockSpecialty ? "cursor-not-allowed opacity-80" : "cursor-pointer"
               }`}
             >
-              {Object.entries(SPECIALTY_DATA).map(([k, v]) => (
-                <option key={k} value={k} className="bg-ink-800">
-                  {v.label}
+              {specs.map((s) => (
+                <option key={s.slug} value={s.slug} className="bg-ink-800">
+                  {s.label}
                 </option>
               ))}
             </select>
@@ -193,66 +306,182 @@ export function PracticeGrowthCalculator({
             ) : null}
           </div>
 
-          {/* Specialty fact card */}
-          <div className="mt-4 rounded-xl border border-accent/30 bg-accent/10 p-4">
-            <p className="text-sm leading-relaxed text-white/90">
-              {data.factsBlurb}
-            </p>
+          {activeSpec?.factsBlurb && (
+            <div className="mt-4 rounded-xl border border-accent/30 bg-accent/10 p-4">
+              <p className="text-sm leading-relaxed text-white/90">
+                {activeSpec.factsBlurb}
+              </p>
+            </div>
+          )}
+
+          {/* Pincode */}
+          <label
+            htmlFor="growth-pincode"
+            className="mt-8 block text-sm font-semibold text-white"
+          >
+            Pincode
+          </label>
+          <input
+            id="growth-pincode"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            value={pincode}
+            onChange={(e) =>
+              setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
+            placeholder="e.g. 600037"
+            className="mt-2 w-full rounded-lg bg-ink-700 px-4 py-3 text-sm font-medium text-white ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+          <div className="mt-1 min-h-[1.25rem] text-xs">
+            {pinLoading ? (
+              <span className="text-white/55">Looking up pincode…</span>
+            ) : pinError ? (
+              <span className="text-red-300">{pinError}</span>
+            ) : pinLookup ? (
+              <span className="text-white/65">
+                {[pinLookup.city, pinLookup.district, pinLookup.state]
+                  .filter(Boolean)
+                  .join(", ")}
+              </span>
+            ) : null}
           </div>
 
-          {/* Patient slider */}
+          {/* Serviceable region (auto) */}
+          <label
+            htmlFor="growth-region"
+            className="mt-6 block text-sm font-semibold text-white"
+          >
+            Serviceable Region / City
+          </label>
+          <input
+            id="growth-region"
+            readOnly
+            value={regionLabel}
+            placeholder="Auto-filled from pincode"
+            className="mt-2 w-full cursor-not-allowed rounded-lg bg-ink-700/60 px-4 py-3 text-sm font-medium text-white/80 ring-1 ring-white/10"
+          />
+
+          {/* Radius slider */}
+          <div className="mt-8 flex items-end justify-between">
+            <label
+              htmlFor="growth-radius"
+              className="text-sm font-semibold text-white"
+            >
+              Serviceable Radius
+            </label>
+            <span className="ml-3 shrink-0 text-base font-bold tabular-nums text-white">
+              {radiusKm} KM
+            </span>
+          </div>
+          <input
+            id="growth-radius"
+            type="range"
+            min={1}
+            max={100}
+            step={1}
+            value={radiusKm}
+            onChange={(e) => setRadiusKm(Number(e.target.value))}
+            className="mt-3 w-full accent-accent"
+          />
+          <div className="mt-1 flex justify-between text-xs text-white/55">
+            <span>1 KM</span>
+            <span>100 KM</span>
+          </div>
+
+          {/* Expected patients slider */}
           <div className="mt-8 flex items-end justify-between">
             <label
               htmlFor="growth-patients"
               className="text-sm font-semibold text-white"
             >
-              How many patients do you expect to treat this year?
+              Expected Patients Treated (per year)
             </label>
             <span className="ml-3 shrink-0 text-base font-bold tabular-nums text-white">
-              {patients}
+              {expectedPatients}
             </span>
           </div>
           <input
             id="growth-patients"
             type="range"
             min={10}
-            max={200}
-            step={5}
-            value={patients}
-            onChange={(e) => setPatients(Number(e.target.value))}
+            max={2000}
+            step={10}
+            value={expectedPatients}
+            onChange={(e) => setExpectedPatients(Number(e.target.value))}
             className="mt-3 w-full accent-accent"
           />
           <div className="mt-1 flex justify-between text-xs text-white/55">
-            <span>10 patients</span>
-            <span>200 patients</span>
+            <span>10</span>
+            <span>2000</span>
           </div>
-
-          <p className="mt-3 text-xs text-white/45">
-            Reaching <span className="font-semibold text-white/80">{impactPct.toFixed(2)}%</span>{" "}
-            of the prevalent {data.label.toLowerCase()} population in your service area.
-          </p>
         </div>
 
         {/* ─────────── RIGHT: Outputs ─────────── */}
         <div className="rounded-xl border border-accent/40 bg-ink-950/60 p-6 sm:p-8">
-          <p className="text-center text-sm font-semibold text-white">
-            Your Estimated Additional Income
+          <p className="text-center text-xs uppercase tracking-wider text-white/55">
+            Projected Revenue (annual)
           </p>
-          <p className="mt-4 text-center font-serif text-4xl leading-none text-white sm:text-5xl">
-            {formatINRShort(lowerBound)}{" "}
-            <span className="text-white/50">–</span>{" "}
-            {formatINRShort(upperBound)}
+          <p className="mt-2 text-center font-serif text-4xl leading-none text-white sm:text-5xl">
+            {formatINRShort(projectedRevenue)}
           </p>
-          <p className="mt-2 text-center text-sm text-white/55">over 2 years</p>
 
-          <div className="mt-6 rounded-lg border border-accent/40 px-5 py-4 text-center">
-            <p className="text-xs uppercase tracking-wider text-white/55">
-              Estimated ROI within 2 years
-            </p>
-            <p className="mt-1.5 text-2xl font-bold text-accent-soft">
-              {roiMultiplier > 0 ? `${roiMultiplier.toFixed(1)}x` : "—"}
-            </p>
-          </div>
+          <dl className="mt-6 grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
+              <dt className="text-[11px] uppercase tracking-wider text-white/55">
+                Serviceable Population
+              </dt>
+              <dd className="mt-1 text-lg font-semibold text-white">
+                {formatNumber(serviceablePopulation)}
+              </dd>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
+              <dt className="text-[11px] uppercase tracking-wider text-white/55">
+                Prevalence Count
+              </dt>
+              <dd className="mt-1 text-lg font-semibold text-white">
+                {formatNumber(prevalenceCount)}
+              </dd>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
+              <dt className="text-[11px] uppercase tracking-wider text-white/55">
+                Impact %
+              </dt>
+              <dd className="mt-1 text-lg font-semibold text-white">
+                {impactPct ? `${impactPct.toFixed(2)}%` : "—"}
+              </dd>
+            </div>
+            <div className="rounded-lg border border-accent/40 bg-accent/10 p-3">
+              <dt className="text-[11px] uppercase tracking-wider text-white/65">
+                Stature Ranking
+              </dt>
+              <dd className="mt-1 text-lg font-semibold text-accent-soft">
+                {stature}
+              </dd>
+            </div>
+          </dl>
+
+          <p className="mt-4 text-center text-xs text-white/45">
+            Avg. selling price (ASP):{" "}
+            {result
+              ? formatINRShort(result.avgSellingPriceInr)
+              : activeSpec
+                ? formatINRShort(activeSpec.avgSellingPriceInr)
+                : "—"}{" "}
+            · Prevalence{" "}
+            {result
+              ? `${result.prevalencePct.toFixed(2)}%`
+              : activeSpec
+                ? `${activeSpec.prevalencePct.toFixed(2)}%`
+                : "—"}
+          </p>
+
+          {calcError && (
+            <p className="mt-3 text-center text-xs text-red-300">{calcError}</p>
+          )}
+          {calcLoading && !result && (
+            <p className="mt-3 text-center text-xs text-white/45">Calculating…</p>
+          )}
 
           <p className="mt-6 text-center text-sm font-semibold text-white">
             Ready to reimagine your practice?

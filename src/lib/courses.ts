@@ -230,7 +230,15 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
     isNew: pickBool(rec, "isNew", "is_new"),
     isFeatured: pickBool(rec, "isFeatured", "is_featured"),
     isActive: pickBool(rec, "isActive", "is_active"),
-    doctorSlug: pickString(rec, "doctorSlug", "doctor_slug"),
+    // The backend stores `doctorSlug` (a `type: reference` field) as the
+    // doctor's numeric row id — not the slug string — so coerce whatever
+    // shape it comes back in to a string the matcher can compare.
+    doctorSlug: (() => {
+      const v = rec.doctorSlug ?? rec.doctor_slug;
+      if (typeof v === "string" && v.trim()) return v;
+      if (typeof v === "number") return String(v);
+      return undefined;
+    })(),
   };
 }
 
@@ -423,7 +431,12 @@ async function attachFaculty(program: Program): Promise<Program> {
   if (!refSlug) return program;
 
   const doctors = await fetchDoctorsFromBackend();
-  const doctor = doctors.find((d) => d.slug === refSlug);
+  // `doctorSlug` may be the doctor's slug OR its numeric row id (the nocode
+  // backend stores reference fields as INTEGER FKs), so match against both.
+  const refStr = String(refSlug);
+  const doctor = doctors.find(
+    (d) => d.slug === refStr || String(d.id) === refStr,
+  );
   if (!doctor) return program;
 
   return {
