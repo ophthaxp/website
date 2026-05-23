@@ -80,6 +80,48 @@ function coerceArrayItem(v: unknown): string {
   return "";
 }
 
+/**
+ * Parse a PostgreSQL array literal like `{"item one","item two","item three"}`.
+ * Returns null when the input doesn't look like one so the caller can fall
+ * through to other formats (JSON array, comma-separated list, etc.).
+ */
+function parsePgArrayLiteral(s: string): string[] | null {
+  const trimmed = s.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+  const inner = trimmed.slice(1, -1);
+  if (!inner.trim()) return [];
+  const out: string[] = [];
+  let i = 0;
+  while (i < inner.length) {
+    while (i < inner.length && (inner[i] === "," || inner[i] === " ")) i++;
+    if (i >= inner.length) break;
+    if (inner[i] === '"') {
+      i++;
+      let buf = "";
+      while (i < inner.length && inner[i] !== '"') {
+        if (inner[i] === "\\" && i + 1 < inner.length) {
+          buf += inner[i + 1];
+          i += 2;
+        } else {
+          buf += inner[i];
+          i++;
+        }
+      }
+      i++; // closing quote
+      out.push(buf);
+    } else {
+      let buf = "";
+      while (i < inner.length && inner[i] !== ",") {
+        buf += inner[i];
+        i++;
+      }
+      const v = buf.trim();
+      if (v && v !== "NULL") out.push(v);
+    }
+  }
+  return out;
+}
+
 function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
   for (const k of keys) {
     const v = rec[k];
@@ -93,6 +135,8 @@ function pickStringArray(rec: RawRecord, ...keys: string[]): string[] {
           return parsed.map(coerceArrayItem).map((s) => s.trim()).filter(Boolean);
         }
       } catch {
+        const pg = parsePgArrayLiteral(v);
+        if (pg) return pg.map((s) => s.trim()).filter(Boolean);
         return v.split(/[\n,;]/).map((s) => s.trim()).filter(Boolean);
       }
     }
