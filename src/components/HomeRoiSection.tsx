@@ -10,7 +10,7 @@ export function HomeRoiSection() {
   return (
     <section
       aria-labelledby="roi-title"
-      className="mx-auto max-w-[1500px] px-4 pb-8 sm:px-12 lg:px-16"
+      className="mx-auto max-w-[1500px] px-6 pb-8 sm:px-16 lg:px-24"
     >
       <div className="mb-8 text-center">
         <h2

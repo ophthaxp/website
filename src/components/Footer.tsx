@@ -137,7 +137,7 @@ export function Footer() {
 
       {/* ── Bottom bar ── */}
       <div className="border-t border-[#ab834d]/20">
-        <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 px-4 py-4 text-sm text-white/50 sm:flex-row sm:px-12 lg:px-16">
+        <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 px-6 py-4 text-sm text-white/50 sm:flex-row sm:px-16 lg:px-24">
           <span>© {year} OphthaXP · All Rights Reserved</span>
           <nav aria-label="Footer legal links" className="flex items-center">
             <Link href="/privacy" className="transition-colors hover:text-[#ab834d]">

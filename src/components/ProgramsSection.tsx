@@ -130,7 +130,7 @@ export function ProgramsSection({
     <section
       id="programs"
       aria-labelledby="programs-title"
-      className="mx-auto max-w-[1500px] px-4 py-16 sm:px-12 sm:py-24 lg:px-16"
+      className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24"
     >
       <h2
         id="programs-title"

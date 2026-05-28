@@ -69,7 +69,7 @@ export function SmartAssist() {
     <section
       id="smart-assist"
       aria-labelledby="smart-title"
-      className="mx-auto max-w-[1500px] px-4 py-16 sm:px-12 sm:py-24 lg:px-16"
+      className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24"
     >
       <div className="grid gap-10 sm:grid-cols-[0.9fr_1.1fr] sm:items-end">
         <div>

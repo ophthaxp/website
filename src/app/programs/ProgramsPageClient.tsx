@@ -85,7 +85,7 @@ export function ProgramsPageClient({
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-4 py-16 sm:px-12 sm:py-24 lg:px-16">
+      <main className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24">
         <h1 className="font-serif text-4xl text-white sm:text-5xl">
           {view === "legends" ? "All Legends" : "All Programs"}
         </h1>

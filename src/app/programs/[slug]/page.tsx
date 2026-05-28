@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Award, Check, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  Check,
+  ClipboardList,
+  Users,
+  Video,
+  Stethoscope,
+  BookOpen,
+  GraduationCap,
+} from "lucide-react";
+
+// Rotating icon pool for the Course-format timeline. Admin can add any number
+// of phases — we cycle through these so each step gets a relevant glyph.
+const FORMAT_ICONS = [ClipboardList, Users, Video, Stethoscope, BookOpen, GraduationCap];
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
@@ -104,7 +118,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
       />
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-4 py-10 sm:px-12 sm:py-14 lg:px-16">
+      <main className="mx-auto max-w-[1500px] px-6 py-10 sm:px-16 sm:py-14 lg:px-24">
         {/* Back link */}
         <Link
           href="/programs"
@@ -114,39 +128,56 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           Back to all courses
         </Link>
 
-        {/* Hero: image + info card */}
-        <section className="mt-6 grid gap-8 lg:grid-cols-2 lg:items-stretch">
+        {/* Hero: trailer/cover (60%) + info card (40%) */}
+        <section className="mt-6 grid gap-8 lg:grid-cols-[6fr_4fr] lg:items-stretch">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950">
-            {p.isNew && (
-              <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-400/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-950 shadow-lg">
-                <Sparkles className="h-3 w-3" /> New
-              </span>
-            )}
-            {p.heroImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.heroImage}
-                alt={p.name}
-                className="aspect-[4/5] w-full object-cover"
-              />
-            ) : (
-              <div className="aspect-[4/5] w-full" />
-            )}
+            <div className="relative aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-[460px]">
+              {p.trailerVideoUrl ? (
+                // Cover poster doubles as the play surface — click anywhere on
+                // the image to start the trailer inline (TrailerPlayer handles
+                // YouTube, Vimeo, and direct mp4/webm/mov).
+                <TrailerPlayer
+                  src={p.trailerVideoUrl}
+                  poster={p.heroImage}
+                  title={`${p.name} — Trailer`}
+                  className="absolute inset-0 h-full w-full"
+                />
+              ) : p.heroImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.heroImage}
+                  alt={p.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                    Trailer
+                  </span>
+                  <span className="mt-1 text-sm text-white/70">Coming soon</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col justify-center">
-            {launchLabel && (
-              <p className="flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-accent-soft">
-                <span aria-hidden className="h-px w-8 bg-accent-soft/60" />
-                Launches on {launchLabel}
-              </p>
-            )}
-            <h1 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
-              {p.headline || p.name}
+            {/* Course title — prefer marketing headline, fall back to specialist
+                title, then to the raw course name so the heading is always set. */}
+            <h1 className="font-serif text-3xl leading-tight text-white sm:text-4xl lg:text-[2.6rem]">
+              {p.headline || p.specialistTitle || p.name}
             </h1>
-            {p.headline && p.name !== p.headline && (
-              <p className="mt-2 text-sm font-medium uppercase tracking-wider text-white/55">
-                {p.name}
+            {p.faculty?.name && (
+              <p className="mt-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/55">
+                <span aria-hidden className="h-px w-6 bg-white/40" />
+                <span>
+                  By{" "}
+                  <Link
+                    href={`/doctors/${p.faculty.slug}`}
+                    className="text-white transition hover:text-accent-soft"
+                  >
+                    Dr. {p.faculty.name.replace(/^Dr\.?\s+/i, "")}
+                  </Link>
+                </span>
               </p>
             )}
             {p.tagline && (
@@ -155,92 +186,89 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               </p>
             )}
 
-            {/* Quick facts row */}
-            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/65">
-              {p.durationMonths ? (
-                <span>
-                  <span className="text-white">{p.durationMonths}</span> months
-                </span>
-              ) : p.durationWeeks ? (
-                <span>
-                  <span className="text-white">{p.durationWeeks}</span> weeks
-                </span>
-              ) : null}
-              {p.lessonsCount ? (
-                <span>
-                  <span className="text-white">{p.lessonsCount}</span> lessons
-                </span>
-              ) : null}
-              {durationLabel ? <span>{durationLabel}</span> : null}
-              {p.cohortSize ? (
-                <span>
-                  <span className="text-white">{p.cohortSize}</span> seats / cohort
-                </span>
-              ) : null}
-              {p.startDate ? (
-                <span>
-                  starts{" "}
-                  <span className="text-white">
-                    {new Date(p.startDate).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </span>
-              ) : null}
-              {p.trailerVideoUrl && (
-                <a
-                  href="#trailer"
-                  className="font-semibold text-accent-soft underline-offset-4 hover:underline"
-                >
-                  ▶ Watch trailer
-                </a>
-              )}
-            </div>
-
-            {/* CTA card */}
-            <div className="mt-8 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5">
-              {p.startDate ? (
-                <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-[#ab834d]/30 bg-[#ab834d]/10 px-4 py-2.5">
-                  <svg
-                    className="h-4 w-4 text-[#ab834d]"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden
-                  >
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <path d="M16 2v4M8 2v4M3 10h18" />
-                  </svg>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-                    Cohort starts{" "}
-                    <span className="text-[#ab834d]">
+            {/* Quick facts — stacked vertical list under the tagline */}
+            {(launchLabel ||
+              p.durationMonths ||
+              p.durationWeeks ||
+              p.lessonsCount ||
+              durationLabel ||
+              p.cohortSize ||
+              p.startDate ||
+              p.priceInr) && (
+              <ul className="mt-6 divide-y divide-white/10 border-y border-white/10 text-sm">
+                {launchLabel && (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                      Launches
+                    </span>
+                    <span className="text-white/85">{launchLabel}</span>
+                  </li>
+                )}
+                {(p.durationMonths || p.durationWeeks) && (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Duration</span>
+                    <span className="text-white/85">
+                      {p.durationMonths
+                        ? `${p.durationMonths} months`
+                        : `${p.durationWeeks} weeks`}
+                    </span>
+                  </li>
+                )}
+                {p.lessonsCount ? (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Lessons</span>
+                    <span className="text-white/85">{p.lessonsCount}</span>
+                  </li>
+                ) : null}
+                {durationLabel && !p.durationMonths && !p.durationWeeks ? (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Length</span>
+                    <span className="text-white/85">{durationLabel}</span>
+                  </li>
+                ) : null}
+                {p.cohortSize ? (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Cohort</span>
+                    <span className="text-white/85">
+                      {p.cohortSize} seats
+                    </span>
+                  </li>
+                ) : null}
+                {p.startDate ? (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Starts</span>
+                    <span className="text-white/85">
                       {new Date(p.startDate).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </span>
-                  </p>
-                </div>
-              ) : null}
-              <p className="text-center text-sm font-semibold text-white">
-                Reserve your seat in the next cohort
-              </p>
-              <div className="mt-4">
-                <CourseApplyButton
-                  courseId={p.id}
-                  courseName={p.name}
-                  mentorName={p.faculty?.name}
-                  brochureUrl={p.brochureUrl}
-                  label={cta}
-                  block
-                />
-              </div>
+                  </li>
+                ) : null}
+                {p.priceInr ? (
+                  <li className="flex items-center justify-between py-2.5">
+                    <span className="text-white/55">Fee</span>
+                    <span className="text-white/85">
+                      {p.pricePerDayInr
+                        ? `₹${p.pricePerDayInr}/day`
+                        : formatINR(p.priceInr)}
+                      {p.billingPeriod === "annual" ? " · annually" : null}
+                    </span>
+                  </li>
+                ) : null}
+              </ul>
+            )}
+
+            <div className="mt-7">
+              <CourseApplyButton
+                courseId={p.id}
+                courseName={p.name}
+                mentorName={p.faculty?.name}
+                brochureUrl={p.brochureUrl}
+                label={cta}
+                block
+              />
               {p.brochureUrl && (
                 <a
                   href={p.brochureUrl}
@@ -252,16 +280,6 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 </a>
               )}
             </div>
-            {p.priceInr ? (
-              <p className="mt-4 text-xs text-white/55">
-                Starting at{" "}
-                <span className="font-semibold text-white">
-                  {p.pricePerDayInr ? `₹${p.pricePerDayInr}/day` : `${formatINR(p.priceInr)}/year`}
-                </span>
-                {p.billingPeriod === "annual" ? ", billed annually" : null}
-                {p.moneyBackDays ? `. ${p.moneyBackDays}-day money back guaranteed.` : null}
-              </p>
-            ) : null}
           </div>
         </section>
 
@@ -307,26 +325,6 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   </p>
                 )}
               </div>
-            </div>
-          </section>
-        )}
-
-        {/* Trailer */}
-        {p.trailerVideoUrl && (
-          <section id="trailer" aria-labelledby="trailer-title" className="mt-14">
-            <h2
-              id="trailer-title"
-              className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]"
-            >
-              Trailer
-            </h2>
-            <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
-              <TrailerPlayer
-                src={p.trailerVideoUrl}
-                poster={p.heroImage}
-                title={`${p.name} — Trailer`}
-                className="absolute inset-0 h-full w-full"
-              />
             </div>
           </section>
         )}
@@ -399,33 +397,87 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* Course format timeline */}
+        {/* Course format — horizontal step timeline */}
         {p.courseFormat && p.courseFormat.length > 0 && (
-          <section aria-labelledby="format-title" className="mt-14">
-            <h2
-              id="format-title"
-              className="font-serif text-3xl text-white sm:text-4xl"
+          <section
+            aria-labelledby="format-title"
+            className="mt-20 sm:mt-24"
+          >
+            {/* Centered header */}
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                Course Format
+              </p>
+              <h2
+                id="format-title"
+                className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl"
+              >
+                How your cohort unfolds
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm text-white/55 sm:text-base">
+                A mentor-led path designed to take you from first session to
+                surgical confidence.
+              </p>
+            </div>
+
+            {/* Steps grid */}
+            <ol
+              className={`relative mx-auto mt-16 grid gap-12 sm:gap-8 ${
+                p.courseFormat.length === 1
+                  ? "max-w-md grid-cols-1"
+                  : p.courseFormat.length === 2
+                    ? "max-w-3xl grid-cols-1 sm:grid-cols-2"
+                    : p.courseFormat.length === 3
+                      ? "max-w-5xl grid-cols-1 sm:grid-cols-3"
+                      : "max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+              }`}
             >
-              Course format
-            </h2>
-            <p className="mt-1 text-sm text-white/55">Blended learning across in-person and online modules.</p>
-            <ol className="mt-8 relative space-y-6 border-l border-white/10 pl-6 sm:pl-8">
-              {p.courseFormat.map((phase, i) => (
-                <li key={`phase-${i}`} className="relative">
-                  <span
-                    aria-hidden
-                    className="absolute -left-[33px] top-1 flex h-6 w-6 items-center justify-center rounded-full border border-accent/40 bg-ink-900 text-[11px] font-semibold text-accent-soft sm:-left-[37px]"
+              {/* Faint horizontal connector line — sits behind the circles on
+                  sm+ where the layout is horizontal. Hidden on mobile (stacked). */}
+              {p.courseFormat.length > 1 && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-12 right-12 top-[42px] hidden h-px bg-gradient-to-r from-transparent via-white/15 to-transparent sm:block"
+                />
+              )}
+
+              {p.courseFormat.map((phase, i) => {
+                const Icon = FORMAT_ICONS[i % FORMAT_ICONS.length];
+                const stepNum = String(i + 1).padStart(2, "0");
+                return (
+                  <li
+                    key={`phase-${i}`}
+                    className="relative flex flex-col items-center text-center"
                   >
-                    {i + 1}
-                  </span>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-accent-soft">
-                    {phase.phase}
-                  </p>
-                  <p className="mt-1 text-base leading-relaxed text-white/85 sm:text-lg">
-                    {phase.description}
-                  </p>
-                </li>
-              ))}
+                    {/* Faint giant step number behind the icon */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute top-2 select-none font-serif text-7xl font-bold leading-none text-white/[0.04] sm:text-8xl"
+                    >
+                      {stepNum}
+                    </span>
+                    {/* Circle icon */}
+                    <span
+                      aria-hidden
+                      className="relative z-10 inline-flex h-[84px] w-[84px] items-center justify-center rounded-full border border-[#ab834d]/40 bg-ink-950"
+                    >
+                      <Icon className="h-7 w-7 text-[#ab834d]" />
+                    </span>
+                    {/* Step label */}
+                    <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ab834d]">
+                      Step {stepNum}
+                    </p>
+                    {/* Title (phase name) */}
+                    <h3 className="mt-3 font-serif text-2xl leading-tight text-white sm:text-3xl">
+                      {phase.phase}
+                    </h3>
+                    {/* Description */}
+                    <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
+                      {phase.description}
+                    </p>
+                  </li>
+                );
+              })}
             </ol>
           </section>
         )}
