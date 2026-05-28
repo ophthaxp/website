@@ -11,6 +11,10 @@ import {
   Stethoscope,
   BookOpen,
   GraduationCap,
+  CalendarDays,
+  Clock,
+  PlayCircle,
+  Tag,
 } from "lucide-react";
 
 // Rotating icon pool for the Course-format timeline. Admin can add any number
@@ -25,8 +29,10 @@ import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
+  fetchDoctorsFromBackend,
   fetchRelatedDoctors,
 } from "@/lib/courses";
+import type { Doctor, Faculty } from "@/types";
 import { formatINR } from "@/lib/utils";
 import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -72,11 +78,42 @@ function formatLaunch(p: { launchMonth?: string; launchYear?: number; startDate?
   return null;
 }
 
+function doctorToFaculty(d: Doctor): Faculty {
+  return {
+    slug: d.slug,
+    name: d.name,
+    title: d.title,
+    city: d.city || undefined,
+    imageUrl: d.imageUrl || undefined,
+    qualification: d.qualification,
+    bio: d.bio || undefined,
+    experienceYears: d.experienceYears || undefined,
+  };
+}
+
 export default async function ProgramDetailPage({ params }: { params: { slug: string } }) {
   const p = await fetchCourseFromBackend(params.slug);
   if (!p) notFound();
 
   const related = await fetchRelatedDoctors(p.relatedDoctorSlugs ?? []);
+
+  // Resolve a faculty record for the hero, even when the backend course
+  // doesn't have a `doctorSlug` reference set. Priority:
+  //   1. p.faculty (already attached server-side via doctorSlug)
+  //   2. First doctor from relatedDoctorSlugs (already fetched as `related`)
+  //   3. Legacy lookup: any doctor whose courseSlug or slug equals p.slug
+  let faculty: Faculty | undefined = p.faculty;
+  if (!faculty && related[0]) {
+    faculty = doctorToFaculty(related[0]);
+  }
+  if (!faculty) {
+    const allDoctors = await fetchDoctorsFromBackend();
+    const match = allDoctors.find(
+      (d) => d.courseSlug === p.slug || d.slug === p.slug,
+    );
+    if (match) faculty = doctorToFaculty(match);
+  }
+
   const durationLabel = formatDuration(p.durationMinutes);
   const launchLabel = formatLaunch(p);
   const cta = "Apply Now";
@@ -93,11 +130,11 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
       startDate: p.startDate,
       duration: p.durationMonths ? `P${p.durationMonths}M` : `P${p.durationWeeks}W`,
     },
-    instructor: p.faculty
+    instructor: faculty
       ? {
           "@type": "Person",
-          name: p.faculty.name,
-          jobTitle: p.faculty.title,
+          name: faculty.name,
+          jobTitle: faculty.title,
         }
       : undefined,
     offers: p.priceInr
@@ -128,8 +165,8 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           Back to all courses
         </Link>
 
-        {/* Hero: trailer/cover (60%) + info card (40%) */}
-        <section className="mt-6 grid gap-8 lg:grid-cols-[6fr_4fr] lg:items-stretch">
+        {/* Hero: trailer/cover (65%) + info card (35%) */}
+        <section className="mt-6 grid gap-8 lg:grid-cols-[13fr_7fr] lg:items-stretch">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950">
             <div className="relative aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-[460px]">
               {p.trailerVideoUrl ? (
@@ -160,33 +197,39 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             </div>
           </div>
 
-          <div className="flex flex-col justify-center">
-            {/* Course title — prefer marketing headline, fall back to specialist
-                title, then to the raw course name so the heading is always set. */}
-            <h1 className="font-serif text-3xl leading-tight text-white sm:text-4xl lg:text-[2.6rem]">
-              {p.headline || p.specialistTitle || p.name}
-            </h1>
-            {p.faculty?.name && (
-              <p className="mt-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/55">
-                <span aria-hidden className="h-px w-6 bg-white/40" />
-                <span>
-                  By{" "}
-                  <Link
-                    href={`/doctors/${p.faculty.slug}`}
-                    className="text-white transition hover:text-accent-soft"
-                  >
-                    Dr. {p.faculty.name.replace(/^Dr\.?\s+/i, "")}
-                  </Link>
-                </span>
+          <div className="relative flex flex-col justify-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-sm sm:p-8 lg:p-9">
+            {/* Specialty / category eyebrow */}
+            {(p.specialistTitle || p.specialty) && (
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                {p.specialistTitle || (typeof p.specialty === "string" ? p.specialty.replace(/-/g, " ") : "")}
               </p>
             )}
+
+            {/* Course title — prefer marketing headline, fall back to specialist
+                title, then to the raw course name so the heading is always set. */}
+            <h1 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
+              {p.headline || p.name}
+            </h1>
+
+            {faculty?.name && (
+              <Link
+                href={`/doctors/${faculty.slug}`}
+                className="group mt-5 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/55 transition hover:text-white"
+              >
+                <span aria-hidden className="h-px w-6 bg-white/40 transition group-hover:bg-[#ab834d]" />
+                <span>
+                  By <span className="text-white">Dr. {faculty.name.replace(/^Dr\.?\s+/i, "")}</span>
+                </span>
+              </Link>
+            )}
+
             {p.tagline && (
-              <p className="mt-5 text-base leading-relaxed text-white/75 sm:text-lg">
+              <p className="mt-5 text-[15px] leading-relaxed text-white/70 sm:text-base">
                 {p.tagline}
               </p>
             )}
 
-            {/* Quick facts — stacked vertical list under the tagline */}
+            {/* Quick facts — icon-prefixed stacked list */}
             {(launchLabel ||
               p.durationMonths ||
               p.durationWeeks ||
@@ -195,19 +238,23 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               p.cohortSize ||
               p.startDate ||
               p.priceInr) && (
-              <ul className="mt-6 divide-y divide-white/10 border-y border-white/10 text-sm">
+              <ul className="mt-7 space-y-px overflow-hidden rounded-2xl border border-white/10 bg-ink-950/30 text-sm">
                 {launchLabel && (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                  <li className="flex items-center justify-between gap-3 bg-[#ab834d]/[0.08] px-4 py-3">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                      <CalendarDays className="h-4 w-4" aria-hidden />
                       Launches
                     </span>
-                    <span className="text-white/85">{launchLabel}</span>
+                    <span className="font-semibold text-white">{launchLabel}</span>
                   </li>
                 )}
                 {(p.durationMonths || p.durationWeeks) && (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Duration</span>
-                    <span className="text-white/85">
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Clock className="h-4 w-4" aria-hidden />
+                      Duration
+                    </span>
+                    <span className="font-medium text-white/90">
                       {p.durationMonths
                         ? `${p.durationMonths} months`
                         : `${p.durationWeeks} weeks`}
@@ -215,29 +262,41 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   </li>
                 )}
                 {p.lessonsCount ? (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Lessons</span>
-                    <span className="text-white/85">{p.lessonsCount}</span>
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <PlayCircle className="h-4 w-4" aria-hidden />
+                      Lessons
+                    </span>
+                    <span className="font-medium text-white/90">{p.lessonsCount}</span>
                   </li>
                 ) : null}
                 {durationLabel && !p.durationMonths && !p.durationWeeks ? (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Length</span>
-                    <span className="text-white/85">{durationLabel}</span>
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Clock className="h-4 w-4" aria-hidden />
+                      Length
+                    </span>
+                    <span className="font-medium text-white/90">{durationLabel}</span>
                   </li>
                 ) : null}
                 {p.cohortSize ? (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Cohort</span>
-                    <span className="text-white/85">
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Users className="h-4 w-4" aria-hidden />
+                      Cohort
+                    </span>
+                    <span className="font-medium text-white/90">
                       {p.cohortSize} seats
                     </span>
                   </li>
                 ) : null}
                 {p.startDate ? (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Starts</span>
-                    <span className="text-white/85">
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <CalendarDays className="h-4 w-4" aria-hidden />
+                      Starts
+                    </span>
+                    <span className="font-medium text-white/90">
                       {new Date(p.startDate).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -247,13 +306,18 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   </li>
                 ) : null}
                 {p.priceInr ? (
-                  <li className="flex items-center justify-between py-2.5">
-                    <span className="text-white/55">Fee</span>
-                    <span className="text-white/85">
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Tag className="h-4 w-4" aria-hidden />
+                      Fee
+                    </span>
+                    <span className="font-semibold text-white">
                       {p.pricePerDayInr
                         ? `₹${p.pricePerDayInr}/day`
                         : formatINR(p.priceInr)}
-                      {p.billingPeriod === "annual" ? " · annually" : null}
+                      {p.billingPeriod === "annual" ? (
+                        <span className="ml-1 text-xs font-normal text-white/45">/ year</span>
+                      ) : null}
                     </span>
                   </li>
                 ) : null}
@@ -264,7 +328,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               <CourseApplyButton
                 courseId={p.id}
                 courseName={p.name}
-                mentorName={p.faculty?.name}
+                mentorName={faculty?.name}
                 brochureUrl={p.brochureUrl}
                 label={cta}
                 block
@@ -279,12 +343,17 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   Download brochure (PDF)
                 </a>
               )}
+              {p.moneyBackDays ? (
+                <p className="mt-3 text-center text-[11px] text-white/45">
+                  {p.moneyBackDays}-day money-back guarantee
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
 
         {/* Faculty card */}
-        {p.faculty && (
+        {faculty && (
           <section aria-labelledby="faculty-title" className="mt-14">
             <h2
               id="faculty-title"
@@ -293,11 +362,11 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               Faculty
             </h2>
             <div className="card mt-3 flex items-start gap-5 p-5 sm:p-6">
-              {p.faculty.imageUrl ? (
+              {faculty.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={p.faculty.imageUrl}
-                  alt={p.faculty.name}
+                  src={faculty.imageUrl}
+                  alt={faculty.name}
                   className="h-16 w-16 shrink-0 rounded-full border border-white/10 object-cover sm:h-20 sm:w-20"
                 />
               ) : (
@@ -305,22 +374,22 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               )}
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/doctors/${p.faculty.slug}`}
+                  href={`/doctors/${faculty.slug}`}
                   className="font-serif text-xl text-white transition hover:text-accent-soft sm:text-2xl"
                 >
-                  {p.faculty.name}
+                  {faculty.name}
                 </Link>
-                {p.faculty.city && (
-                  <p className="text-sm text-white/55">{p.faculty.city}</p>
+                {faculty.city && (
+                  <p className="text-sm text-white/55">{faculty.city}</p>
                 )}
                 <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-[15px]">
-                  {p.faculty.title}
+                  {faculty.title}
                 </p>
-                {p.faculty.qualification && (
+                {faculty.qualification && (
                   <p className="mt-2 text-xs uppercase tracking-wider text-white/45">
-                    {p.faculty.qualification}
-                    {p.faculty.experienceYears
-                      ? ` · ${p.faculty.experienceYears} yrs experience`
+                    {faculty.qualification}
+                    {faculty.experienceYears
+                      ? ` · ${faculty.experienceYears} yrs experience`
                       : ""}
                   </p>
                 )}
@@ -482,46 +551,6 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* Cohort facts */}
-        {(p.durationWeeks || p.cohortSize || p.priceInr || p.startDate) && (
-          <dl className="mt-14 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-            {(p.durationMonths || p.durationWeeks) && (
-              <div className="card p-4">
-                <dt className="text-white/50">Duration</dt>
-                <dd className="mt-1 font-semibold text-white">
-                  {p.durationMonths
-                    ? `${p.durationMonths} months`
-                    : `${p.durationWeeks} weeks`}
-                </dd>
-              </div>
-            )}
-            {p.cohortSize ? (
-              <div className="card p-4">
-                <dt className="text-white/50">Cohort</dt>
-                <dd className="mt-1 font-semibold text-white">{p.cohortSize} seats</dd>
-              </div>
-            ) : null}
-            {p.startDate && (
-              <div className="card p-4">
-                <dt className="text-white/50">Starts</dt>
-                <dd className="mt-1 font-semibold text-white">
-                  {new Date(p.startDate).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </dd>
-              </div>
-            )}
-            {p.priceInr ? (
-              <div className="card p-4">
-                <dt className="text-white/50">Fee</dt>
-                <dd className="mt-1 font-semibold text-white">{formatINR(p.priceInr)}</dd>
-              </div>
-            ) : null}
-          </dl>
-        )}
-
         {/* ROI calculator */}
         {p.priceInr ? (
           <PracticeGrowthCalculator
@@ -647,7 +676,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             <CourseApplyButton
               courseId={p.id}
               courseName={p.name}
-              mentorName={p.faculty?.name}
+              mentorName={faculty?.name}
               brochureUrl={p.brochureUrl}
               label={cta}
             />
