@@ -104,7 +104,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
       />
       <Navbar />
-      <main className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+      <main className="mx-auto max-w-[1500px] px-4 py-10 sm:px-12 sm:py-14 lg:px-16">
         {/* Back link */}
         <Link
           href="/programs"

@@ -30,7 +30,7 @@ export function LegendsVideo() {
   return (
     <section
       aria-labelledby="legends-title"
-      className="mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-8 sm:pb-24"
+      className="mx-auto max-w-[1500px] px-4 pb-16 pt-6 sm:px-12 sm:pb-24 lg:px-16"
     >
       <h2
         id="legends-title"

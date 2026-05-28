@@ -28,7 +28,13 @@ body {
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+}
+
+/* Clip horizontal overflow without breaking position:sticky on descendants.
+   overflow-x:hidden on <html>/<body> creates a scroll context that disables
+   sticky — use overflow-x:clip on a wrapper instead (or here on body via clip). */
+body {
+  overflow-x: clip;
 }
 
 * {

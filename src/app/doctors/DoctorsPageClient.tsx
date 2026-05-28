@@ -56,7 +56,7 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
+      <main className="mx-auto max-w-[1500px] px-4 py-16 sm:px-12 sm:py-24 lg:px-16">
         <h1 className="font-serif text-4xl text-white sm:text-5xl">All Legends</h1>
         <p className="mt-3 max-w-2xl text-white/75">
           Meet the senior ophthalmologists shaping practice across India.

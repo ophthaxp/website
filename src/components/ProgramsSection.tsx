@@ -3,10 +3,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  Eye,
+  Sparkles,
+  Aperture,
+  Droplet,
+  Baby,
+  Scissors,
+  Briefcase,
+  type LucideIcon,
+} from "lucide-react";
 import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
 import type { Doctor, Program, Specialty } from "@/types";
 import { cn } from "@/lib/utils";
+
+const SPECIALTY_ICONS: Record<Specialty, LucideIcon> = {
+  all: GraduationCap,
+  "cornea-ocular-surface": Eye,
+  "phaco-refractive-surgery": Sparkles,
+  "retina-vitreo-retinal-surgery": Aperture,
+  glaucoma: Droplet,
+  "pediatric-ophthalmology": Baby,
+  oculoplasty: Scissors,
+  "ophthalmology-practice-mastery": Briefcase,
+};
 
 export function ProgramsSection({
   doctors,
@@ -107,7 +130,7 @@ export function ProgramsSection({
     <section
       id="programs"
       aria-labelledby="programs-title"
-      className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24"
+      className="mx-auto max-w-[1500px] px-4 py-16 sm:px-12 sm:py-24 lg:px-16"
     >
       <h2
         id="programs-title"
@@ -129,6 +152,7 @@ export function ProgramsSection({
       >
         {SPECIALTY_TABS.map((tab) => {
           const selected = active === tab.key;
+          const Icon = SPECIALTY_ICONS[tab.key] ?? GraduationCap;
           return (
             <button
               key={tab.key}
@@ -143,7 +167,7 @@ export function ProgramsSection({
                   : "border-[#2A2A2A] bg-[#1A1A1A] text-white/70 hover:border-[#ab834d] hover:bg-[#ab834d] hover:text-white",
               )}
             >
-              <GraduationCap className="h-4 w-4" aria-hidden />
+              <Icon className="h-4 w-4" aria-hidden />
               {tab.label}
             </button>
           );
@@ -206,7 +230,7 @@ export function ProgramsSection({
                 <Link
                   key={d.id}
                   href={href}
-                  className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
+                  className="group relative aspect-[3/4] w-[230px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[290px]"
                 >
                   {linkedCourse?.isNew && (
                     <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-400/95 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-950 shadow">
@@ -218,7 +242,7 @@ export function ProgramsSection({
                       src={d.imageUrl}
                       alt={`${d.name}${courseName ? `, ${courseName}` : ""}${d.city ? ` — ${d.city}` : ""}`}
                       fill
-                      sizes="(max-width: 640px) 170px, 210px"
+                      sizes="(max-width: 640px) 230px, 290px"
                       className="object-cover object-top transition duration-500 group-hover:scale-105"
                     />
                   ) : (
@@ -226,17 +250,17 @@ export function ProgramsSection({
                   )}
                   {/* Bottom-up dark scrim — extends ~half the card so titles stay legible */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]" />
-                  <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
-                    <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                  <div className="absolute inset-x-0 bottom-0 px-4 pb-5 pt-10 text-center">
+                    <p className="font-serif text-xl leading-tight text-white sm:text-2xl">
                       {d.name}
                     </p>
                     {courseName ? (
                       <>
                         <span
-                          className="mx-auto mt-1.5 block h-px w-6 bg-white/70"
+                          className="mx-auto mt-2 block h-px w-7 bg-white/70"
                           aria-hidden
                         />
-                        <p className="mt-1.5 line-clamp-2 text-[11px] font-semibold text-white/85 sm:text-xs">
+                        <p className="mt-2 line-clamp-2 text-xs font-semibold text-white/85 sm:text-sm">
                           {courseName}
                         </p>
                       </>

@@ -8,7 +8,7 @@ export function CertificatesPromo() {
       aria-labelledby="certificates-title"
       className="bg-[#ead8c0] text-[#1a1a1a]"
     >
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:py-24">
+      <div className="mx-auto grid max-w-[1500px] items-center gap-10 px-4 py-16 sm:px-12 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
         {/* Left — copy + CTA */}
         <div>
           <p className="flex items-baseline gap-2 font-serif text-base font-semibold tracking-tight">

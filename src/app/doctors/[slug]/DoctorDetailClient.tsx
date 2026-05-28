@@ -172,7 +172,7 @@ export function DoctorDetailClient({
           />
 
           {/* Content */}
-          <div className="relative mx-auto flex min-h-[100svh] max-w-7xl flex-col justify-end px-5 pb-20 pt-36 sm:px-8 lg:justify-center lg:pb-0 lg:pt-24">
+          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-4 pb-20 pt-36 sm:px-12 lg:justify-center lg:pb-0 lg:pt-24 lg:px-16">
             <div className="max-w-2xl">
 
               {/* Badge */}
@@ -300,7 +300,7 @@ export function DoctorDetailClient({
           aria-labelledby="about-heading"
           className="bg-[#0a0a0d] py-20 sm:py-28"
         >
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="mx-auto max-w-[1500px] px-4 sm:px-12 lg:px-16">
 
             {/* Pull-quote */}
             <div className="relative max-w-4xl">
@@ -501,7 +501,7 @@ export function DoctorDetailClient({
         {otherDoctors.length > 0 && (
           <section
             aria-labelledby="other-legends-title"
-            className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-16"
+            className="mx-auto max-w-[1500px] px-4 py-14 sm:px-12 sm:py-16 lg:px-16"
           >
             <div className="flex items-end justify-between">
               <div>
