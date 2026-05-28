@@ -1,7 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Award, Check, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  Check,
+  ClipboardList,
+  Users,
+  Video,
+  Stethoscope,
+  BookOpen,
+  GraduationCap,
+  CalendarDays,
+  Clock,
+  PlayCircle,
+  Tag,
+} from "lucide-react";
+
+// Rotating icon pool for the Course-format timeline. Admin can add any number
+// of phases — we cycle through these so each step gets a relevant glyph.
+const FORMAT_ICONS = [ClipboardList, Users, Video, Stethoscope, BookOpen, GraduationCap];
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
@@ -11,8 +29,10 @@ import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
+  fetchDoctorsFromBackend,
   fetchRelatedDoctors,
 } from "@/lib/courses";
+import type { Doctor, Faculty } from "@/types";
 import { formatINR } from "@/lib/utils";
 import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -58,11 +78,42 @@ function formatLaunch(p: { launchMonth?: string; launchYear?: number; startDate?
   return null;
 }
 
+function doctorToFaculty(d: Doctor): Faculty {
+  return {
+    slug: d.slug,
+    name: d.name,
+    title: d.title,
+    city: d.city || undefined,
+    imageUrl: d.imageUrl || undefined,
+    qualification: d.qualification,
+    bio: d.bio || undefined,
+    experienceYears: d.experienceYears || undefined,
+  };
+}
+
 export default async function ProgramDetailPage({ params }: { params: { slug: string } }) {
   const p = await fetchCourseFromBackend(params.slug);
   if (!p) notFound();
 
   const related = await fetchRelatedDoctors(p.relatedDoctorSlugs ?? []);
+
+  // Resolve a faculty record for the hero, even when the backend course
+  // doesn't have a `doctorSlug` reference set. Priority:
+  //   1. p.faculty (already attached server-side via doctorSlug)
+  //   2. First doctor from relatedDoctorSlugs (already fetched as `related`)
+  //   3. Legacy lookup: any doctor whose courseSlug or slug equals p.slug
+  let faculty: Faculty | undefined = p.faculty;
+  if (!faculty && related[0]) {
+    faculty = doctorToFaculty(related[0]);
+  }
+  if (!faculty) {
+    const allDoctors = await fetchDoctorsFromBackend();
+    const match = allDoctors.find(
+      (d) => d.courseSlug === p.slug || d.slug === p.slug,
+    );
+    if (match) faculty = doctorToFaculty(match);
+  }
+
   const durationLabel = formatDuration(p.durationMinutes);
   const launchLabel = formatLaunch(p);
   const cta = "Apply Now";
@@ -79,11 +130,11 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
       startDate: p.startDate,
       duration: p.durationMonths ? `P${p.durationMonths}M` : `P${p.durationWeeks}W`,
     },
-    instructor: p.faculty
+    instructor: faculty
       ? {
           "@type": "Person",
-          name: p.faculty.name,
-          jobTitle: p.faculty.title,
+          name: faculty.name,
+          jobTitle: faculty.title,
         }
       : undefined,
     offers: p.priceInr
@@ -104,7 +155,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
       />
       <Navbar />
-      <main className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+      <main className="mx-auto max-w-[1500px] px-6 py-10 sm:px-16 sm:py-14 lg:px-24">
         {/* Back link */}
         <Link
           href="/programs"
@@ -114,133 +165,174 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           Back to all courses
         </Link>
 
-        {/* Hero: image + info card */}
-        <section className="mt-6 grid gap-8 lg:grid-cols-2 lg:items-stretch">
+        {/* Hero: trailer/cover (65%) + info card (35%) */}
+        <section className="mt-6 grid gap-8 lg:grid-cols-[13fr_7fr] lg:items-stretch">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950">
-            {p.isNew && (
-              <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-400/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-950 shadow-lg">
-                <Sparkles className="h-3 w-3" /> New
-              </span>
-            )}
-            {p.heroImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.heroImage}
-                alt={p.name}
-                className="aspect-[4/5] w-full object-cover"
-              />
-            ) : (
-              <div className="aspect-[4/5] w-full" />
-            )}
+            <div className="relative aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-[460px]">
+              {p.trailerVideoUrl ? (
+                // Cover poster doubles as the play surface — click anywhere on
+                // the image to start the trailer inline (TrailerPlayer handles
+                // YouTube, Vimeo, and direct mp4/webm/mov).
+                <TrailerPlayer
+                  src={p.trailerVideoUrl}
+                  poster={p.heroImage}
+                  title={`${p.name} — Trailer`}
+                  className="absolute inset-0 h-full w-full"
+                />
+              ) : p.heroImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.heroImage}
+                  alt={p.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                    Trailer
+                  </span>
+                  <span className="mt-1 text-sm text-white/70">Coming soon</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col justify-center">
-            {launchLabel && (
-              <p className="flex items-center gap-3 text-xs uppercase tracking-[0.28em] text-accent-soft">
-                <span aria-hidden className="h-px w-8 bg-accent-soft/60" />
-                Launches on {launchLabel}
+          <div className="relative flex flex-col justify-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-sm sm:p-8 lg:p-9">
+            {/* Specialty / category eyebrow */}
+            {(p.specialistTitle || p.specialty) && (
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                {p.specialistTitle || (typeof p.specialty === "string" ? p.specialty.replace(/-/g, " ") : "")}
               </p>
             )}
-            <h1 className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl">
+
+            {/* Course title — prefer marketing headline, fall back to specialist
+                title, then to the raw course name so the heading is always set. */}
+            <h1 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
               {p.headline || p.name}
             </h1>
-            {p.headline && p.name !== p.headline && (
-              <p className="mt-2 text-sm font-medium uppercase tracking-wider text-white/55">
-                {p.name}
-              </p>
+
+            {faculty?.name && (
+              <Link
+                href={`/doctors/${faculty.slug}`}
+                className="group mt-5 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/55 transition hover:text-white"
+              >
+                <span aria-hidden className="h-px w-6 bg-white/40 transition group-hover:bg-[#ab834d]" />
+                <span>
+                  By <span className="text-white">Dr. {faculty.name.replace(/^Dr\.?\s+/i, "")}</span>
+                </span>
+              </Link>
             )}
+
             {p.tagline && (
-              <p className="mt-5 text-base leading-relaxed text-white/75 sm:text-lg">
+              <p className="mt-5 text-[15px] leading-relaxed text-white/70 sm:text-base">
                 {p.tagline}
               </p>
             )}
 
-            {/* Quick facts row */}
-            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/65">
-              {p.durationMonths ? (
-                <span>
-                  <span className="text-white">{p.durationMonths}</span> months
-                </span>
-              ) : p.durationWeeks ? (
-                <span>
-                  <span className="text-white">{p.durationWeeks}</span> weeks
-                </span>
-              ) : null}
-              {p.lessonsCount ? (
-                <span>
-                  <span className="text-white">{p.lessonsCount}</span> lessons
-                </span>
-              ) : null}
-              {durationLabel ? <span>{durationLabel}</span> : null}
-              {p.cohortSize ? (
-                <span>
-                  <span className="text-white">{p.cohortSize}</span> seats / cohort
-                </span>
-              ) : null}
-              {p.startDate ? (
-                <span>
-                  starts{" "}
-                  <span className="text-white">
-                    {new Date(p.startDate).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                </span>
-              ) : null}
-              {p.trailerVideoUrl && (
-                <a
-                  href="#trailer"
-                  className="font-semibold text-accent-soft underline-offset-4 hover:underline"
-                >
-                  ▶ Watch trailer
-                </a>
-              )}
-            </div>
-
-            {/* CTA card */}
-            <div className="mt-8 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5">
-              {p.startDate ? (
-                <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-[#ab834d]/30 bg-[#ab834d]/10 px-4 py-2.5">
-                  <svg
-                    className="h-4 w-4 text-[#ab834d]"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden
-                  >
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <path d="M16 2v4M8 2v4M3 10h18" />
-                  </svg>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-                    Cohort starts{" "}
-                    <span className="text-[#ab834d]">
+            {/* Quick facts — icon-prefixed stacked list */}
+            {(launchLabel ||
+              p.durationMonths ||
+              p.durationWeeks ||
+              p.lessonsCount ||
+              durationLabel ||
+              p.cohortSize ||
+              p.startDate ||
+              p.priceInr) && (
+              <ul className="mt-7 space-y-px overflow-hidden rounded-2xl border border-white/10 bg-ink-950/30 text-sm">
+                {launchLabel && (
+                  <li className="flex items-center justify-between gap-3 bg-[#ab834d]/[0.08] px-4 py-3">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
+                      <CalendarDays className="h-4 w-4" aria-hidden />
+                      Launches
+                    </span>
+                    <span className="font-semibold text-white">{launchLabel}</span>
+                  </li>
+                )}
+                {(p.durationMonths || p.durationWeeks) && (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Clock className="h-4 w-4" aria-hidden />
+                      Duration
+                    </span>
+                    <span className="font-medium text-white/90">
+                      {p.durationMonths
+                        ? `${p.durationMonths} months`
+                        : `${p.durationWeeks} weeks`}
+                    </span>
+                  </li>
+                )}
+                {p.lessonsCount ? (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <PlayCircle className="h-4 w-4" aria-hidden />
+                      Lessons
+                    </span>
+                    <span className="font-medium text-white/90">{p.lessonsCount}</span>
+                  </li>
+                ) : null}
+                {durationLabel && !p.durationMonths && !p.durationWeeks ? (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Clock className="h-4 w-4" aria-hidden />
+                      Length
+                    </span>
+                    <span className="font-medium text-white/90">{durationLabel}</span>
+                  </li>
+                ) : null}
+                {p.cohortSize ? (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Users className="h-4 w-4" aria-hidden />
+                      Cohort
+                    </span>
+                    <span className="font-medium text-white/90">
+                      {p.cohortSize} seats
+                    </span>
+                  </li>
+                ) : null}
+                {p.startDate ? (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <CalendarDays className="h-4 w-4" aria-hidden />
+                      Starts
+                    </span>
+                    <span className="font-medium text-white/90">
                       {new Date(p.startDate).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
                       })}
                     </span>
-                  </p>
-                </div>
-              ) : null}
-              <p className="text-center text-sm font-semibold text-white">
-                Reserve your seat in the next cohort
-              </p>
-              <div className="mt-4">
-                <CourseApplyButton
-                  courseId={p.id}
-                  courseName={p.name}
-                  mentorName={p.faculty?.name}
-                  brochureUrl={p.brochureUrl}
-                  label={cta}
-                  block
-                />
-              </div>
+                  </li>
+                ) : null}
+                {p.priceInr ? (
+                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
+                    <span className="inline-flex items-center gap-2.5 text-white/55">
+                      <Tag className="h-4 w-4" aria-hidden />
+                      Fee
+                    </span>
+                    <span className="font-semibold text-white">
+                      {p.pricePerDayInr
+                        ? `₹${p.pricePerDayInr}/day`
+                        : formatINR(p.priceInr)}
+                      {p.billingPeriod === "annual" ? (
+                        <span className="ml-1 text-xs font-normal text-white/45">/ year</span>
+                      ) : null}
+                    </span>
+                  </li>
+                ) : null}
+              </ul>
+            )}
+
+            <div className="mt-7">
+              <CourseApplyButton
+                courseId={p.id}
+                courseName={p.name}
+                mentorName={faculty?.name}
+                brochureUrl={p.brochureUrl}
+                label={cta}
+                block
+              />
               {p.brochureUrl && (
                 <a
                   href={p.brochureUrl}
@@ -251,22 +343,17 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   Download brochure (PDF)
                 </a>
               )}
+              {p.moneyBackDays ? (
+                <p className="mt-3 text-center text-[11px] text-white/45">
+                  {p.moneyBackDays}-day money-back guarantee
+                </p>
+              ) : null}
             </div>
-            {p.priceInr ? (
-              <p className="mt-4 text-xs text-white/55">
-                Starting at{" "}
-                <span className="font-semibold text-white">
-                  {p.pricePerDayInr ? `₹${p.pricePerDayInr}/day` : `${formatINR(p.priceInr)}/year`}
-                </span>
-                {p.billingPeriod === "annual" ? ", billed annually" : null}
-                {p.moneyBackDays ? `. ${p.moneyBackDays}-day money back guaranteed.` : null}
-              </p>
-            ) : null}
           </div>
         </section>
 
         {/* Faculty card */}
-        {p.faculty && (
+        {faculty && (
           <section aria-labelledby="faculty-title" className="mt-14">
             <h2
               id="faculty-title"
@@ -275,11 +362,11 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               Faculty
             </h2>
             <div className="card mt-3 flex items-start gap-5 p-5 sm:p-6">
-              {p.faculty.imageUrl ? (
+              {faculty.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={p.faculty.imageUrl}
-                  alt={p.faculty.name}
+                  src={faculty.imageUrl}
+                  alt={faculty.name}
                   className="h-16 w-16 shrink-0 rounded-full border border-white/10 object-cover sm:h-20 sm:w-20"
                 />
               ) : (
@@ -287,46 +374,26 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               )}
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/doctors/${p.faculty.slug}`}
+                  href={`/doctors/${faculty.slug}`}
                   className="font-serif text-xl text-white transition hover:text-accent-soft sm:text-2xl"
                 >
-                  {p.faculty.name}
+                  {faculty.name}
                 </Link>
-                {p.faculty.city && (
-                  <p className="text-sm text-white/55">{p.faculty.city}</p>
+                {faculty.city && (
+                  <p className="text-sm text-white/55">{faculty.city}</p>
                 )}
                 <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-[15px]">
-                  {p.faculty.title}
+                  {faculty.title}
                 </p>
-                {p.faculty.qualification && (
+                {faculty.qualification && (
                   <p className="mt-2 text-xs uppercase tracking-wider text-white/45">
-                    {p.faculty.qualification}
-                    {p.faculty.experienceYears
-                      ? ` · ${p.faculty.experienceYears} yrs experience`
+                    {faculty.qualification}
+                    {faculty.experienceYears
+                      ? ` · ${faculty.experienceYears} yrs experience`
                       : ""}
                   </p>
                 )}
               </div>
-            </div>
-          </section>
-        )}
-
-        {/* Trailer */}
-        {p.trailerVideoUrl && (
-          <section id="trailer" aria-labelledby="trailer-title" className="mt-14">
-            <h2
-              id="trailer-title"
-              className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#a88251]"
-            >
-              Trailer
-            </h2>
-            <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black">
-              <TrailerPlayer
-                src={p.trailerVideoUrl}
-                poster={p.heroImage}
-                title={`${p.name} — Trailer`}
-                className="absolute inset-0 h-full w-full"
-              />
             </div>
           </section>
         )}
@@ -399,75 +466,89 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* Course format timeline */}
+        {/* Course format — horizontal step timeline */}
         {p.courseFormat && p.courseFormat.length > 0 && (
-          <section aria-labelledby="format-title" className="mt-14">
-            <h2
-              id="format-title"
-              className="font-serif text-3xl text-white sm:text-4xl"
+          <section
+            aria-labelledby="format-title"
+            className="mt-20 sm:mt-24"
+          >
+            {/* Centered header */}
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                Course Format
+              </p>
+              <h2
+                id="format-title"
+                className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl"
+              >
+                How your cohort unfolds
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm text-white/55 sm:text-base">
+                A mentor-led path designed to take you from first session to
+                surgical confidence.
+              </p>
+            </div>
+
+            {/* Steps grid */}
+            <ol
+              className={`relative mx-auto mt-16 grid gap-12 sm:gap-8 ${
+                p.courseFormat.length === 1
+                  ? "max-w-md grid-cols-1"
+                  : p.courseFormat.length === 2
+                    ? "max-w-3xl grid-cols-1 sm:grid-cols-2"
+                    : p.courseFormat.length === 3
+                      ? "max-w-5xl grid-cols-1 sm:grid-cols-3"
+                      : "max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+              }`}
             >
-              Course format
-            </h2>
-            <p className="mt-1 text-sm text-white/55">Blended learning across in-person and online modules.</p>
-            <ol className="mt-8 relative space-y-6 border-l border-white/10 pl-6 sm:pl-8">
-              {p.courseFormat.map((phase, i) => (
-                <li key={`phase-${i}`} className="relative">
-                  <span
-                    aria-hidden
-                    className="absolute -left-[33px] top-1 flex h-6 w-6 items-center justify-center rounded-full border border-accent/40 bg-ink-900 text-[11px] font-semibold text-accent-soft sm:-left-[37px]"
+              {/* Faint horizontal connector line — sits behind the circles on
+                  sm+ where the layout is horizontal. Hidden on mobile (stacked). */}
+              {p.courseFormat.length > 1 && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-12 right-12 top-[42px] hidden h-px bg-gradient-to-r from-transparent via-white/15 to-transparent sm:block"
+                />
+              )}
+
+              {p.courseFormat.map((phase, i) => {
+                const Icon = FORMAT_ICONS[i % FORMAT_ICONS.length];
+                const stepNum = String(i + 1).padStart(2, "0");
+                return (
+                  <li
+                    key={`phase-${i}`}
+                    className="relative flex flex-col items-center text-center"
                   >
-                    {i + 1}
-                  </span>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-accent-soft">
-                    {phase.phase}
-                  </p>
-                  <p className="mt-1 text-base leading-relaxed text-white/85 sm:text-lg">
-                    {phase.description}
-                  </p>
-                </li>
-              ))}
+                    {/* Faint giant step number behind the icon */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute top-2 select-none font-serif text-7xl font-bold leading-none text-white/[0.04] sm:text-8xl"
+                    >
+                      {stepNum}
+                    </span>
+                    {/* Circle icon */}
+                    <span
+                      aria-hidden
+                      className="relative z-10 inline-flex h-[84px] w-[84px] items-center justify-center rounded-full border border-[#ab834d]/40 bg-ink-950"
+                    >
+                      <Icon className="h-7 w-7 text-[#ab834d]" />
+                    </span>
+                    {/* Step label */}
+                    <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ab834d]">
+                      Step {stepNum}
+                    </p>
+                    {/* Title (phase name) */}
+                    <h3 className="mt-3 font-serif text-2xl leading-tight text-white sm:text-3xl">
+                      {phase.phase}
+                    </h3>
+                    {/* Description */}
+                    <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
+                      {phase.description}
+                    </p>
+                  </li>
+                );
+              })}
             </ol>
           </section>
-        )}
-
-        {/* Cohort facts */}
-        {(p.durationWeeks || p.cohortSize || p.priceInr || p.startDate) && (
-          <dl className="mt-14 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-            {(p.durationMonths || p.durationWeeks) && (
-              <div className="card p-4">
-                <dt className="text-white/50">Duration</dt>
-                <dd className="mt-1 font-semibold text-white">
-                  {p.durationMonths
-                    ? `${p.durationMonths} months`
-                    : `${p.durationWeeks} weeks`}
-                </dd>
-              </div>
-            )}
-            {p.cohortSize ? (
-              <div className="card p-4">
-                <dt className="text-white/50">Cohort</dt>
-                <dd className="mt-1 font-semibold text-white">{p.cohortSize} seats</dd>
-              </div>
-            ) : null}
-            {p.startDate && (
-              <div className="card p-4">
-                <dt className="text-white/50">Starts</dt>
-                <dd className="mt-1 font-semibold text-white">
-                  {new Date(p.startDate).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </dd>
-              </div>
-            )}
-            {p.priceInr ? (
-              <div className="card p-4">
-                <dt className="text-white/50">Fee</dt>
-                <dd className="mt-1 font-semibold text-white">{formatINR(p.priceInr)}</dd>
-              </div>
-            ) : null}
-          </dl>
         )}
 
         {/* ROI calculator */}
@@ -595,7 +676,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             <CourseApplyButton
               courseId={p.id}
               courseName={p.name}
-              mentorName={p.faculty?.name}
+              mentorName={faculty?.name}
               brochureUrl={p.brochureUrl}
               label={cta}
             />

@@ -78,7 +78,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden"
     >
-      <div className="mx-auto grid min-h-[640px] max-w-7xl grid-cols-[auto_1fr_auto] items-start gap-4 px-4 pb-8 pt-2 sm:gap-8 sm:px-8 sm:pb-16 sm:pt-6">
+      <div className="mx-auto grid min-h-[640px] max-w-[1500px] grid-cols-[auto_1fr_auto] items-start gap-4 px-12 pb-8 pt-2 sm:gap-10 sm:px-20 sm:pb-16 sm:pt-6 lg:px-28">
         <MarqueeColumn images={list} direction="down" className="self-center" />
 
         <div className="flex flex-col items-center pt-28 text-center sm:pt-26">
@@ -103,12 +103,6 @@ export function Hero({ images }: { images?: HeroImg[] }) {
             >
               Take me to Courses
               <span aria-hidden className="translate-x-0 transition group-hover:translate-x-0.5">→</span>
-            </Link>
-            <Link
-              href="/doctors"
-              className="inline-flex items-center justify-center rounded-[12px] border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium text-white/85 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
-            >
-              Meet the Legends
             </Link>
           </div>
         </div>

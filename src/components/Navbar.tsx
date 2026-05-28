@@ -4,10 +4,10 @@ import { Sparkles } from "lucide-react";
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-40 w-full bg-ink-950/70 backdrop-blur-md border-b border-white/5">
+    <header className="sticky top-0 z-50 w-full bg-ink-950/90 backdrop-blur-md border-b border-white/10 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]">
       <nav
         aria-label="Primary"
-        className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 sm:px-8"
+        className="mx-auto flex max-w-[1500px] items-center justify-between px-6 py-3 sm:px-16 lg:px-24"
       >
         <Link href="/" aria-label="OphthaXP — home" className="inline-flex items-center">
           <Image

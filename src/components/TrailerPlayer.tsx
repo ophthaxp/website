@@ -75,7 +75,10 @@ function DirectVideo({
         preload="metadata"
         poster={poster}
         controls={started && hovered}
-        className="absolute inset-0 h-full w-full"
+        // object-cover so the poster image (and the playing video) fills the
+        // container edge-to-edge — otherwise the <video> tag falls back to
+        // `object-fit: contain` and letterboxes the poster with black bars.
+        className="absolute inset-0 h-full w-full object-cover"
       >
         <source src={src} />
         Your browser does not support the video tag.
