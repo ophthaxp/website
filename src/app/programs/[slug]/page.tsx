@@ -546,14 +546,6 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* Plans & pricing — three tiers derived from the course's base price,
-            so visitors can pick between self-paced, cohort, or 1:1 mentorship. */}
-        <ProgramsPricingTiers
-          basePriceInr={p.priceInr}
-          courseName={p.name}
-          courseId={p.id}
-        />
-
         {/* ROI calculator — render unconditionally so visitors always see the
             projection. Wrapped in CourseRoiBlock so the "Know more" CTA opens
             the brochure form prefilled with this course's context. */}
@@ -669,6 +661,15 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             </div>
           </section>
         )}
+
+        {/* Plans & pricing — three tiers derived from the course's base price,
+            so visitors land on a clear pricing choice right before the final
+            apply CTA. */}
+        <ProgramsPricingTiers
+          basePriceInr={p.priceInr}
+          courseName={p.name}
+          courseId={p.id}
+        />
 
         {/* Final CTA banner */}
         <section className="mt-20 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950 p-8 sm:p-12">
