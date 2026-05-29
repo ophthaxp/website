@@ -408,57 +408,90 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* What you will learn */}
-        {p.whatYouWillLearn && p.whatYouWillLearn.length > 0 && (
-          <section aria-labelledby="learn-title" className="mt-14">
-            <h2
-              id="learn-title"
-              className="font-serif text-3xl text-white sm:text-4xl"
-            >
-              What you will learn
-            </h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-              {p.whatYouWillLearn.map((item, i) => (
-                <li
-                  key={`learn-${i}`}
-                  className="card flex items-start gap-3 p-4 sm:p-5"
+        {/* "What you will learn" + "Curriculum highlights" — paired inside a
+            single rounded container with a visual divider, so the two columns
+            read as one cohesive component instead of competing styles. Rows on
+            each side share the same height rhythm (separator lines + accent
+            glyph + text), giving the section a balanced grid feel. */}
+        {((p.whatYouWillLearn && p.whatYouWillLearn.length > 0) ||
+          (p.curriculumHighlights && p.curriculumHighlights.length > 0)) && (
+          <div className="mt-16 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent">
+            <div className="grid gap-px bg-white/10 lg:grid-cols-2">
+              {/* What you will learn */}
+              {p.whatYouWillLearn && p.whatYouWillLearn.length > 0 && (
+                <section
+                  aria-labelledby="learn-title"
+                  className="bg-ink-950/40 p-7 sm:p-9"
                 >
-                  <span
-                    aria-hidden
-                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent-soft"
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                    Outcomes
+                  </p>
+                  <h2
+                    id="learn-title"
+                    className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl"
                   >
-                    <Check className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-sm leading-relaxed text-white/85 sm:text-[15px]">
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+                    What you will learn
+                  </h2>
 
-        {/* Curriculum highlights */}
-        {p.curriculumHighlights && p.curriculumHighlights.length > 0 && (
-          <section aria-labelledby="curriculum-title" className="mt-14">
-            <h2
-              id="curriculum-title"
-              className="font-serif text-3xl text-white sm:text-4xl"
-            >
-              Curriculum highlights
-            </h2>
-            <ul className="mt-6 space-y-3">
-              {p.curriculumHighlights.map((item, i) => (
-                <li
-                  key={`curr-${i}`}
-                  className="flex items-start gap-3 text-sm leading-relaxed text-white/80 sm:text-[15px]"
+                  <ul className="mt-6 divide-y divide-white/5">
+                    {p.whatYouWillLearn.map((item, i) => (
+                      <li
+                        key={`learn-${i}`}
+                        className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0"
+                      >
+                        <span
+                          aria-hidden
+                          className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/20 text-accent-soft"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="text-sm leading-relaxed text-white/85 sm:text-[15px]">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {/* Curriculum highlights */}
+              {p.curriculumHighlights && p.curriculumHighlights.length > 0 && (
+                <section
+                  aria-labelledby="curriculum-title"
+                  className="bg-ink-950/40 p-7 sm:p-9"
                 >
-                  <span aria-hidden className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-soft" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                    Curriculum
+                  </p>
+                  <h2
+                    id="curriculum-title"
+                    className="mt-2 font-serif text-2xl leading-tight text-white sm:text-3xl"
+                  >
+                    Highlights
+                  </h2>
+
+                  <ol className="mt-6 divide-y divide-white/5">
+                    {p.curriculumHighlights.map((item, i) => (
+                      <li
+                        key={`curr-${i}`}
+                        className="flex items-start gap-4 py-3.5 first:pt-0 last:pb-0"
+                      >
+                        <span
+                          aria-hidden
+                          className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 font-serif text-[11px] font-semibold tabular-nums text-[#d6a76b]"
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="text-sm leading-relaxed text-white/85 sm:text-[15px]">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Course format — horizontal step timeline */}
