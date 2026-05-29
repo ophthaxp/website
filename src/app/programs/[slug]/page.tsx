@@ -198,16 +198,9 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </div>
 
           <div className="relative flex flex-col justify-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-sm sm:p-8 lg:p-9">
-            {/* Specialty / category eyebrow */}
-            {(p.specialistTitle || p.specialty) && (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                {p.specialistTitle || (typeof p.specialty === "string" ? p.specialty.replace(/-/g, " ") : "")}
-              </p>
-            )}
-
-            {/* Course title — prefer marketing headline, fall back to specialist
-                title, then to the raw course name so the heading is always set. */}
-            <h1 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
+            {/* Course title — show the marketing headline as the only heading.
+                Falls back to the raw course name when no headline is set. */}
+            <h1 className="font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
               {p.headline || p.name}
             </h1>
 
