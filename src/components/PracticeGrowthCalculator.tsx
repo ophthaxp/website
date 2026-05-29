@@ -80,6 +80,10 @@ interface Props {
   defaultSpecialty?: string;
   /** Retained for backward compatibility — unused in the new ROI model. */
   courseTuitionInr?: number;
+  /** Course slug used as an extra hint for prefill matching. */
+  courseSlug?: string;
+  /** Course name used as an extra hint for prefill matching. */
+  courseName?: string;
   ctaHref?: string;
   onCtaClick?: () => void;
   lockSpecialty?: boolean;
@@ -87,10 +91,60 @@ interface Props {
   defaultPincode?: string;
   defaultRadiusKm?: number;
   defaultExpectedPatients?: number;
+  /** Override the bottom CTA label. Defaults differ by mode:
+   *  - link mode (no onCtaClick): "Know more"
+   *  - button mode (onCtaClick set): "Speak to Ophthaxp Concierge" */
+  ctaLabel?: string;
+}
+
+/**
+ * Pick the ROI specialization that best matches the course context. The course
+ * taxonomy ("cornea-ocular-surface", "phaco-refractive-surgery", …) does not
+ * line up 1:1 with the ROI specialization slugs from the backend ("cataract",
+ * "glaucoma", …), so try exact-slug first and then fall back to substring
+ * matching across the course's specialty / slug / name. Returns null when
+ * nothing matches so the caller can keep its own default.
+ */
+function pickBestSpecMatch(
+  specs: Specialization[],
+  hints: { specialty?: string; courseSlug?: string; courseName?: string },
+): string | null {
+  if (specs.length === 0) return null;
+  const haystack = [hints.specialty, hints.courseSlug, hints.courseName]
+    .filter(Boolean)
+    .map((s) => String(s).toLowerCase())
+    .join(" ");
+  if (!haystack) return null;
+
+  const exact = specs.find(
+    (s) => s.slug.toLowerCase() === hints.specialty?.toLowerCase(),
+  );
+  if (exact) return exact.slug;
+
+  // Substring match in either direction — handles e.g. course slug
+  // "corneal-transplant" → ROI spec "cornea", or course specialty
+  // "phaco-refractive-surgery" matching itself, or label "Cataract" appearing
+  // in the course name. Score by longest token hit so "cornea" beats "ear".
+  let best: { slug: string; score: number } | null = null;
+  for (const s of specs) {
+    const slugLc = s.slug.toLowerCase();
+    const labelLc = s.label.toLowerCase();
+    const candidates = [slugLc, labelLc, ...slugLc.split("-"), ...labelLc.split(/\s+/)];
+    for (const tok of candidates) {
+      if (tok.length < 4) continue; // skip noise like "and", "of"
+      if (haystack.includes(tok)) {
+        const score = tok.length;
+        if (!best || score > best.score) best = { slug: s.slug, score };
+      }
+    }
+  }
+  return best?.slug ?? null;
 }
 
 export function PracticeGrowthCalculator({
   defaultSpecialty = "cataract",
+  courseSlug,
+  courseName,
   ctaHref = "#get-started",
   onCtaClick,
   lockSpecialty = false,
@@ -98,6 +152,7 @@ export function PracticeGrowthCalculator({
   defaultPincode = "600037",
   defaultRadiusKm = 5,
   defaultExpectedPatients = 300,
+  ctaLabel,
 }: Props) {
   const [specs, setSpecs] = useState<Specialization[]>([]);
   const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty);
@@ -123,16 +178,34 @@ export function PracticeGrowthCalculator({
         const res = await fetch("/api/roi/specializations", { cache: "no-store" });
         const body = await res.json();
         if (cancelled) return;
-        if (body?.success && Array.isArray(body.data) && body.data.length > 0) {
-          setSpecs(body.data);
-          if (!body.data.some((s: Specialization) => s.slug === specSlug)) {
-            setSpecSlug(body.data[0].slug);
-          }
-        } else {
-          setSpecs(FALLBACK_SPECIALIZATIONS);
+        const list: Specialization[] =
+          body?.success && Array.isArray(body.data) && body.data.length > 0
+            ? body.data
+            : FALLBACK_SPECIALIZATIONS;
+        setSpecs(list);
+        // Prefer the explicit defaultSpecialty when it's a real ROI slug;
+        // otherwise fuzzy-match the broader course context (slug + name) so
+        // course pages prefill the closest specialization instead of always
+        // falling back to the first item in the list.
+        if (!list.some((s) => s.slug === specSlug)) {
+          const match = pickBestSpecMatch(list, {
+            specialty: defaultSpecialty,
+            courseSlug,
+            courseName,
+          });
+          setSpecSlug(match ?? list[0].slug);
         }
       } catch {
-        if (!cancelled) setSpecs(FALLBACK_SPECIALIZATIONS);
+        if (cancelled) return;
+        setSpecs(FALLBACK_SPECIALIZATIONS);
+        if (!FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
+          const match = pickBestSpecMatch(FALLBACK_SPECIALIZATIONS, {
+            specialty: defaultSpecialty,
+            courseSlug,
+            courseName,
+          });
+          setSpecSlug(match ?? FALLBACK_SPECIALIZATIONS[0].slug);
+        }
       }
     })();
     return () => {
@@ -493,14 +566,14 @@ export function PracticeGrowthCalculator({
                 onClick={onCtaClick}
                 className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
               >
-                Speak to Ophthaxp Concierge
+                {ctaLabel ?? "Speak to Ophthaxp Concierge"}
               </button>
             ) : (
               <a
                 href={ctaHref}
                 className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
               >
-                Know more
+                {ctaLabel ?? "Know more"}
               </a>
             )}
           </div>

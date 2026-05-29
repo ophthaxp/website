@@ -23,7 +23,9 @@ const FORMAT_ICONS = [ClipboardList, Users, Video, Stethoscope, BookOpen, Gradua
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
-import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
+import { CourseRoiBlock } from "@/components/CourseRoiBlock";
+import { CourseStickyFooter } from "@/components/CourseStickyFooter";
+import { ProgramsPricingTiers } from "@/components/ProgramsPricingTiers";
 import { CourseFaqList } from "@/components/CourseFaqList";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
@@ -155,7 +157,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
       />
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-6 py-10 sm:px-16 sm:py-14 lg:px-24">
+      <main className="mx-auto max-w-[1500px] px-6 py-10 pb-28 sm:px-16 sm:py-14 sm:pb-32 lg:px-24">
         {/* Back link */}
         <Link
           href="/programs"
@@ -198,16 +200,9 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </div>
 
           <div className="relative flex flex-col justify-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-sm sm:p-8 lg:p-9">
-            {/* Specialty / category eyebrow */}
-            {(p.specialistTitle || p.specialty) && (
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                {p.specialistTitle || (typeof p.specialty === "string" ? p.specialty.replace(/-/g, " ") : "")}
-              </p>
-            )}
-
-            {/* Course title — prefer marketing headline, fall back to specialist
-                title, then to the raw course name so the heading is always set. */}
-            <h1 className="mt-3 font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
+            {/* Course title — show the marketing headline as the only heading.
+                Falls back to the raw course name when no headline is set. */}
+            <h1 className="font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
               {p.headline || p.name}
             </h1>
 
@@ -551,13 +546,18 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* ROI calculator */}
-        {p.priceInr ? (
-          <PracticeGrowthCalculator
-            defaultSpecialty={p.specialty}
-            courseTuitionInr={p.priceInr}
-          />
-        ) : null}
+        {/* ROI calculator — render unconditionally so visitors always see the
+            projection. Wrapped in CourseRoiBlock so the "Know more" CTA opens
+            the brochure form prefilled with this course's context. */}
+        <CourseRoiBlock
+          courseId={p.id}
+          courseName={p.name}
+          courseSlug={p.slug}
+          defaultSpecialty={p.specialty}
+          mentorName={faculty?.name}
+          brochureUrl={p.brochureUrl}
+        />
+
 
         {/* Certificate */}
         {(p.certificateNote || p.sampleCertificateImage) && (
@@ -662,6 +662,15 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
+        {/* Plans & pricing — three tiers derived from the course's base price,
+            so visitors land on a clear pricing choice right before the final
+            apply CTA. */}
+        <ProgramsPricingTiers
+          basePriceInr={p.priceInr}
+          courseName={p.name}
+          courseId={p.id}
+        />
+
         {/* Final CTA banner */}
         <section className="mt-20 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950 p-8 sm:p-12">
           <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -684,6 +693,14 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         </section>
       </main>
       <Footer />
+      <CourseStickyFooter
+        courseId={p.id}
+        courseName={p.name}
+        facultyTitle={p.specialistTitle || faculty?.title}
+        facultyName={faculty?.name}
+        facultyImageUrl={faculty?.imageUrl}
+        brochureUrl={p.brochureUrl}
+      />
     </>
   );
 }

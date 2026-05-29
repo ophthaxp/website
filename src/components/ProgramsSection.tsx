@@ -42,18 +42,25 @@ export function ProgramsSection({
   // Only fall back to static data when the prop is omitted entirely (e.g. preview mode).
   const data: Doctor[] = doctors !== undefined ? doctors : DOCTORS;
 
-  // Build a doctor.slug -> course map so the rail card can show the course
-  // name + link directly to the course detail page in the new split schema
-  // (where courses live in their own module and reference a doctor via
-  // course.doctorSlug). Falls back gracefully when programs aren't passed.
+  // Build a doctor -> course map so the rail card can link directly to the
+  // course detail page. `p.doctorSlug` is stored on the backend as the doctor's
+  // numeric row id (reference field), so key the map by both the raw reference
+  // and the resolved doctor.slug — that way lookups by `d.slug` still find a
+  // match even when the underlying reference is an id like "5".
   const courseByDoctorSlug = useMemo(() => {
     const map = new Map<string, Program>();
+    const doctorById = new Map<string, Doctor>();
+    for (const d of data) doctorById.set(String(d.id), d);
     for (const p of programs ?? []) {
-      const slug = p.doctorSlug;
-      if (slug && !map.has(slug)) map.set(slug, p);
+      const ref = p.doctorSlug;
+      if (!ref) continue;
+      const refStr = String(ref);
+      if (!map.has(refStr)) map.set(refStr, p);
+      const resolved = doctorById.get(refStr);
+      if (resolved && !map.has(resolved.slug)) map.set(resolved.slug, p);
     }
     return map;
-  }, [programs]);
+  }, [programs, data]);
   const [active, setActive] = useState<Specialty>("all");
   const [pageCount, setPageCount] = useState(1);
   const [activePage, setActivePage] = useState(0);
@@ -221,10 +228,17 @@ export function ProgramsSection({
             </div>
           ) : (
             filtered.map((d) => {
-              const linkedCourse = courseByDoctorSlug.get(d.slug);
+              const linkedCourse =
+                courseByDoctorSlug.get(d.slug) ||
+                courseByDoctorSlug.get(String(d.id));
               const courseName = d.courseName || linkedCourse?.name;
-              const href = linkedCourse
-                ? `/programs/${linkedCourse.slug}`
+              // Prefer the linked course (split-schema) or the doctor's own
+              // courseSlug (merged-schema) so the card always opens the course
+              // detail page; fall back to the doctor profile only when neither
+              // course reference exists.
+              const courseSlug = linkedCourse?.slug || d.courseSlug;
+              const href = courseSlug
+                ? `/programs/${courseSlug}`
                 : `/doctors/${d.slug}`;
               return (
                 <Link
