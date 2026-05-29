@@ -25,6 +25,7 @@ import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { CourseRoiBlock } from "@/components/CourseRoiBlock";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
+import { ProgramsPricingTiers } from "@/components/ProgramsPricingTiers";
 import { CourseFaqList } from "@/components/CourseFaqList";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
@@ -544,6 +545,14 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             </ol>
           </section>
         )}
+
+        {/* Plans & pricing — three tiers derived from the course's base price,
+            so visitors can pick between self-paced, cohort, or 1:1 mentorship. */}
+        <ProgramsPricingTiers
+          basePriceInr={p.priceInr}
+          courseName={p.name}
+          courseId={p.id}
+        />
 
         {/* ROI calculator — render unconditionally so visitors always see the
             projection. Wrapped in CourseRoiBlock so the "Know more" CTA opens
