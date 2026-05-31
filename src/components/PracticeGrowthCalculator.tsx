@@ -534,21 +534,6 @@ export function PracticeGrowthCalculator({
             </div>
           </dl>
 
-          <p className="mt-4 text-center text-xs text-white/45">
-            Avg. selling price (ASP):{" "}
-            {result
-              ? formatINRShort(result.avgSellingPriceInr)
-              : activeSpec
-                ? formatINRShort(activeSpec.avgSellingPriceInr)
-                : "—"}{" "}
-            · Prevalence{" "}
-            {result
-              ? `${result.prevalencePct.toFixed(2)}%`
-              : activeSpec
-                ? `${activeSpec.prevalencePct.toFixed(2)}%`
-                : "—"}
-          </p>
-
           {calcError && (
             <p className="mt-3 text-center text-xs text-red-300">{calcError}</p>
           )}
