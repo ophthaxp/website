@@ -90,7 +90,7 @@ export function Footer() {
           }}
         >
           <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-            Mentor-led ophthalmology
+            ophthalmology
           </p>
         </div>
 
@@ -105,10 +105,11 @@ export function Footer() {
           }}
         >
           <span
-            className="select-none text-center font-black leading-none tracking-tighter text-white/95"
-            style={{ fontSize: "clamp(3.5rem, 13vw, 17rem)" }}
+            className="flex select-none flex-col items-center text-center font-black leading-[0.95] tracking-tighter text-white/95"
+            style={{ fontSize: "clamp(2.25rem, 9vw, 12rem)" }}
           >
-            Ophtha<span className="text-[#ab834d]">XP</span>
+            <span>Legends of</span>
+            <span className="text-[#ab834d]">Medicine</span>
           </span>
         </div>
 
@@ -122,9 +123,9 @@ export function Footer() {
             transitionDelay: "350ms",
           }}
         >
-          <p className="max-w-md text-center text-sm text-white/60 sm:text-base">
-            Learn directly from the surgeons who shaped Indian ophthalmology.
-          </p>
+          {/* <p className="max-w-md text-center text-sm text-white/60 sm:text-base">
+            Legends of Medicine, meet the Legends of Ophthalmology. Join our live mentorship program to
+          </p> */}
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="group inline-flex items-center gap-2 rounded-full border border-[#ab834d]/50 bg-[#ab834d]/10 px-7 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white backdrop-blur-sm transition-all duration-300 hover:border-[#ab834d] hover:bg-[#ab834d]"
