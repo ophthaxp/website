@@ -731,7 +731,12 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         courseName={p.name}
         facultyTitle={p.specialistTitle || faculty?.title}
         facultyName={faculty?.name}
-        facultyImageUrl={faculty?.imageUrl}
+        // Fallback chain: explicit faculty image → the course row's own
+        // doctorImage/imageUrl → the hero image. Covers merged-module rows
+        // where doctor-side `slug`/`name` were left blank so attachFaculty()
+        // couldn't link a faculty record, but the row's portrait was still
+        // uploaded against the course-side `imageUrl`/`doctorImage` field.
+        facultyImageUrl={faculty?.imageUrl || p.doctorImage || p.heroImage}
         brochureUrl={p.brochureUrl}
       />
     </>

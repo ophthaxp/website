@@ -42,7 +42,7 @@ export function PageLoader({ label = "Preparing your experience" }: { label?: st
           <span className="absolute inset-5 rounded-full bg-accent/15 blur-md" />
           {/* Logo */}
           <Image
-            src="/logo.png"
+            src="/logoloading.png"
             alt=""
             width={120}
             height={120}

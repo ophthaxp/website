@@ -71,9 +71,24 @@ export function CourseStickyFooter({
                 src={facultyImageUrl}
                 alt={facultyName || courseName}
                 className="h-10 w-10 shrink-0 rounded-full border border-white/15 object-cover sm:h-11 sm:w-11"
+                onError={(e) => {
+                  // If the URL 404s, hide the broken image so the initials fallback shows.
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
               />
             ) : (
-              <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 sm:h-11 sm:w-11" />
+              <div
+                aria-hidden
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br from-[#ab834d]/40 to-[#3a2a18]/60 text-[12px] font-semibold uppercase tracking-wider text-white/85 sm:h-11 sm:w-11 sm:text-[13px]"
+              >
+                {(facultyName || courseName || "")
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((w) => w[0])
+                  .join("")
+                  .toUpperCase()}
+              </div>
             )}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white sm:text-[15px]">

@@ -16,7 +16,7 @@ export function Navbar() {
             width={410}
             height={74}
             priority
-            className="h-[54px] w-auto"
+            className="h-[68px] w-auto"
           />
         </Link>
 
@@ -28,7 +28,7 @@ export function Navbar() {
             className="inline-flex items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-white/85 transition hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3.5"
           >
             <Sparkles className="h-3.5 w-3.5 text-accent-soft" aria-hidden />
-            <span className="hidden sm:inline">Ask OphthaXP</span>
+            <span className="hidden sm:inline">Ask LoMa</span>
           </Link>
           <Link
             href="#get-started"
