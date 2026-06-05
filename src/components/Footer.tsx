@@ -2,153 +2,179 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+
+const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export function Footer() {
   const year = new Date().getFullYear();
   const sectionRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const wordRef = useRef<HTMLDivElement>(null);
+  const fgRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Parallax: bg moves up slower than scroll, creating depth
+  // Scroll-driven reveal: dark sky → cityscape → giant word rises → bar appears
   useEffect(() => {
-    const onScroll = () => {
-      if (!sectionRef.current || !bgRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const progress = rect.top / window.innerHeight; // 1 = above viewport, 0 = at top, -1 = below
-      bgRef.current.style.transform = `translateY(${progress * -60}px)`;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0;
+
+    const apply = (
+      bgY: number,
+      overlay: number,
+      wordY: number,
+      wordOpacity: number,
+      fgY: number,
+      bottomY: number,
+      bottomOpacity: number
+    ) => {
+      if (bgRef.current)
+        bgRef.current.style.transform = `translate3d(0, ${bgY}%, 0) scale(1.12)`;
+      if (overlayRef.current) overlayRef.current.style.opacity = String(overlay);
+      if (wordRef.current) {
+        wordRef.current.style.transform = `translate3d(0, ${wordY}vh, 0)`;
+        wordRef.current.style.opacity = String(wordOpacity);
+      }
+      if (fgRef.current)
+        fgRef.current.style.transform = `translate3d(0, ${fgY}%, 0) scale(1.06)`;
+      if (bottomRef.current) {
+        bottomRef.current.style.transform = `translate3d(0, ${bottomY}vh, 0)`;
+        bottomRef.current.style.opacity = String(bottomOpacity);
+      }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
-  // Entrance: fade + scale-up when section scrolls into view
-  useEffect(() => {
-    if (!sectionRef.current) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.08 }
-    );
-    obs.observe(sectionRef.current);
-    return () => obs.disconnect();
+    const update = () => {
+      raf = 0;
+      const section = sectionRef.current;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const total = rect.height - vh;
+      const p = clamp(total > 0 ? -rect.top / total : 0);
+
+      apply(
+        lerp(-7, 7, p), // background parallax drift
+        lerp(0.8, 0.28, clamp(p / 0.6)), // dark sky lifts to reveal cityscape
+        lerp(48, -18, p), // word rises from below and settles in the upper third
+        clamp(p / 0.18), // word fades in early
+        lerp(10, -2, p), // foreground parallax (sits in front of the word)
+        lerp(28, 0, clamp((p - 0.55) / 0.35)), // bar slides up at the end
+        clamp((p - 0.55) / 0.35)
+      );
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+
+    if (reduce) {
+      // Respect reduced motion: show the resolved state, no scroll travel
+      apply(0, 0.32, -18, 1, 0, 0, 1);
+      return;
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    update();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   return (
     <footer className="bg-ink-950">
-      {/* ── Hero brand section ── */}
-      <div
-        ref={sectionRef}
-        className="relative flex min-h-[70vh] flex-col items-center justify-between overflow-hidden pb-14 pt-16"
-      >
-        {/* Parallax background */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Tall scroll track — the sticky panel below stays pinned while you scroll through it */}
+      <div ref={sectionRef} className="relative h-[200vh]">
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
+          {/* ── Parallax cityscape background ── */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div
+              ref={bgRef}
+              className="absolute inset-0 will-change-transform"
+              style={{ transform: "translate3d(0,-7%,0) scale(1.12)" }}
+            >
+              <Image
+                src="/footer_frame_1.png"
+                alt=""
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+                aria-hidden
+              />
+            </div>
+            {/* Darkening that lifts as you scroll — sky first, city revealed */}
+            <div
+              ref={overlayRef}
+              className="absolute inset-0 bg-black"
+              style={{ opacity: 0.8 }}
+            />
+            {/* Blend into the page above */}
+            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink-950 to-transparent" />
+            {/* Legibility under the bottom bar */}
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+          </div>
+
+          {/* ── Giant brand word (rises up from behind the foreground) ── */}
           <div
-            ref={bgRef}
-            className="absolute inset-0 scale-110 will-change-transform"
-            style={{ transition: "transform 0.05s linear" }}
+            ref={wordRef}
+            className="absolute inset-0 z-10 flex items-center justify-center px-4 will-change-transform"
+            style={{ transform: "translate3d(0,45vh,0)", opacity: 0 }}
+          >
+            <span
+              className="select-none whitespace-nowrap text-center font-black uppercase leading-none tracking-tight text-white"
+              style={{ fontSize: "clamp(3rem, 17vw, 20rem)" }}
+            >
+              OphthaXP
+            </span>
+          </div>
+
+          {/* ── Foreground layer (frame 2, alpha) — sits IN FRONT of the word ── */}
+          <div
+            ref={fgRef}
+            className="pointer-events-none absolute inset-0 z-20 will-change-transform"
+            style={{ transform: "translate3d(0,10%,0) scale(1.06)" }}
           >
             <Image
-              src="/footer_frame_1.png"
+              src="/footer_frame_2.avif"
               alt=""
               fill
               sizes="100vw"
-              className="object-cover object-center"
+              className="object-cover object-bottom"
               aria-hidden
             />
           </div>
-          {/* Colour overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/50 to-black/80" />
-          {/* Gold radial glow */}
+
+          {/* ── Back to top + bottom bar (slide in last) ── */}
           <div
-            aria-hidden
-            className="absolute inset-0 mix-blend-soft-light"
-            style={{
-              background:
-                "radial-gradient(55% 45% at 50% 65%, rgba(171,131,77,0.30) 0%, transparent 70%)",
-            }}
-          />
-          {/* Top / bottom page-blends */}
-          <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-ink-950 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-ink-950 via-ink-950/60 to-transparent" />
-        </div>
-
-        {/* ── Eyebrow ── */}
-        <div
-          className="relative"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(16px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-            transitionDelay: "0ms",
-          }}
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-            ophthalmology
-          </p>
-        </div>
-
-        {/* ── Large static brand name ── */}
-        <div
-          className="relative flex flex-1 w-full items-center justify-center px-4"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "scale(1) translateY(0)" : "scale(0.92) translateY(20px)",
-            transition: "opacity 1s ease, transform 1s ease",
-            transitionDelay: "150ms",
-          }}
-        >
-          <span
-            className="flex select-none flex-col items-center text-center font-black leading-[0.95] tracking-tighter text-white/95"
-            style={{ fontSize: "clamp(2.25rem, 9vw, 12rem)" }}
+            ref={bottomRef}
+            className="absolute inset-x-0 bottom-0 z-30 will-change-transform"
+            style={{ transform: "translate3d(0,28vh,0)", opacity: 0 }}
           >
-            <span>Legends of</span>
-            <span className="text-[#ab834d]">Medicine</span>
-          </span>
-        </div>
-
-        {/* ── Tagline + Back to top ── */}
-        <div
-          className="relative flex flex-col items-center gap-5"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.7s ease, transform 0.7s ease",
-            transitionDelay: "350ms",
-          }}
-        >
-          {/* <p className="max-w-md text-center text-sm text-white/60 sm:text-base">
-            Legends of Medicine, meet the Legends of Ophthalmology. Join our live mentorship program to
-          </p> */}
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="group inline-flex items-center gap-2 rounded-full border border-[#ab834d]/50 bg-[#ab834d]/10 px-7 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white backdrop-blur-sm transition-all duration-300 hover:border-[#ab834d] hover:bg-[#ab834d]"
-          >
-            <ArrowUp className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5" />
-            Back to Top
-          </button>
-        </div>
-      </div>
-
-      {/* ── Bottom bar ── */}
-      <div className="border-t border-[#ab834d]/20">
-        <div className="mx-auto flex max-w-[1500px] flex-col items-center justify-between gap-2 px-6 py-4 text-sm text-white/50 sm:flex-row sm:px-16 lg:px-24">
-          <span>© {year} OphthaXP · All Rights Reserved</span>
-          <nav aria-label="Footer legal links" className="flex items-center">
-            <Link href="/privacy" className="transition-colors hover:text-[#ab834d]">
-              Privacy Policy
-            </Link>
-            <span aria-hidden className="px-2 text-white/25">|</span>
-            <Link href="/terms" className="transition-colors hover:text-[#ab834d]">
-              Terms
-            </Link>
-          </nav>
+            <div className="flex justify-center pb-10">
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="rounded-full border border-white/60 px-8 py-3 text-xs font-medium uppercase tracking-[0.22em] text-white transition-colors duration-300 hover:bg-white hover:text-black"
+              >
+                Back to Top
+              </button>
+            </div>
+            <div className="mx-auto flex w-full max-w-[1500px] flex-col items-center justify-between gap-2 px-6 pb-6 text-sm text-white/70 sm:flex-row sm:px-16 lg:px-24">
+              <span>© {year} OphthaXP · All Rights Reserved</span>
+              <nav aria-label="Footer legal links" className="flex items-center">
+                <Link href="/privacy" className="transition-colors hover:text-white">
+                  Privacy Policy
+                </Link>
+                <span aria-hidden className="px-2 text-white/40">|</span>
+                <Link href="/terms" className="transition-colors hover:text-white">
+                  Terms
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
