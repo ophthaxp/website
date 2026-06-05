@@ -13,6 +13,7 @@ export function Footer() {
   const bgRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
+  const wordTextRef = useRef<HTMLSpanElement>(null);
   const fgRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +39,7 @@ export function Footer() {
         wordRef.current.style.opacity = String(wordOpacity);
       }
       if (fgRef.current)
-        fgRef.current.style.transform = `translate3d(0, ${fgY}%, 0) scale(1.06)`;
+        fgRef.current.style.transform = `translate3d(0, ${fgY}%, 0) scale(1)`;
       if (bottomRef.current) {
         bottomRef.current.style.transform = `translate3d(0, ${bottomY}vh, 0)`;
         bottomRef.current.style.opacity = String(bottomOpacity);
@@ -56,10 +57,10 @@ export function Footer() {
 
       apply(
         lerp(-7, 7, p), // background parallax drift
-        lerp(0.8, 0.28, clamp(p / 0.6)), // dark sky lifts to reveal cityscape
-        lerp(48, -18, p), // word rises from below and settles in the upper third
+        lerp(0.82, 0.12, clamp(p / 0.6)), // dark sky lifts to reveal the bright sunset cityscape
+        lerp(48, 2, p), // word rises from below and settles centered
         clamp(p / 0.18), // word fades in early
-        lerp(10, -2, p), // foreground parallax (sits in front of the word)
+        lerp(42, 28, p), // foreground sits low — hill ridge near the bottom, word shows above it
         lerp(28, 0, clamp((p - 0.55) / 0.35)), // bar slides up at the end
         clamp((p - 0.55) / 0.35)
       );
@@ -71,7 +72,7 @@ export function Footer() {
 
     if (reduce) {
       // Respect reduced motion: show the resolved state, no scroll travel
-      apply(0, 0.32, -18, 1, 0, 0, 1);
+      apply(0, 0.14, 2, 1, 28, 0, 1);
       return;
     }
 
@@ -82,6 +83,29 @@ export function Footer() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // Fit the giant word to ~90% of the viewport so it never clips, any width
+  useEffect(() => {
+    const fit = () => {
+      const el = wordTextRef.current;
+      const box = wordRef.current;
+      if (!el || !box) return;
+      el.style.fontSize = "200px";
+      const w = el.scrollWidth;
+      const avail = box.clientWidth * 0.9;
+      if (!w || !avail) return;
+      el.style.fontSize = `${(avail / w) * 200}px`;
+    };
+    requestAnimationFrame(() => requestAnimationFrame(fit));
+    window.addEventListener("resize", fit);
+    window.addEventListener("load", fit);
+    // Re-fit once webfonts have loaded (metrics change after swap)
+    if (document.fonts?.ready) document.fonts.ready.then(fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      window.removeEventListener("load", fit);
     };
   }, []);
 
@@ -125,8 +149,15 @@ export function Footer() {
             style={{ transform: "translate3d(0,45vh,0)", opacity: 0 }}
           >
             <span
-              className="select-none whitespace-nowrap text-center font-black uppercase leading-none tracking-tight text-white"
-              style={{ fontSize: "clamp(3rem, 17vw, 20rem)" }}
+              ref={wordTextRef}
+              className="select-none whitespace-nowrap text-center uppercase leading-none text-white"
+              style={{
+                fontFamily:
+                  "ui-sans-serif, system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                fontSize: "clamp(2rem, 13vw, 15rem)",
+              }}
             >
               OphthaXP
             </span>
@@ -136,7 +167,7 @@ export function Footer() {
           <div
             ref={fgRef}
             className="pointer-events-none absolute inset-0 z-20 will-change-transform"
-            style={{ transform: "translate3d(0,10%,0) scale(1.06)" }}
+            style={{ transform: "translate3d(0,42%,0) scale(1)" }}
           >
             <Image
               src="/footer_frame_2.avif"
