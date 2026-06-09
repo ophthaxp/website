@@ -32,7 +32,7 @@ export function Footer() {
       bottomOpacity: number
     ) => {
       if (bgRef.current)
-        bgRef.current.style.transform = `translate3d(0, ${bgY}%, 0) scale(1.12)`;
+        bgRef.current.style.transform = `translate3d(0, ${bgY}%, 0) scale(1.3)`;
       if (overlayRef.current) overlayRef.current.style.opacity = String(overlay);
       if (wordRef.current) {
         wordRef.current.style.transform = `translate3d(0, ${wordY}vh, 0)`;
@@ -56,8 +56,8 @@ export function Footer() {
       const p = clamp(total > 0 ? -rect.top / total : 0);
 
       apply(
-        lerp(-7, 7, p), // background parallax drift
-        lerp(0.82, 0.12, clamp(p / 0.6)), // dark sky lifts to reveal the bright sunset cityscape
+        -10, // background shifted up so the bright sunset sits above the word
+        lerp(0.5, 0, clamp(p / 0.6)), // dark sky lifts to fully reveal the bright sunset cityscape
         lerp(48, 2, p), // word rises from below and settles centered
         clamp(p / 0.18), // word fades in early
         lerp(42, 28, p), // foreground sits low — hill ridge near the bottom, word shows above it
@@ -119,7 +119,7 @@ export function Footer() {
             <div
               ref={bgRef}
               className="absolute inset-0 will-change-transform"
-              style={{ transform: "translate3d(0,-7%,0) scale(1.12)" }}
+              style={{ transform: "translate3d(0,-10%,0) scale(1.3)" }}
             >
               <Image
                 src="/footer_frame_1.png"
@@ -134,12 +134,12 @@ export function Footer() {
             <div
               ref={overlayRef}
               className="absolute inset-0 bg-black"
-              style={{ opacity: 0.8 }}
+              style={{ opacity: 0.35 }}
             />
             {/* Blend into the page above */}
             <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink-950 to-transparent" />
             {/* Legibility under the bottom bar */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
 
           {/* ── Giant brand word (rises up from behind the foreground) ── */}
@@ -159,7 +159,7 @@ export function Footer() {
                 fontSize: "clamp(2rem, 13vw, 15rem)",
               }}
             >
-              OphthaXP
+              Ophthaxp
             </span>
           </div>
 
