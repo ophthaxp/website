@@ -99,8 +99,10 @@ export function Footer() {
       const box = wordRef.current;
       if (!el || !box) return;
       el.style.fontSize = "200px";
-      const w = el.scrollWidth;
-      const avail = box.clientWidth * 0.9;
+      // Sub-pixel width (scrollWidth is integer and under-reports the trailing
+      // letter once negative letter-spacing is applied, which causes clipping)
+      const w = el.getBoundingClientRect().width;
+      const avail = box.clientWidth * 0.84; // safety margin so it never clips
       if (!w || !avail) return;
       el.style.fontSize = `${(avail / w) * 200}px`;
     };
