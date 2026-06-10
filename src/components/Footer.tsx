@@ -14,6 +14,7 @@ export function Footer() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
   const wordTextRef = useRef<HTMLSpanElement>(null);
+  const medicineRef = useRef<HTMLSpanElement>(null);
   const fgRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -58,12 +59,16 @@ export function Footer() {
       apply(
         -10, // background shifted up so the bright sunset sits above the word
         lerp(0.5, 0, clamp(p / 0.6)), // dark sky lifts to fully reveal the bright sunset cityscape
-        lerp(48, 2, p), // word rises from below and settles centered
+        lerp(48, 0, p), // word rises from below and settles a touch higher (clear of the ridge)
         clamp(p / 0.18), // word fades in early
         lerp(42, 28, p), // foreground sits low — hill ridge near the bottom, word shows above it
         lerp(28, 0, clamp((p - 0.55) / 0.35)), // bar slides up at the end
         clamp((p - 0.55) / 0.35)
       );
+
+      // "Medicine" eases into its gold tint a little after the rest of the word
+      if (medicineRef.current)
+        medicineRef.current.style.opacity = String(clamp((p - 0.22) / 0.3));
     };
 
     const onScroll = () => {
@@ -72,7 +77,8 @@ export function Footer() {
 
     if (reduce) {
       // Respect reduced motion: show the resolved state, no scroll travel
-      apply(0, 0.14, 2, 1, 28, 0, 1);
+      apply(-10, 0.14, 0, 1, 28, 0, 1);
+      if (medicineRef.current) medicineRef.current.style.opacity = "1";
       return;
     }
 
@@ -159,7 +165,19 @@ export function Footer() {
                 fontSize: "clamp(2rem, 13vw, 15rem)",
               }}
             >
-              Ophthaxp
+              Legends of{" "}
+              <span
+                ref={medicineRef}
+                style={{
+                  opacity: 0,
+                  backgroundImage: "linear-gradient(180deg, #f3d99a 0%, #c8924a 100%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                Medicine
+              </span>
             </span>
           </div>
 
