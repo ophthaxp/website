@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "createdAt": "2026-06-10T04:12:37.491Z",
-  "lastUpdated": "2026-06-12T06:24:55.803Z",
+  "lastUpdated": "2026-06-12T06:38:04.923Z",
   "workspaceRoot": "/Users/aagatech/ophthaxpwebsite/website",
   "files": [
     [
@@ -68,16 +68,6 @@
       }
     ],
     [
-      ".next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781007275604.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781007275604.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
-        "relativePath": ".next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781007275604.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
-        "size": 6570,
-        "lastModified": "2026-06-09T12:13:35.607Z",
-        "hash": "166dfc2743124805ae239840e0314f87"
-      }
-    ],
-    [
       ".next/cache/images/HUVU15E8mFnXmAGZ71FAc8orSvuY6CyscosAmvn42Iw=/31536000.1812519767137.k4o5zQhBYLymY1REH-pd610sUy5rvq0FtwQItZF4KLQ=.avif",
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/HUVU15E8mFnXmAGZ71FAc8orSvuY6CyscosAmvn42Iw=/31536000.1812519767137.k4o5zQhBYLymY1REH-pd610sUy5rvq0FtwQItZF4KLQ=.avif",
@@ -95,26 +85,6 @@
         "size": 7463,
         "lastModified": "2026-06-09T05:50:49.441Z",
         "hash": "62b842e7513e9ff9704969bd75fcd943"
-      }
-    ],
-    [
-      ".next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781007273750.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781007273750.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-        "relativePath": ".next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781007273750.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-        "size": 60199,
-        "lastModified": "2026-06-09T12:13:33.752Z",
-        "hash": "e748cf5f88b8de855613fe0b042f0dd4"
-      }
-    ],
-    [
-      ".next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1780984302125.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1780984302125.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
-        "relativePath": ".next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1780984302125.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
-        "size": 32156,
-        "lastModified": "2026-06-09T05:50:42.126Z",
-        "hash": "884fe291d6e201c3df7cde02075f5175"
       }
     ],
     [
@@ -172,9 +142,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/1.pack.gz",
         "relativePath": ".next/cache/webpack/client-development/1.pack.gz",
-        "size": 10348761,
-        "lastModified": "2026-06-12T06:23:42.916Z",
-        "hash": "d7954b7d098bd6a48ca022ad3b6e9ed6"
+        "size": 10266743,
+        "lastModified": "2026-06-12T06:33:13.575Z",
+        "hash": "4af50fd11537a89530edae8931323425"
       }
     ],
     [
@@ -182,9 +152,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/2.pack.gz",
         "relativePath": ".next/cache/webpack/client-development/2.pack.gz",
-        "size": 1086693,
-        "lastModified": "2026-06-10T07:34:23.518Z",
-        "hash": "08dbbc43caf0477e255cca2ac4b4260a"
+        "size": 1268451,
+        "lastModified": "2026-06-12T06:33:12.998Z",
+        "hash": "2edec12b9d7ea2b378cc703bb5cfe111"
       }
     ],
     [
@@ -202,9 +172,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/index.pack.gz",
         "relativePath": ".next/cache/webpack/client-development/index.pack.gz",
-        "size": 155721,
-        "lastModified": "2026-06-12T06:23:42.116Z",
-        "hash": "85351bb05fd1e181b7ddf338953d80de"
+        "size": 155813,
+        "lastModified": "2026-06-12T06:33:12.911Z",
+        "hash": "b0698cd9b5661eb2474489a32a309004"
       }
     ],
     [
@@ -212,9 +182,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/index.pack.gz.old",
         "relativePath": ".next/cache/webpack/client-development/index.pack.gz.old",
-        "size": 154888,
-        "lastModified": "2026-06-10T07:34:23.504Z",
-        "hash": "8e349d1e7c8f292f78eecb737d2cff05"
+        "size": 155721,
+        "lastModified": "2026-06-12T06:23:42.116Z",
+        "hash": "85351bb05fd1e181b7ddf338953d80de"
       }
     ],
     [
@@ -222,9 +192,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/0.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/0.pack.gz",
-        "size": 61342,
-        "lastModified": "2026-06-10T07:34:23.153Z",
-        "hash": "9b84aeb903969a6ab74ab81a2d942044"
+        "size": 253281,
+        "lastModified": "2026-06-12T06:37:57.914Z",
+        "hash": "13682ec3e9f2711d8edcb6d7161409fd"
       }
     ],
     [
@@ -232,9 +202,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/1.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/1.pack.gz",
-        "size": 2228767,
-        "lastModified": "2026-06-12T06:23:40.674Z",
-        "hash": "b7a16a619e5ded86049291035a28b0cc"
+        "size": 2232062,
+        "lastModified": "2026-06-12T06:37:58.381Z",
+        "hash": "7c4c8f48fc92e0d405a307a6a71c2a3b"
       }
     ],
     [
@@ -252,9 +222,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/3.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/3.pack.gz",
-        "size": 645787,
-        "lastModified": "2026-06-12T06:23:41.460Z",
-        "hash": "7499d24e2988c1e06f2223369d4a9f76"
+        "size": 7389,
+        "lastModified": "2026-06-12T06:33:11.731Z",
+        "hash": "b5e407f3abd053d45c67d52daf0df132"
       }
     ],
     [
@@ -272,9 +242,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/5.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/5.pack.gz",
-        "size": 24804,
-        "lastModified": "2026-06-12T06:23:40.675Z",
-        "hash": "e02fb91a545e3b9560892c105b859438"
+        "size": 668512,
+        "lastModified": "2026-06-12T06:34:14.183Z",
+        "hash": "89d82af459440aa82e807f3cef70dd6e"
       }
     ],
     [
@@ -282,9 +252,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/6.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/6.pack.gz",
-        "size": 193002,
-        "lastModified": "2026-06-12T06:23:41.335Z",
-        "hash": "09da54548fe3f31168d40d6d8cec5cf7"
+        "size": 132093,
+        "lastModified": "2026-06-12T06:34:14.211Z",
+        "hash": "56f8cddd6d9f7dc430acddc7084935ce"
       }
     ],
     [
@@ -292,9 +262,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/7.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/7.pack.gz",
-        "size": 3050258,
-        "lastModified": "2026-06-10T04:37:19.297Z",
-        "hash": "97c41e6649203aba4c32a1dada42c31e"
+        "size": 93512,
+        "lastModified": "2026-06-12T06:34:14.209Z",
+        "hash": "1ca4a29403ce499669d64660c4db1d58"
       }
     ],
     [
@@ -302,9 +272,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/index.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/index.pack.gz",
-        "size": 185445,
-        "lastModified": "2026-06-12T06:23:41.116Z",
-        "hash": "229e347e7da13881b0ebbd0b31e73ffc"
+        "size": 185558,
+        "lastModified": "2026-06-12T06:37:57.855Z",
+        "hash": "324944debe92af30e0123bee6fff22b2"
       }
     ],
     [
@@ -312,9 +282,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/index.pack.gz.old",
         "relativePath": ".next/cache/webpack/server-development/index.pack.gz.old",
-        "size": 185236,
-        "lastModified": "2026-06-10T07:34:23.161Z",
-        "hash": "40ee0a5441941f13bbaadeaac4e66b1d"
+        "size": 185715,
+        "lastModified": "2026-06-12T06:34:14.208Z",
+        "hash": "723383ab2771c5d3333586bda5d4b5bc"
       }
     ],
     [
@@ -323,7 +293,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/package.json",
         "relativePath": ".next/package.json",
         "size": 20,
-        "lastModified": "2026-06-12T06:23:33.095Z",
+        "lastModified": "2026-06-12T06:37:52.195Z",
         "hash": "a6b7eb31b5dcf3835a90ea0d201f21e3",
         "language": "json"
       }
@@ -4376,9 +4346,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/app/page.js",
         "relativePath": ".next/server/app/page.js",
-        "size": 682427,
-        "lastModified": "2026-06-12T06:24:07.865Z",
-        "hash": "9dc6c2f9b4e63ae572a653bc59947ff3",
+        "size": 688233,
+        "lastModified": "2026-06-12T06:37:56.258Z",
+        "hash": "3e0a4800c1a4bfd71b6db43198eafe1e",
         "language": "javascript",
         "symbols": [
           {
@@ -5752,7 +5722,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/app/page_client-reference-manifest.js",
         "relativePath": ".next/server/app/page_client-reference-manifest.js",
         "size": 10164,
-        "lastModified": "2026-06-12T06:24:08.159Z",
+        "lastModified": "2026-06-12T06:37:56.795Z",
         "hash": "d2a17dabbf8f610d8b6beeb7f106627b",
         "language": "javascript",
         "symbols": [
@@ -9136,9 +9106,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/app-paths-manifest.json",
         "relativePath": ".next/server/app-paths-manifest.json",
-        "size": 278,
-        "lastModified": "2026-06-12T06:24:07.864Z",
-        "hash": "3cd7b59aefae5b2e34e4f92a5a510108",
+        "size": 230,
+        "lastModified": "2026-06-12T06:37:58.851Z",
+        "hash": "c15524cb44617c498b135f006968c2e4",
         "language": "json"
       }
     ],
@@ -9148,7 +9118,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/middleware-manifest.json",
         "relativePath": ".next/server/middleware-manifest.json",
         "size": 83,
-        "lastModified": "2026-06-12T06:23:33.803Z",
+        "lastModified": "2026-06-12T06:37:52.836Z",
         "hash": "d89ce660c0232c1ee738307e0ab31929",
         "language": "json"
       }
@@ -9159,7 +9129,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/middleware-react-loadable-manifest.js",
         "relativePath": ".next/server/middleware-react-loadable-manifest.js",
         "size": 35,
-        "lastModified": "2026-06-12T06:24:08.158Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "537157e425123611736ddcf544160221",
         "language": "javascript"
       }
@@ -9170,7 +9140,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/next-font-manifest.js",
         "relativePath": ".next/server/next-font-manifest.js",
         "size": 260,
-        "lastModified": "2026-06-12T06:24:08.158Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "c954f90d92c1f63b596a0b0f6f20010c",
         "language": "javascript"
       }
@@ -9181,7 +9151,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/next-font-manifest.json",
         "relativePath": ".next/server/next-font-manifest.json",
         "size": 218,
-        "lastModified": "2026-06-12T06:24:08.159Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "ccff07359553ae21457fc2ae62807de3",
         "language": "json"
       }
@@ -9192,7 +9162,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/pages-manifest.json",
         "relativePath": ".next/server/pages-manifest.json",
         "size": 2,
-        "lastModified": "2026-06-12T06:24:07.864Z",
+        "lastModified": "2026-06-12T06:37:58.843Z",
         "hash": "99914b932bd37a50b983c5e7c90ae93b",
         "language": "json"
       }
@@ -9203,7 +9173,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/server-reference-manifest.js",
         "relativePath": ".next/server/server-reference-manifest.js",
         "size": 140,
-        "lastModified": "2026-06-12T06:24:07.865Z",
+        "lastModified": "2026-06-12T06:37:58.849Z",
         "hash": "85f1dc4d97acb4772e6cfbe57b54e554",
         "language": "javascript"
       }
@@ -9214,8 +9184,8 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/server-reference-manifest.json",
         "relativePath": ".next/server/server-reference-manifest.json",
         "size": 97,
-        "lastModified": "2026-06-12T06:24:07.865Z",
-        "hash": "b13404cf38520919a2b0ee99b4deba96",
+        "lastModified": "2026-06-12T06:37:58.844Z",
+        "hash": "f0218f3a076dda64d5c0d1710c7dfd6f",
         "language": "json"
       }
     ],
@@ -9225,8 +9195,8 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/webpack-runtime.js",
         "relativePath": ".next/server/webpack-runtime.js",
         "size": 8800,
-        "lastModified": "2026-06-12T06:24:07.864Z",
-        "hash": "6cff46fba64fc135a550a5f27238e7f8",
+        "lastModified": "2026-06-12T06:37:58.837Z",
+        "hash": "07795ded8d2ee2fefeb35be44c3d61d6",
         "language": "javascript",
         "symbols": [
           {
@@ -10281,7 +10251,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/app/loading.js",
         "relativePath": ".next/static/chunks/app/loading.js",
         "size": 241855,
-        "lastModified": "2026-06-12T06:23:40.658Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "8b1062b6031e20bff1abc7c822640807",
         "language": "javascript",
         "symbols": [
@@ -10610,7 +10580,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/app/not-found.js",
         "relativePath": ".next/static/chunks/app/not-found.js",
         "size": 210686,
-        "lastModified": "2026-06-12T06:23:40.658Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "cff592d402d8101451ce6d1a60a616b9",
         "language": "javascript",
         "symbols": [
@@ -10983,9 +10953,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/app/page.js",
         "relativePath": ".next/static/chunks/app/page.js",
-        "size": 1115788,
-        "lastModified": "2026-06-12T06:23:40.655Z",
-        "hash": "7b61951fa173b79f3ae9d223012fa03e",
+        "size": 1121594,
+        "lastModified": "2026-06-12T06:37:56.792Z",
+        "hash": "e5e7fce1c7423502b597e8906001220d",
         "language": "javascript",
         "symbols": [
           {
@@ -12138,7 +12108,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/app-pages-internals.js",
         "relativePath": ".next/static/chunks/app-pages-internals.js",
         "size": 132831,
-        "lastModified": "2026-06-12T06:23:40.658Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "d1f9b5dcae5eacbd0613efe13bb32a03",
         "language": "javascript",
         "symbols": [
@@ -12377,7 +12347,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/main-app.js",
         "relativePath": ".next/static/chunks/main-app.js",
         "size": 6025016,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "404bdff0f236f109c802114032df1bfb",
         "language": "javascript",
         "symbols": [
@@ -15151,7 +15121,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/polyfills.js",
         "relativePath": ".next/static/chunks/polyfills.js",
         "size": 112594,
-        "lastModified": "2026-06-12T06:23:33.418Z",
+        "lastModified": "2026-06-12T06:37:52.450Z",
         "hash": "846118c33b2c0e922d7b3a7676f81f6f",
         "language": "javascript",
         "symbols": [
@@ -72252,8 +72222,8 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/webpack.js",
         "relativePath": ".next/static/chunks/webpack.js",
         "size": 56325,
-        "lastModified": "2026-06-12T06:24:08.159Z",
-        "hash": "1f4f25796f73b80bcaae1d9e85d275de",
+        "lastModified": "2026-06-12T06:37:56.794Z",
+        "hash": "a091516ae2b5d4c526c851051692c407",
         "language": "javascript",
         "symbols": [
           {
@@ -78335,7 +78305,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/development/_ssgManifest.js",
         "relativePath": ".next/static/development/_ssgManifest.js",
         "size": 76,
-        "lastModified": "2026-06-12T06:24:08.158Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "abee47769bf307639ace4945f9cfd4ff",
         "language": "javascript"
       }
@@ -78346,7 +78316,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/19cfc7226ec3afaa-s.woff2",
         "relativePath": ".next/static/media/19cfc7226ec3afaa-s.woff2",
         "size": 19044,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "9dda5cfc9a46f256d0e131bb535e46f8"
       }
     ],
@@ -78356,7 +78326,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/21350d82a1f187e9-s.woff2",
         "relativePath": ".next/static/media/21350d82a1f187e9-s.woff2",
         "size": 18744,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.790Z",
         "hash": "4e2553027f1d60eff32898367dd4d541"
       }
     ],
@@ -78366,7 +78336,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/28a2004cf8372660-s.woff2",
         "relativePath": ".next/static/media/28a2004cf8372660-s.woff2",
         "size": 20980,
-        "lastModified": "2026-06-12T06:23:40.655Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "a81e6c6c3493caf3463c36f633996e92"
       }
     ],
@@ -78376,7 +78346,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/47f136985ef5b5cb-s.woff2",
         "relativePath": ".next/static/media/47f136985ef5b5cb-s.woff2",
         "size": 21144,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.793Z",
         "hash": "62f762afb90d7743f6916ea0cce473af"
       }
     ],
@@ -78386,7 +78356,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/4ead58c4dcc3f285-s.woff2",
         "relativePath": ".next/static/media/4ead58c4dcc3f285-s.woff2",
         "size": 9056,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "774586d4bcb09cb42f38fc490d25b01b"
       }
     ],
@@ -78396,7 +78366,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/8e9860b6e62d6359-s.woff2",
         "relativePath": ".next/static/media/8e9860b6e62d6359-s.woff2",
         "size": 85272,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.792Z",
         "hash": "01ba6c2a184b8cba08b0d57167664d75"
       }
     ],
@@ -78406,7 +78376,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/ba9851c3c22cd980-s.woff2",
         "relativePath": ".next/static/media/ba9851c3c22cd980-s.woff2",
         "size": 25844,
-        "lastModified": "2026-06-12T06:23:40.655Z",
+        "lastModified": "2026-06-12T06:37:56.793Z",
         "hash": "9e494903d6b0ffec1a1e14d34427d44d"
       }
     ],
@@ -78416,7 +78386,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/c5fe6dc8356a8c31-s.woff2",
         "relativePath": ".next/static/media/c5fe6dc8356a8c31-s.woff2",
         "size": 11272,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.790Z",
         "hash": "027a89e9ab733a145db70f09b8a18b42"
       }
     ],
@@ -78426,7 +78396,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/df0a9ae256c0569c-s.woff2",
         "relativePath": ".next/static/media/df0a9ae256c0569c-s.woff2",
         "size": 10280,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "d54db44de5ccb18886ece2fda72bdfe0"
       }
     ],
@@ -78436,7 +78406,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/e4af272ccee01ff0-s.p.woff2",
         "relativePath": ".next/static/media/e4af272ccee01ff0-s.p.woff2",
         "size": 48432,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "65850a373e258f1c897a2b3d75eb74de"
       }
     ],
@@ -78446,7 +78416,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/media/eaead17c7dbfcd5d-s.p.woff2",
         "relativePath": ".next/static/media/eaead17c7dbfcd5d-s.p.woff2",
         "size": 38460,
-        "lastModified": "2026-06-12T06:23:40.655Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "6da252de0cbc8a69b5d5c2e0e3f67722"
       }
     ],
@@ -78456,7 +78426,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/webpack/633457081244afec._.hot-update.json",
         "relativePath": ".next/static/webpack/633457081244afec._.hot-update.json",
         "size": 22,
-        "lastModified": "2026-06-12T06:23:40.658Z",
+        "lastModified": "2026-06-12T06:37:56.794Z",
         "hash": "777077caf8fd96cfb711faacdcbf6a47",
         "language": "json"
       }
@@ -78467,7 +78437,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/types/app/page.ts",
         "relativePath": ".next/types/app/page.ts",
         "size": 3483,
-        "lastModified": "2026-06-12T06:24:07.865Z",
+        "lastModified": "2026-06-12T06:37:58.843Z",
         "hash": "09ece7760cb72580b4dea5660187564d",
         "language": "typescript",
         "symbols": [
@@ -79052,7 +79022,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/types/package.json",
         "relativePath": ".next/types/package.json",
         "size": 18,
-        "lastModified": "2026-06-12T06:24:07.865Z",
+        "lastModified": "2026-06-12T06:37:58.844Z",
         "hash": "b305354b5d3207dc798e87449005a1de",
         "language": "json"
       }
@@ -87144,10 +87114,783 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/src/components/Footer.tsx",
         "relativePath": "src/components/Footer.tsx",
-        "size": 9260,
-        "lastModified": "2026-06-10T04:34:45.627Z",
-        "hash": "1bb93f5bce6cb87f691d3f1a8c9cfe16",
-        "language": "typescriptreact"
+        "size": 10944,
+        "lastModified": "2026-06-12T06:32:53.527Z",
+        "hash": "8e28062171ad7ab0112e22948e82dfe7",
+        "language": "typescriptreact",
+        "symbols": [
+          {
+            "name": "clamp",
+            "kind": 12,
+            "range": [
+              {
+                "line": 6,
+                "character": 6
+              },
+              {
+                "line": 6,
+                "character": 78
+              }
+            ],
+            "children": []
+          },
+          {
+            "name": "lerp",
+            "kind": 12,
+            "range": [
+              {
+                "line": 7,
+                "character": 6
+              },
+              {
+                "line": 7,
+                "character": 65
+              }
+            ],
+            "children": []
+          },
+          {
+            "name": "Footer",
+            "kind": 11,
+            "range": [
+              {
+                "line": 9,
+                "character": 0
+              },
+              {
+                "line": 233,
+                "character": 1
+              }
+            ],
+            "children": [
+              {
+                "name": "<function>",
+                "kind": 11,
+                "range": [
+                  {
+                    "line": 210,
+                    "character": 25
+                  },
+                  {
+                    "line": 210,
+                    "character": 78
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "behavior",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 210,
+                        "character": 57
+                      },
+                      {
+                        "line": 210,
+                        "character": 75
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "top",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 210,
+                        "character": 49
+                      },
+                      {
+                        "line": 210,
+                        "character": 55
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "backgroundClip",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 177,
+                    "character": 18
+                  },
+                  {
+                    "line": 177,
+                    "character": 40
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "backgroundImage",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 175,
+                    "character": 18
+                  },
+                  {
+                    "line": 175,
+                    "character": 86
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "bgRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 12,
+                    "character": 8
+                  },
+                  {
+                    "line": 12,
+                    "character": 44
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "bottomRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 19,
+                    "character": 8
+                  },
+                  {
+                    "line": 19,
+                    "character": 48
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "color",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 178,
+                    "character": 18
+                  },
+                  {
+                    "line": 178,
+                    "character": 38
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "fgRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 18,
+                    "character": 8
+                  },
+                  {
+                    "line": 18,
+                    "character": 44
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "fontFamily",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 163,
+                    "character": 16
+                  },
+                  {
+                    "line": 164,
+                    "character": 93
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "fontSize",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 167,
+                    "character": 16
+                  },
+                  {
+                    "line": 167,
+                    "character": 52
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "fontWeight",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 165,
+                    "character": 16
+                  },
+                  {
+                    "line": 165,
+                    "character": 31
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "letterSpacing",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 166,
+                    "character": 16
+                  },
+                  {
+                    "line": 166,
+                    "character": 40
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "medicineRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 16,
+                    "character": 8
+                  },
+                  {
+                    "line": 16,
+                    "character": 51
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "opacity",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 145,
+                    "character": 23
+                  },
+                  {
+                    "line": 145,
+                    "character": 36
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "opacity",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 157,
+                    "character": 57
+                  },
+                  {
+                    "line": 157,
+                    "character": 67
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "opacity",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 174,
+                    "character": 18
+                  },
+                  {
+                    "line": 174,
+                    "character": 28
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "opacity",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 206,
+                    "character": 57
+                  },
+                  {
+                    "line": 206,
+                    "character": 67
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "overlayRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 13,
+                    "character": 8
+                  },
+                  {
+                    "line": 13,
+                    "character": 49
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "sectionRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 11,
+                    "character": 8
+                  },
+                  {
+                    "line": 11,
+                    "character": 49
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "taglineRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 17,
+                    "character": 8
+                  },
+                  {
+                    "line": 17,
+                    "character": 50
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "transform",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 130,
+                    "character": 23
+                  },
+                  {
+                    "line": 130,
+                    "character": 68
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "transform",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 157,
+                    "character": 21
+                  },
+                  {
+                    "line": 157,
+                    "character": 55
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "transform",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 190,
+                    "character": 21
+                  },
+                  {
+                    "line": 190,
+                    "character": 63
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "transform",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 206,
+                    "character": 21
+                  },
+                  {
+                    "line": 206,
+                    "character": 55
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "useEffect() callback",
+                "kind": 11,
+                "range": [
+                  {
+                    "line": 22,
+                    "character": 12
+                  },
+                  {
+                    "line": 93,
+                    "character": 3
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "apply",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 26,
+                        "character": 10
+                      },
+                      {
+                        "line": 48,
+                        "character": 5
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "onScroll",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 74,
+                        "character": 10
+                      },
+                      {
+                        "line": 76,
+                        "character": 5
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "passive",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 85,
+                        "character": 50
+                      },
+                      {
+                        "line": 85,
+                        "character": 63
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "raf",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 24,
+                        "character": 8
+                      },
+                      {
+                        "line": 24,
+                        "character": 15
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "reduce",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 23,
+                        "character": 10
+                      },
+                      {
+                        "line": 23,
+                        "character": 80
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "update",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 50,
+                        "character": 10
+                      },
+                      {
+                        "line": 72,
+                        "character": 5
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "p",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 57,
+                            "character": 12
+                          },
+                          {
+                            "line": 57,
+                            "character": 56
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "rect",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 54,
+                            "character": 12
+                          },
+                          {
+                            "line": 54,
+                            "character": 50
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "section",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 52,
+                            "character": 12
+                          },
+                          {
+                            "line": 52,
+                            "character": 40
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "total",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 56,
+                            "character": 12
+                          },
+                          {
+                            "line": 56,
+                            "character": 36
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "vh",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 55,
+                            "character": 12
+                          },
+                          {
+                            "line": 55,
+                            "character": 35
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "useEffect() callback",
+                "kind": 11,
+                "range": [
+                  {
+                    "line": 96,
+                    "character": 12
+                  },
+                  {
+                    "line": 118,
+                    "character": 3
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "fit",
+                    "kind": 12,
+                    "range": [
+                      {
+                        "line": 97,
+                        "character": 10
+                      },
+                      {
+                        "line": 108,
+                        "character": 5
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "avail",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 105,
+                            "character": 12
+                          },
+                          {
+                            "line": 105,
+                            "character": 42
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "box",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 99,
+                            "character": 12
+                          },
+                          {
+                            "line": 99,
+                            "character": 33
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "el",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 98,
+                            "character": 12
+                          },
+                          {
+                            "line": 98,
+                            "character": 36
+                          }
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "w",
+                        "kind": 12,
+                        "range": [
+                          {
+                            "line": 104,
+                            "character": 12
+                          },
+                          {
+                            "line": 104,
+                            "character": 48
+                          }
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "requestAnimationFrame() callback",
+                    "kind": 11,
+                    "range": [
+                      {
+                        "line": 109,
+                        "character": 26
+                      },
+                      {
+                        "line": 109,
+                        "character": 58
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "WebkitBackgroundClip",
+                "kind": 6,
+                "range": [
+                  {
+                    "line": 176,
+                    "character": 18
+                  },
+                  {
+                    "line": 176,
+                    "character": 46
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "wordRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 14,
+                    "character": 8
+                  },
+                  {
+                    "line": 14,
+                    "character": 46
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "wordTextRef",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 15,
+                    "character": 8
+                  },
+                  {
+                    "line": 15,
+                    "character": 51
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "year",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 10,
+                    "character": 8
+                  },
+                  {
+                    "line": 10,
+                    "character": 39
+                  }
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
       }
     ],
     [
@@ -104173,9 +104916,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.autoclaude/CLAUDE_CONTEXT.md",
         "relativePath": ".autoclaude/CLAUDE_CONTEXT.md",
-        "size": 4605,
-        "lastModified": "2026-06-12T06:20:26.468Z",
-        "hash": "50899c8945ebc3c02e52a45a9d760714",
+        "size": 4467,
+        "lastModified": "2026-06-12T06:35:26.502Z",
+        "hash": "f1252550dd93244c9b8be6cfaaa0b59b",
         "language": "markdown"
       }
     ],
@@ -104206,7 +104949,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.autoclaude/tasks/sessions.json",
         "relativePath": ".autoclaude/tasks/sessions.json",
         "size": 206,
-        "lastModified": "2026-06-12T06:24:55.713Z",
+        "lastModified": "2026-06-12T06:37:55.744Z",
         "hash": "729bb401fadb956bd4af014691784bd3",
         "language": "json"
       }
@@ -104217,7 +104960,7 @@
         "path": "/Users/aagatech/ophthaxpwebsite/website/.autoclaude/tasks/tasks.json",
         "relativePath": ".autoclaude/tasks/tasks.json",
         "size": 2,
-        "lastModified": "2026-06-12T06:24:55.712Z",
+        "lastModified": "2026-06-12T06:37:55.744Z",
         "hash": "d751713988987e9331980363e24189ce",
         "language": "json"
       }
@@ -104245,57 +104988,6 @@
       }
     ],
     [
-      ".next/react-loadable-manifest.json",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/react-loadable-manifest.json",
-        "relativePath": ".next/react-loadable-manifest.json",
-        "size": 2,
-        "lastModified": "2026-06-12T06:24:08.158Z",
-        "hash": "99914b932bd37a50b983c5e7c90ae93b",
-        "language": "json"
-      }
-    ],
-    [
-      ".next/trace",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/trace",
-        "relativePath": ".next/trace",
-        "size": 70285,
-        "lastModified": "2026-06-12T06:24:08.163Z",
-        "hash": "ca3abae0da5dc563902d63435a06beb9"
-      }
-    ],
-    [
-      ".next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781245482281.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781245482281.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
-        "relativePath": ".next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781245482281.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
-        "size": 2182,
-        "lastModified": "2026-06-12T06:23:42.335Z",
-        "hash": "65b9ef1607eee8e9b0a5edf0f9c055e0"
-      }
-    ],
-    [
-      ".next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781245482715.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781245482715.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-        "relativePath": ".next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781245482715.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
-        "size": 60199,
-        "lastModified": "2026-06-12T06:23:42.717Z",
-        "hash": "e748cf5f88b8de855613fe0b042f0dd4"
-      }
-    ],
-    [
-      ".next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781245482930.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781245482930.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
-        "relativePath": ".next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781245482930.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
-        "size": 4769,
-        "lastModified": "2026-06-12T06:23:42.934Z",
-        "hash": "7f134204c42e337b95a1404c207227fc"
-      }
-    ],
-    [
       ".next/cache/webpack/client-development/4.pack.gz",
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/4.pack.gz",
@@ -104313,26 +105005,6 @@
         "size": 1218,
         "lastModified": "2026-06-12T06:23:41.977Z",
         "hash": "b4ccc07754aa401b327b26bb0bbfbaa1"
-      }
-    ],
-    [
-      ".next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781245483596.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781245483596.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
-        "relativePath": ".next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781245483596.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
-        "size": 15854,
-        "lastModified": "2026-06-12T06:23:43.600Z",
-        "hash": "4558cbb3b48e63634975a6c4e735c90d"
-      }
-    ],
-    [
-      ".next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781245486586.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
-      {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781245486586.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
-        "relativePath": ".next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781245486586.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
-        "size": 7994,
-        "lastModified": "2026-06-12T06:23:46.587Z",
-        "hash": "0abcdb28608f813151054f7a79f962d8"
       }
     ],
     [
@@ -104405,6 +105077,107 @@
           }
         ]
       }
+    ],
+    [
+      ".next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781246064607.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781246064607.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+        "relativePath": ".next/cache/images/UlNsIczqVKwHL0CcvQc6kTumEQTvJWECEskkhRnxjC0=/60.1781246064607.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+        "size": 60199,
+        "lastModified": "2026-06-12T06:33:24.609Z",
+        "hash": "e748cf5f88b8de855613fe0b042f0dd4"
+      }
+    ],
+    [
+      ".next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1781246066148.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1781246066148.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
+        "relativePath": ".next/cache/images/a9UqGueVF6mzaLmz6xgiOnyCkBtpTs4AUtLIZzUTEBQ=/60.1781246066148.tXsgt004S1bJk0AbrVitc5mvQe55arT9zHnfKEYjmwc=.avif",
+        "size": 32156,
+        "lastModified": "2026-06-12T06:33:26.151Z",
+        "hash": "884fe291d6e201c3df7cde02075f5175"
+      }
+    ],
+    [
+      ".next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781246067465.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781246067465.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
+        "relativePath": ".next/cache/images/D7QBUzUUwRFyh6Rswiw+MKkOq8EqTNaSsxfQEDqNnMY=/60.1781246067465.LjnsIqcpekCfEvTHAHc+vQKS6meuuziw+rGlG0Mr-rY=.avif",
+        "size": 6570,
+        "lastModified": "2026-06-12T06:33:27.468Z",
+        "hash": "166dfc2743124805ae239840e0314f87"
+      }
+    ],
+    [
+      ".next/react-loadable-manifest.json",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/react-loadable-manifest.json",
+        "relativePath": ".next/react-loadable-manifest.json",
+        "size": 2,
+        "lastModified": "2026-06-12T06:37:56.793Z",
+        "hash": "99914b932bd37a50b983c5e7c90ae93b",
+        "language": "json"
+      }
+    ],
+    [
+      ".next/trace",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/trace",
+        "relativePath": ".next/trace",
+        "size": 8876,
+        "lastModified": "2026-06-12T06:37:52.481Z",
+        "hash": "495b6a36121499646a6ba2a276f1ccf8"
+      }
+    ],
+    [
+      ".next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781246339023.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781246339023.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
+        "relativePath": ".next/cache/images/5i5wWUr3BcoGwVExPzG9O9+yh6lWiNr3X4LpRinkOb8=/60.1781246339023.POmiCGxW6G7rQ9081-LQKxdD+9sx5LziyZcBVZ1dBLA=.avif",
+        "size": 2182,
+        "lastModified": "2026-06-12T06:37:59.137Z",
+        "hash": "65b9ef1607eee8e9b0a5edf0f9c055e0"
+      }
+    ],
+    [
+      ".next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781246339389.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781246339389.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+        "relativePath": ".next/cache/images/uIcDioqPspGsUVOy06IdzP3mJUvFJ5UIQzO6oWOsK1M=/60.1781246339389.uegLeFRs65bgcwaR+gDkYlX-g9TWghrLuxWM6AFG-0w=.avif",
+        "size": 60199,
+        "lastModified": "2026-06-12T06:37:59.398Z",
+        "hash": "e748cf5f88b8de855613fe0b042f0dd4"
+      }
+    ],
+    [
+      ".next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781246339748.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781246339748.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
+        "relativePath": ".next/cache/images/oYKdqZ6BjnacLciQdYaQWBseIYtINZilAgci0X7MKVU=/60.1781246339748.7XGvUvAgiYYM8KxX6WkSMnpPno-ADoijwOPk3NpzSJ4=.avif",
+        "size": 4769,
+        "lastModified": "2026-06-12T06:37:59.752Z",
+        "hash": "7f134204c42e337b95a1404c207227fc"
+      }
+    ],
+    [
+      ".next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781246344187.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781246344187.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
+        "relativePath": ".next/cache/images/jmbO0DiGW8g0U+-efdEoLSI3UG+RvqfmBGGFT5mr8PY=/60.1781246344187.q9mn9MPbejdlfgmZm-IzGf4lBo2Pvnzh1ct8mLbF8Ag=.avif",
+        "size": 7994,
+        "lastModified": "2026-06-12T06:38:04.190Z",
+        "hash": "0abcdb28608f813151054f7a79f962d8"
+      }
+    ],
+    [
+      ".next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781246344832.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
+      {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781246344832.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
+        "relativePath": ".next/cache/images/Q1QBtJBMaWiwblJrKSvLkbU6XaR-+bqCtgedEKkXXOQ=/60.1781246344832.1KaEalFfTTjdHq7Qa-cGhjlbgyBy2Oy2jxCO9liCZnY=.avif",
+        "size": 15854,
+        "lastModified": "2026-06-12T06:38:04.834Z",
+        "hash": "4558cbb3b48e63634975a6c4e735c90d"
+      }
     ]
   ],
   "dependencies": {
@@ -104454,47 +105227,47 @@
   },
   "codebaseStats": {
     "totalFiles": 144,
-    "totalLines": 298428,
+    "totalLines": 298872,
     "filesByLanguage": [
       [
         "json",
-        5547
+        13020
       ],
       [
         "javascript",
-        5134
+        11542
       ],
       [
         "typescript",
-        3192
+        7464
       ],
       [
         "markdown",
-        531
+        1243
       ],
       [
         "typescriptreact",
-        9044
+        21148
       ],
       [
         "css",
-        266
+        622
       ]
     ],
-    "avgFileSize": 265918.7708333333,
+    "avgFileSize": 246723.26388888888,
     "largestFiles": [
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/1.pack.gz",
         "relativePath": ".next/cache/webpack/client-development/1.pack.gz",
-        "size": 10348761,
-        "lastModified": "2026-06-12T06:23:42.916Z",
-        "hash": "d7954b7d098bd6a48ca022ad3b6e9ed6"
+        "size": 10266743,
+        "lastModified": "2026-06-12T06:33:13.575Z",
+        "hash": "4af50fd11537a89530edae8931323425"
       },
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/main-app.js",
         "relativePath": ".next/static/chunks/main-app.js",
         "size": 6025016,
-        "lastModified": "2026-06-12T06:23:40.654Z",
+        "lastModified": "2026-06-12T06:37:56.791Z",
         "hash": "404bdff0f236f109c802114032df1bfb",
         "language": "javascript",
         "symbols": [
@@ -107269,18 +108042,11 @@
         "hash": "5ee64168eb9f956a4be4f10b206ba8bf"
       },
       {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/7.pack.gz",
-        "relativePath": ".next/cache/webpack/server-development/7.pack.gz",
-        "size": 3050258,
-        "lastModified": "2026-06-10T04:37:19.297Z",
-        "hash": "97c41e6649203aba4c32a1dada42c31e"
-      },
-      {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/1.pack.gz",
         "relativePath": ".next/cache/webpack/server-development/1.pack.gz",
-        "size": 2228767,
-        "lastModified": "2026-06-12T06:23:40.674Z",
-        "hash": "b7a16a619e5ded86049291035a28b0cc"
+        "size": 2232062,
+        "lastModified": "2026-06-12T06:37:58.381Z",
+        "hash": "7c4c8f48fc92e0d405a307a6a71c2a3b"
       },
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/server-development/4.pack.gz",
@@ -107297,6 +108063,13 @@
         "hash": "a7029427bab4e2417ded698799f817ef"
       },
       {
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/2.pack.gz",
+        "relativePath": ".next/cache/webpack/client-development/2.pack.gz",
+        "size": 1268451,
+        "lastModified": "2026-06-12T06:33:12.998Z",
+        "hash": "2edec12b9d7ea2b378cc703bb5cfe111"
+      },
+      {
         "path": "/Users/aagatech/ophthaxpwebsite/website/public/Ophtha_Certificate.png",
         "relativePath": "public/Ophtha_Certificate.png",
         "size": 1240147,
@@ -107306,9 +108079,9 @@
       {
         "path": "/Users/aagatech/ophthaxpwebsite/website/.next/static/chunks/app/page.js",
         "relativePath": ".next/static/chunks/app/page.js",
-        "size": 1115788,
-        "lastModified": "2026-06-12T06:23:40.655Z",
-        "hash": "7b61951fa173b79f3ae9d223012fa03e",
+        "size": 1121594,
+        "lastModified": "2026-06-12T06:37:56.792Z",
+        "hash": "e5e7fce1c7423502b597e8906001220d",
         "language": "javascript",
         "symbols": [
           {
@@ -108455,11 +109228,1376 @@
         ]
       },
       {
-        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/cache/webpack/client-development/2.pack.gz",
-        "relativePath": ".next/cache/webpack/client-development/2.pack.gz",
-        "size": 1086693,
-        "lastModified": "2026-06-10T07:34:23.518Z",
-        "hash": "08dbbc43caf0477e255cca2ac4b4260a"
+        "path": "/Users/aagatech/ophthaxpwebsite/website/.next/server/app/page.js",
+        "relativePath": ".next/server/app/page.js",
+        "size": 688233,
+        "lastModified": "2026-06-12T06:37:56.258Z",
+        "hash": "3e0a4800c1a4bfd71b6db43198eafe1e",
+        "language": "javascript",
+        "symbols": [
+          {
+            "name": "<function>",
+            "kind": 11,
+            "range": [
+              {
+                "line": 8,
+                "character": 1
+              },
+              {
+                "line": 540,
+                "character": 1
+              }
+            ],
+            "children": [
+              {
+                "name": "<unknown>",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 538,
+                    "character": 0
+                  },
+                  {
+                    "line": 538,
+                    "character": 36
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "__webpack_exec__",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 536,
+                    "character": 4
+                  },
+                  {
+                    "line": 536,
+                    "character": 92
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "__webpack_exports__",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 537,
+                    "character": 4
+                  },
+                  {
+                    "line": 537,
+                    "character": 630
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "__webpack_require__.X() callback",
+                    "kind": 11,
+                    "range": [
+                      {
+                        "line": 537,
+                        "character": 125
+                      },
+                      {
+                        "line": 537,
+                        "character": 629
+                      }
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "__webpack_require__",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 534,
+                    "character": 4
+                  },
+                  {
+                    "line": 534,
+                    "character": 58
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "exports",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 9,
+                    "character": 4
+                  },
+                  {
+                    "line": 9,
+                    "character": 16
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "id",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 10,
+                    "character": 0
+                  },
+                  {
+                    "line": 10,
+                    "character": 23
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "ids",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 11,
+                    "character": 0
+                  },
+                  {
+                    "line": 11,
+                    "character": 26
+                  }
+                ],
+                "children": []
+              },
+              {
+                "name": "modules",
+                "kind": 12,
+                "range": [
+                  {
+                    "line": 12,
+                    "character": 0
+                  },
+                  {
+                    "line": 530,
+                    "character": 1
+                  }
+                ],
+                "children": [
+                  {
+                    "name": "\"../../client/components/action-async-storage.external\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 14,
+                        "character": 6
+                      },
+                      {
+                        "line": 23,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 18,
+                            "character": 7
+                          },
+                          {
+                            "line": 23,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 21,
+                                "character": 0
+                              },
+                              {
+                                "line": 21,
+                                "character": 88
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"../../client/components/request-async-storage.external\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 25,
+                        "character": 6
+                      },
+                      {
+                        "line": 34,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 29,
+                            "character": 7
+                          },
+                          {
+                            "line": 34,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 32,
+                                "character": 0
+                              },
+                              {
+                                "line": 32,
+                                "character": 89
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"../../client/components/static-generation-async-storage.external\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 36,
+                        "character": 6
+                      },
+                      {
+                        "line": 45,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 40,
+                            "character": 7
+                          },
+                          {
+                            "line": 45,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 43,
+                                "character": 0
+                              },
+                              {
+                                "line": 43,
+                                "character": 99
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader.js?name=app%2Fpage&page=%2Fpage&appPaths=%2Fpage&pagePath=private-next-app-dir%2...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 80,
+                        "character": 6
+                      },
+                      {
+                        "line": 89,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./node_modules/next/dist/build/webpack/loaders/next-metadata-image-loader.js?type=icon&segment=&basePath=&pageExtensions=tsx&pageExtensions=ts&...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 519,
+                        "character": 6
+                      },
+                      {
+                        "line": 528,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/app/globals.css\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 262,
+                        "character": 6
+                      },
+                      {
+                        "line": 271,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/app/layout.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 273,
+                        "character": 6
+                      },
+                      {
+                        "line": 282,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/app/loading.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 284,
+                        "character": 6
+                      },
+                      {
+                        "line": 293,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/app/not-found.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 295,
+                        "character": 6
+                      },
+                      {
+                        "line": 304,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/app/page.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 306,
+                        "character": 6
+                      },
+                      {
+                        "line": 315,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/CertificatesPromo.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 317,
+                        "character": 6
+                      },
+                      {
+                        "line": 326,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/FaqSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 328,
+                        "character": 6
+                      },
+                      {
+                        "line": 345,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 332,
+                            "character": 7
+                          },
+                          {
+                            "line": 345,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 342,
+                                "character": 6
+                              },
+                              {
+                                "line": 342,
+                                "character": 213
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "FaqSection",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 337,
+                                "character": 23
+                              },
+                              {
+                                "line": 337,
+                                "character": 59
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 339,
+                                "character": 25
+                              },
+                              {
+                                "line": 339,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/Footer.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 347,
+                        "character": 6
+                      },
+                      {
+                        "line": 364,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 351,
+                            "character": 7
+                          },
+                          {
+                            "line": 364,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 361,
+                                "character": 6
+                              },
+                              {
+                                "line": 361,
+                                "character": 205
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "Footer",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 356,
+                                "character": 23
+                              },
+                              {
+                                "line": 356,
+                                "character": 55
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 358,
+                                "character": 25
+                              },
+                              {
+                                "line": 358,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/Hero.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 366,
+                        "character": 6
+                      },
+                      {
+                        "line": 375,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/HomeRoiSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 377,
+                        "character": 6
+                      },
+                      {
+                        "line": 394,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 381,
+                            "character": 7
+                          },
+                          {
+                            "line": 394,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 391,
+                                "character": 6
+                              },
+                              {
+                                "line": 391,
+                                "character": 221
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "HomeRoiSection",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 386,
+                                "character": 23
+                              },
+                              {
+                                "line": 386,
+                                "character": 63
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 388,
+                                "character": 25
+                              },
+                              {
+                                "line": 388,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/LegendsVideo.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 396,
+                        "character": 6
+                      },
+                      {
+                        "line": 413,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 400,
+                            "character": 7
+                          },
+                          {
+                            "line": 413,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 410,
+                                "character": 6
+                              },
+                              {
+                                "line": 410,
+                                "character": 217
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "LegendsVideo",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 405,
+                                "character": 23
+                              },
+                              {
+                                "line": 405,
+                                "character": 61
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 407,
+                                "character": 25
+                              },
+                              {
+                                "line": 407,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/Navbar.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 415,
+                        "character": 6
+                      },
+                      {
+                        "line": 424,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/PageLoader.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 426,
+                        "character": 6
+                      },
+                      {
+                        "line": 435,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/ProgramsSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 437,
+                        "character": 6
+                      },
+                      {
+                        "line": 454,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 441,
+                            "character": 7
+                          },
+                          {
+                            "line": 454,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 451,
+                                "character": 6
+                              },
+                              {
+                                "line": 451,
+                                "character": 223
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 448,
+                                "character": 25
+                              },
+                              {
+                                "line": 448,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "ProgramsSection",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 446,
+                                "character": 23
+                              },
+                              {
+                                "line": 446,
+                                "character": 64
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/components/SmartAssist.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 456,
+                        "character": 6
+                      },
+                      {
+                        "line": 473,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 460,
+                            "character": 7
+                          },
+                          {
+                            "line": 473,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "e0",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 470,
+                                "character": 6
+                              },
+                              {
+                                "line": 470,
+                                "character": 215
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 467,
+                                "character": 25
+                              },
+                              {
+                                "line": 467,
+                                "character": 301
+                              }
+                            ],
+                            "children": []
+                          },
+                          {
+                            "name": "SmartAssist",
+                            "kind": 5,
+                            "range": [
+                              {
+                                "line": 465,
+                                "character": 23
+                              },
+                              {
+                                "line": 465,
+                                "character": 60
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"(rsc)/./src/lib/courses.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 475,
+                        "character": 6
+                      },
+                      {
+                        "line": 484,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/lib/data.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 486,
+                        "character": 6
+                      },
+                      {
+                        "line": 495,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/lib/seo.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 497,
+                        "character": 6
+                      },
+                      {
+                        "line": 506,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(rsc)/./src/lib/utils.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 508,
+                        "character": 6
+                      },
+                      {
+                        "line": 517,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Faagatech%2Fophthaxpw...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 91,
+                        "character": 6
+                      },
+                      {
+                        "line": 99,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Faagatech%2Fophthaxpw...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 101,
+                        "character": 6
+                      },
+                      {
+                        "line": 109,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Faagatech%2Fophthaxpw...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 111,
+                        "character": 6
+                      },
+                      {
+                        "line": 119,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Faagatech%2Fophthaxpw...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 121,
+                        "character": 6
+                      },
+                      {
+                        "line": 129,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Faagatech%2Fophthaxpw...",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 131,
+                        "character": 6
+                      },
+                      {
+                        "line": 139,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/ApplyFormModal.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 141,
+                        "character": 6
+                      },
+                      {
+                        "line": 150,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/FaqSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 152,
+                        "character": 6
+                      },
+                      {
+                        "line": 161,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/Footer.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 163,
+                        "character": 6
+                      },
+                      {
+                        "line": 172,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/HomeRoiSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 174,
+                        "character": 6
+                      },
+                      {
+                        "line": 183,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/LegendsVideo.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 185,
+                        "character": 6
+                      },
+                      {
+                        "line": 194,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/PracticeGrowthCalculator.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 196,
+                        "character": 6
+                      },
+                      {
+                        "line": 205,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/ProgramsSection.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 207,
+                        "character": 6
+                      },
+                      {
+                        "line": 216,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/SmartAssist.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 218,
+                        "character": 6
+                      },
+                      {
+                        "line": 227,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/components/ThemedSelect.tsx\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 229,
+                        "character": 6
+                      },
+                      {
+                        "line": 238,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/lib/data.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 240,
+                        "character": 6
+                      },
+                      {
+                        "line": 249,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"(ssr)/./src/lib/utils.ts\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 251,
+                        "character": 6
+                      },
+                      {
+                        "line": 260,
+                        "character": 8
+                      }
+                    ],
+                    "children": []
+                  },
+                  {
+                    "name": "\"next/dist/compiled/next-server/app-page.runtime.dev.js\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 47,
+                        "character": 6
+                      },
+                      {
+                        "line": 56,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 51,
+                            "character": 7
+                          },
+                          {
+                            "line": 56,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 54,
+                                "character": 0
+                              },
+                              {
+                                "line": 54,
+                                "character": 82
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"path\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 58,
+                        "character": 6
+                      },
+                      {
+                        "line": 67,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 62,
+                            "character": 7
+                          },
+                          {
+                            "line": 67,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 65,
+                                "character": 0
+                              },
+                              {
+                                "line": 65,
+                                "character": 32
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "\"url\"",
+                    "kind": 6,
+                    "range": [
+                      {
+                        "line": 69,
+                        "character": 6
+                      },
+                      {
+                        "line": 78,
+                        "character": 8
+                      }
+                    ],
+                    "children": [
+                      {
+                        "name": "<function>",
+                        "kind": 11,
+                        "range": [
+                          {
+                            "line": 73,
+                            "character": 7
+                          },
+                          {
+                            "line": 78,
+                            "character": 7
+                          }
+                        ],
+                        "children": [
+                          {
+                            "name": "<unknown>",
+                            "kind": 12,
+                            "range": [
+                              {
+                                "line": 76,
+                                "character": 0
+                              },
+                              {
+                                "line": 76,
+                                "character": 31
+                              }
+                            ],
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   }

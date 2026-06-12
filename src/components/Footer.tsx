@@ -15,6 +15,7 @@ export function Footer() {
   const wordRef = useRef<HTMLDivElement>(null);
   const wordTextRef = useRef<HTMLSpanElement>(null);
   const medicineRef = useRef<HTMLSpanElement>(null);
+  const taglineRef = useRef<HTMLSpanElement>(null);
   const fgRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +70,9 @@ export function Footer() {
       // "Medicine" eases into its gold tint a little after the rest of the word
       if (medicineRef.current)
         medicineRef.current.style.opacity = String(clamp((p - 0.22) / 0.3));
+      // Tagline fades in last, beneath the settled word
+      if (taglineRef.current)
+        taglineRef.current.style.opacity = String(clamp((p - 0.34) / 0.26));
     };
 
     const onScroll = () => {
@@ -79,6 +83,7 @@ export function Footer() {
       // Respect reduced motion: show the resolved state, no scroll travel
       apply(-10, 0.14, 0, 1, 28, 0, 1);
       if (medicineRef.current) medicineRef.current.style.opacity = "1";
+      if (taglineRef.current) taglineRef.current.style.opacity = "1";
       return;
     }
 
@@ -138,22 +143,36 @@ export function Footer() {
                 aria-hidden
               />
             </div>
-            {/* Darkening that lifts as you scroll — sky first, city revealed */}
+            {/* Reveal wash — lifts as you scroll so the sunset emerges */}
             <div
               ref={overlayRef}
               className="absolute inset-0 bg-black"
               style={{ opacity: 0.35 }}
             />
-            {/* Blend into the page above */}
-            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-ink-950 to-transparent" />
-            {/* Legibility under the bottom bar */}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
+            {/* Static vertical grade — keeps the word legible without dulling the sky */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(8,10,20,0.45) 0%, rgba(8,10,20,0) 32%, rgba(8,10,20,0) 60%, rgba(5,6,14,0.55) 100%)",
+              }}
+            />
+            {/* Cinematic vignette — draws the eye to the centre */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(120% 90% at 50% 42%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.32) 78%, rgba(0,0,0,0.55) 100%)",
+              }}
+            />
+            {/* Seamless blend into the dark page above */}
+            <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink-950 via-ink-950/70 to-transparent" />
           </div>
 
           {/* ── Giant brand word (rises up from behind the foreground) ── */}
           <div
             ref={wordRef}
-            className="absolute inset-0 z-10 flex items-center justify-center px-4 will-change-transform"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center px-4 will-change-transform"
             style={{ transform: "translate3d(0,45vh,0)", opacity: 0 }}
           >
             <span
@@ -165,6 +184,7 @@ export function Footer() {
                 fontWeight: 800,
                 letterSpacing: "-0.04em",
                 fontSize: "clamp(2rem, 13vw, 15rem)",
+                textShadow: "0 2px 50px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.35)",
               }}
             >
               Legends of{" "}
@@ -172,14 +192,31 @@ export function Footer() {
                 ref={medicineRef}
                 style={{
                   opacity: 0,
-                  backgroundImage: "linear-gradient(180deg, #f3d99a 0%, #c8924a 100%)",
+                  backgroundImage:
+                    "linear-gradient(170deg, #fde6b4 0%, #f3cf86 38%, #d99f4d 72%, #b97b2c 100%)",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   color: "transparent",
+                  filter: "drop-shadow(0 0 24px rgba(217,159,77,0.35))",
                 }}
               >
                 Medicine
               </span>
+            </span>
+            {/* Tagline — fades in last, beneath the settled word */}
+            <span
+              ref={taglineRef}
+              className="mt-5 select-none text-center uppercase text-white/70 sm:mt-7"
+              style={{
+                opacity: 0,
+                fontFamily:
+                  "ui-sans-serif, system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                fontWeight: 500,
+                letterSpacing: "0.32em",
+                fontSize: "clamp(0.6rem, 1.1vw, 0.95rem)",
+              }}
+            >
+              Be the Best · Learn from the Legends
             </span>
           </div>
 

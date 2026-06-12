@@ -1,6 +1,6 @@
 # AutoClaude Project Context
 
-Generated at: 2026-06-12T06:20:26.467Z
+Generated at: 2026-06-12T06:35:26.501Z
 
 ---
 
@@ -9,20 +9,20 @@ Generated at: 2026-06-12T06:20:26.467Z
 ## Workspace
 - **Root**: /Users/aagatech/ophthaxpwebsite/website
 - **Type**: single
-- **Last Updated**: 2026-06-12T06:20:25.794Z
+- **Last Updated**: 2026-06-12T06:35:25.823Z
 
 ## Statistics
-- **Total Files**: 135
-- **Estimated Lines**: 298394
-- **Average File Size**: 283702 bytes
+- **Total Files**: 144
+- **Estimated Lines**: 298872
+- **Average File Size**: 246678 bytes
 
 ## Languages
-- **typescriptreact**: 2108 files
-- **javascript**: 1656 files
-- **json**: 1446 files
-- **typescript**: 744 files
-- **markdown**: 123 files
-- **css**: 62 files
+- **typescriptreact**: 16422 files
+- **json**: 10102 files
+- **javascript**: 9040 files
+- **typescript**: 5796 files
+- **markdown**: 965 files
+- **css**: 483 files
 
 ## Project Structure
 - **Main Languages**: Not detected
@@ -44,16 +44,16 @@ lucide-react, next, nodemailer, react, react-dom
 
 
 ## Largest Files
-- .next/cache/webpack/client-development/1.pack.gz (10106KB)
+- .next/cache/webpack/client-development/1.pack.gz (10026KB)
 - .next/static/chunks/main-app.js (5884KB)
 - public/Screen Recording 2026-05-09 132251.mp4 (4574KB)
-- .next/cache/webpack/server-development/7.pack.gz (2979KB)
-- .next/cache/webpack/server-development/1.pack.gz (2798KB)
-- .next/cache/webpack/server-development/4.pack.gz (1866KB)
+- .next/cache/webpack/server-development/1.pack.gz (2361KB)
+- .next/cache/webpack/server-development/4.pack.gz (1861KB)
 - public/mainvideothumnailimage.png (1705KB)
+- .next/cache/webpack/client-development/2.pack.gz (1239KB)
 - public/Ophtha_Certificate.png (1211KB)
-- .next/static/chunks/app/page.js (1090KB)
-- .next/cache/webpack/client-development/2.pack.gz (1061KB)
+- .next/static/chunks/app/page.js (1095KB)
+- .next/server/app/page.js (672KB)
 
 
 ---
@@ -89,15 +89,13 @@ No unfinished tasks
 ```
  M .autoclaude/CLAUDE_CONTEXT.md
  M .autoclaude/cache/project-index.json
- M .autoclaude/tasks/sessions.json
- M src/components/Navbar.tsx
- M tsconfig.tsbuildinfo
-?? .claude_agent_farm_backups/settings_2026-06-12T06-10-32-323Z.json
+ M src/components/Footer.tsx
 
 ```
 
 ### Recent Commits
 ```
+7d0a105 login mnavigation issue fixed
 2d56d5a footer issues fixed
 6bf8fb7 footer issues fixed
 fe6b819 Fix footer issue
@@ -107,7 +105,6 @@ b52bbc4 Footer section changes
 bc15ffc main footer changes
 984b251 logo and footer changes
 9586d7a asp and prevellence removeds
-5c75452 curriculam changes
 
 ```
 
