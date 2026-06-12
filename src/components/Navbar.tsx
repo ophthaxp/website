@@ -30,8 +30,8 @@ export function Navbar() {
             <Sparkles className="h-3.5 w-3.5 text-accent-soft" aria-hidden />
             <span className="hidden sm:inline">Ask LoMa</span>
           </Link>
-          <Link
-            href="#get-started"
+         <Link
+            href="https://learn.ophthaxp.com/"
             className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 shadow-sm transition hover:bg-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
           >
             Login
