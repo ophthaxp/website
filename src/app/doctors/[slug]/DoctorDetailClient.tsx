@@ -129,16 +129,16 @@ export function DoctorDetailClient({
           {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
           <div
             ref={heroImgRef}
-            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[52%]"
-            style={{ top: "-8%", bottom: "-8%" }}
+            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
+            style={{ top: "-4%", bottom: "-4%" }}
           >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 52vw"
-              className="object-cover object-center"
+              sizes="(max-width: 1024px) 100vw, 62vw"
+              className="object-cover object-right-top"
             />
             {/* Tone the photo background into the dark theme */}
             <div

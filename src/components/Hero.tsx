@@ -93,9 +93,8 @@ export function Hero({ images }: { images?: HeroImg[] }) {
             <span className="italic">Legends</span>
           </h1>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-white/75 sm:text-base">
-            Live, cohort-based mentorship for practicing ophthalmologists to
-            advance surgical expertise. Selective cohorts. Multiple batches.
-          </p>
+        ACCESS. KNOWLEDGE. BREAKTHROUGH
+         </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="#programs"

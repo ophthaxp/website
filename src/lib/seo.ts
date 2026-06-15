@@ -6,7 +6,7 @@ export const SITE_URL =
 export const SITE_NAME = "OphthaXP";
 
 export const SITE_DESCRIPTION =
-  "OphthaXP — live, cohort-based mentorship for practicing ophthalmologists and final-year MBBS students. Learn from senior consultants who have defined the field. Selective cohorts. Real cases. Real outcomes.";
+  "OphthaXP — ACCESS. KNOWLEDGE. BREAKTHROUGH";
 
 export const DEFAULT_KEYWORDS = [
   "ophthalmology mentorship",
