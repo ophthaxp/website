@@ -78,7 +78,7 @@ function DirectVideo({
         // object-contain so the entire poster (and the playing video) is
         // visible — letterbox bars sit on the black wrapper background and
         // read as normal video-player behaviour.
-        className="absolute inset-0 h-full w-full object-contain"
+         className="absolute inset-0 h-full w-full object-cover object-top"
       >
         <source src={src} />
         Your browser does not support the video tag.
