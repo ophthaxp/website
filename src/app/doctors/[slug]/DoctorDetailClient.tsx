@@ -306,17 +306,14 @@ export function DoctorDetailClient({
         >
           <div className="mx-auto max-w-[1500px] px-6 sm:px-16 lg:px-24">
 
-            {/* Pull-quote */}
-            <div className="relative max-w-4xl">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-4 -top-8 select-none font-serif text-[10rem] leading-none text-[#ab834d]/10 sm:-left-8 sm:text-[14rem]"
-              >
-                "
-              </span>
-              <blockquote className="relative z-10 font-serif text-2xl leading-relaxed text-white/90 sm:text-3xl sm:leading-relaxed">
-                {pullQuote}
-              </blockquote>
+            {/* Section headline */}
+            <div className="max-w-4xl">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+                About
+              </p>
+              <h2 className="mt-4 font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
+                Making of the Legend
+              </h2>
             </div>
 
             {/* Two-column: bio + at-a-glance card */}
@@ -325,7 +322,7 @@ export function DoctorDetailClient({
               {/* Bio */}
               <div className="lg:col-span-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                  About the Legend
+                Bio
                 </p>
                 <div
                   id="about-heading"
