@@ -306,21 +306,8 @@ export function DoctorDetailClient({
         >
           <div className="mx-auto max-w-[1500px] px-6 sm:px-16 lg:px-24">
 
-            {/* Pull-quote */}
-            <div className="relative max-w-4xl">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-4 -top-8 select-none font-serif text-[10rem] leading-none text-[#ab834d]/10 sm:-left-8 sm:text-[14rem]"
-              >
-                "
-              </span>
-              <blockquote className="relative z-10 font-serif text-2xl leading-relaxed text-white/90 sm:text-3xl sm:leading-relaxed">
-                {pullQuote}
-              </blockquote>
-            </div>
-
             {/* Two-column: bio + at-a-glance card */}
-            <div className="mt-16 grid gap-12 lg:grid-cols-3 lg:gap-16">
+            <div className="grid gap-12 lg:grid-cols-3 lg:gap-16">
 
               {/* Bio */}
               <div className="lg:col-span-2">
