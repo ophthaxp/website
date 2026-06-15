@@ -130,57 +130,37 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Portrait — parallax layer.
-              Mobile/tablet: fills the section so the image acts as full-bleed
-              background, text overlaid via the bottom-up gradient.
-              Desktop: container locked to portrait 3:4 aspect anchored to the
-              right edge — matches the source portrait so the photo fills the
-              frame edge-to-edge with no crop and no awkward zoom on the face. */}
-          <div
-            ref={heroImgRef}
-            className="absolute inset-0 will-change-transform lg:left-auto lg:inset-y-0 lg:right-0 lg:h-full lg:w-auto lg:aspect-[3/4]"
-          >
+          {/* Mobile/tablet: portrait acts as full-bleed background, text overlaid
+              via the bottom-up gradient. Hidden on desktop where the portrait
+              becomes a card in the grid (right column) instead. */}
+          <div className="absolute inset-0 lg:hidden">
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 75vh"
+              sizes="100vw"
               className="object-cover object-center"
             />
-            {/* Tone the photo background into the dark theme */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
-            />
-            {/* Soft left feather on the image itself — kills the hard vertical edge */}
-            <div
-              aria-hidden
-              className="absolute inset-y-0 left-0 hidden w-40 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
-            />
-            {/* Subtle bottom fade so the page flows into the next section */}
-            <div
-              aria-hidden
-              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06070a] to-transparent"
+              className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35"
             />
           </div>
 
-          {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
-
-          {/* Desktop: long, gentle left→right fade carrying the dark over the image edge */}
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
+          {/* Desktop background glow — replaces the heavy left→right dark fade
+              that used to cover the full-bleed portrait. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0"
+            className="pointer-events-none absolute inset-0 hidden lg:block"
             style={{
               background:
-                "radial-gradient(50% 65% at 12% 75%, rgba(171,131,77,0.13) 0%, transparent 65%)",
+                "radial-gradient(55% 70% at 18% 65%, rgba(171,131,77,0.12) 0%, transparent 70%)",
             }}
           />
 
-          {/* Content */}
-          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:justify-center lg:pb-0 lg:pt-24 lg:px-24">
+          {/* Content — two-column grid on desktop: text + portrait card */}
+          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:items-center lg:gap-16 lg:pb-0 lg:pt-24 lg:px-24">
             <div className="max-w-2xl">
 
               {/* Badge */}
@@ -256,6 +236,24 @@ export function DoctorDetailClient({
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Portrait card — desktop only. Same editorial 3:4 card as the
+                Introduction section, so portrait uploads fill it edge-to-edge. */}
+            <div
+              ref={heroImgRef}
+              className="hidden will-change-transform lg:block"
+            >
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-white/5 bg-[#0a0a0d]">
+                <Image
+                  src={doctor.doctorImage ?? doctor.imageUrl}
+                  alt={doctor.name}
+                  fill
+                  priority
+                  sizes="480px"
+                  className="object-cover object-center"
+                />
+              </div>
             </div>
           </div>
         </section>
