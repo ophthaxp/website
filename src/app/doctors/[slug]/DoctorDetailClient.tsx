@@ -325,7 +325,7 @@ export function DoctorDetailClient({
               {/* Bio */}
               <div className="lg:col-span-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                  About the Legend
+                  Bio
                 </p>
                 <div
                   id="about-heading"
