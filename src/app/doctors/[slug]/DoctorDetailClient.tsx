@@ -130,19 +130,21 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
+          {/* Portrait — parallax layer. object-contain shows the full uploaded
+              photo (portrait or landscape) without cropping; right-anchored so
+              the subject sits against the right edge and the left side fades
+              into the dark theme via the gradient layers below. */}
           <div
             ref={heroImgRef}
-            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
-            style={{ top: "-4%", bottom: "-4%" }}
+            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[55%]"
           >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 62vw"
-              className="object-cover object-right-top"
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-contain object-right-bottom"
             />
             {/* Tone the photo background into the dark theme */}
             <div
