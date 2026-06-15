@@ -143,8 +143,7 @@ export function ProgramsSection({
         id="programs-title"
         className="mx-auto max-w-3xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
       >
-        Programs Designed for Those <br className="hidden sm:block" />
-        Who Are Ready for More
+        Legacy Transfer Programs <br className="hidden sm:block" />
       </h2>
       <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-white/60 sm:text-base">
         Each program is carefully structured and led by experienced practitioners,

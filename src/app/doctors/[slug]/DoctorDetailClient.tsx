@@ -177,7 +177,7 @@ export function DoctorDetailClient({
 
               {/* Badge */}
               <div className="inline-flex items-center gap-2 rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#ab834d]">
-                <span aria-hidden>★</span> Legend · OphthaXP
+                <span aria-hidden>★</span> LEGEND. OPHTHALMOLOGY
               </div>
 
               {/* Name */}

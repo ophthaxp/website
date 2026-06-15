@@ -26,7 +26,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: `${SITE_NAME} — Be the Best. Learn from the Legends.`,
+      default: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
       template: `%s · ${SITE_NAME}`,
     },
     description: SITE_DESCRIPTION,
@@ -41,7 +41,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
       type: "website",
       url: SITE_URL,
       siteName: SITE_NAME,
-      title: `${SITE_NAME} — Be the Best. Learn from the Legends.`,
+      title: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
       description: SITE_DESCRIPTION,
       locale: "en_IN",
       images: [
@@ -55,7 +55,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${SITE_NAME} — Be the Best. Learn from the Legends.`,
+      title: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
       description: SITE_DESCRIPTION,
       images: ["/og.jpg"],
     },

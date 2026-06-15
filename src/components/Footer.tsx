@@ -216,7 +216,7 @@ export function Footer() {
                 fontSize: "clamp(0.6rem, 1.1vw, 0.95rem)",
               }}
             >
-              Be the Best · Learn from the Legends
+              ACCESS. KNOWLEDGE. BREAKTHROUGH
             </span>
           </div>
 
