@@ -119,7 +119,7 @@ export function DoctorDetailClient({
   const primarySpecialties = doctor.specialty.filter((s) => s !== "all").slice(0, 2);
 
   return (
-    <>
+      <>
       <Navbar />
       <main className="bg-[#06070a] pb-24 text-white">
 
@@ -130,32 +130,48 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Mobile/tablet: portrait acts as full-bleed background, text overlaid
-              via the bottom-up gradient. Hidden on desktop where the portrait
-              becomes a card in the grid (right column) instead. */}
-          <div className="absolute inset-0 lg:hidden">
+          {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
+          <div
+            ref={heroImgRef}
+            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
+            style={{ top: "-4%", bottom: "-4%" }}
+          >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="100vw"
-              className="object-cover object-center"
+              sizes="(max-width: 1024px) 100vw, 62vw"
+              className="object-cover object-right-top"
             />
+            {/* Tone the photo background into the dark theme */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35"
+              className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
+            />
+            {/* Soft left feather on the image itself — kills the hard vertical edge */}
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
+            />
+            {/* Subtle bottom fade so the page flows into the next section */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06070a] to-transparent"
             />
           </div>
 
-          {/* Desktop background glow — replaces the heavy left→right dark fade
-              that used to cover the full-bleed portrait. */}
+          {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
+
+          {/* Desktop: long, gentle left→right fade carrying the dark over the image edge */}
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 hidden lg:block"
+            className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(55% 70% at 18% 65%, rgba(171,131,77,0.12) 0%, transparent 70%)",
+                "radial-gradient(50% 65% at 12% 75%, rgba(171,131,77,0.13) 0%, transparent 65%)",
             }}
           />
 
