@@ -130,36 +130,55 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Mobile/tablet only: full-bleed background portrait so the text
-              has something to sit on. Desktop hides this — the portrait shows
-              only as the right-column card below. */}
-          <div className="absolute inset-y-0 left-0 right-0 lg:hidden" style={{ top: "-4%", bottom: "-4%" }}>
+          {/* Portrait — full-bleed background. Mobile fills the section;
+              desktop is constrained to the right ~62% so the face isn't blown
+              up and the text column on the left stays readable. */}
+          <div
+            ref={heroImgRef}
+            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
+            style={{ top: "-4%", bottom: "-4%" }}
+          >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="100vw"
-              className="object-cover object-center"
+              sizes="(max-width: 1024px) 100vw, 62vw"
+              className="object-cover object-right-top"
             />
+            {/* Tone the photo background into the dark theme */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35"
+              className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
+            />
+            {/* Soft left feather — kills the hard vertical edge on desktop */}
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
+            />
+            {/* Subtle bottom fade so the page flows into the next section */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06070a] to-transparent"
             />
           </div>
 
-          {/* Ambient golden glow behind the text column on desktop */}
+          {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
+
+          {/* Desktop: long left→right fade carrying the dark over the image edge */}
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 hidden lg:block"
+            className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(55% 70% at 18% 65%, rgba(171,131,77,0.12) 0%, transparent 70%)",
+                "radial-gradient(50% 65% at 12% 75%, rgba(171,131,77,0.13) 0%, transparent 65%)",
             }}
           />
 
           {/* Content — two-column grid on desktop: text + portrait card */}
-          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:items-center lg:gap-16 lg:pb-0 lg:pt-24 lg:px-24">
+          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:justify-center lg:pb-0 lg:pt-24 lg:px-24">
             <div className="max-w-2xl">
 
               {/* Badge */}
@@ -237,23 +256,6 @@ export function DoctorDetailClient({
               )}
             </div>
 
-            {/* Portrait card — desktop only. Same editorial 3:4 card as the
-                Introduction section, so portrait uploads fill it edge-to-edge. */}
-            <div
-              ref={heroImgRef}
-              className="hidden will-change-transform lg:block"
-            >
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-white/5 bg-[#0a0a0d]">
-                <Image
-                  src={doctor.doctorImage ?? doctor.imageUrl}
-                  alt={doctor.name}
-                  fill
-                  priority
-                  sizes="480px"
-                  className="object-cover object-center"
-                />
-              </div>
-            </div>
           </div>
         </section>
 
