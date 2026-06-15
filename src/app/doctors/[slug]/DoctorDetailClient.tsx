@@ -130,19 +130,23 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
+          {/* Portrait — parallax layer.
+              Mobile/tablet: fills the section so the image acts as full-bleed
+              background, text overlaid via the bottom-up gradient.
+              Desktop: container locked to portrait 3:4 aspect anchored to the
+              right edge — matches the source portrait so the photo fills the
+              frame edge-to-edge with no crop and no awkward zoom on the face. */}
           <div
             ref={heroImgRef}
-            className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
-            style={{ top: "-4%", bottom: "-4%" }}
+            className="absolute inset-0 will-change-transform lg:left-auto lg:inset-y-0 lg:right-0 lg:h-full lg:w-auto lg:aspect-[3/4]"
           >
             <Image
               src={doctor.doctorImage ?? doctor.imageUrl}
               alt={doctor.name}
               fill
               priority
-              sizes="(max-width: 1024px) 100vw, 62vw"
-              className="object-cover object-right-top"
+              sizes="(max-width: 1024px) 100vw, 75vh"
+              className="object-cover object-center"
             />
             {/* Tone the photo background into the dark theme */}
             <div
@@ -152,7 +156,7 @@ export function DoctorDetailClient({
             {/* Soft left feather on the image itself — kills the hard vertical edge */}
             <div
               aria-hidden
-              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
+              className="absolute inset-y-0 left-0 hidden w-40 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
             />
             {/* Subtle bottom fade so the page flows into the next section */}
             <div
@@ -308,9 +312,6 @@ export function DoctorDetailClient({
 
             {/* Section headline */}
             <div className="max-w-4xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                About
-              </p>
               <h2 className="mt-4 font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
                 Making of the Legend
               </h2>
