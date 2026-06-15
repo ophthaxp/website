@@ -119,7 +119,7 @@ export function DoctorDetailClient({
   const primarySpecialties = doctor.specialty.filter((s) => s !== "all").slice(0, 2);
 
   return (
-    <>
+      <>
       <Navbar />
       <main className="bg-[#06070a] pb-24 text-white">
 
@@ -130,7 +130,9 @@ export function DoctorDetailClient({
           aria-labelledby="legend-name"
           className="relative min-h-[100svh] overflow-hidden"
         >
-          {/* Portrait — parallax layer, constrained on desktop so the face isn't blown up */}
+          {/* Portrait — full-bleed background. Mobile fills the section;
+              desktop is constrained to the right ~62% so the face isn't blown
+              up and the text column on the left stays readable. */}
           <div
             ref={heroImgRef}
             className="absolute inset-y-0 left-0 right-0 will-change-transform lg:left-auto lg:w-[62%]"
@@ -149,7 +151,7 @@ export function DoctorDetailClient({
               aria-hidden
               className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
             />
-            {/* Soft left feather on the image itself — kills the hard vertical edge */}
+            {/* Soft left feather — kills the hard vertical edge on desktop */}
             <div
               aria-hidden
               className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
@@ -164,7 +166,7 @@ export function DoctorDetailClient({
           {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
 
-          {/* Desktop: long, gentle left→right fade carrying the dark over the image edge */}
+          {/* Desktop: long left→right fade carrying the dark over the image edge */}
           <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
           <div
             aria-hidden
@@ -175,7 +177,7 @@ export function DoctorDetailClient({
             }}
           />
 
-          {/* Content */}
+          {/* Content — two-column grid on desktop: text + portrait card */}
           <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:justify-center lg:pb-0 lg:pt-24 lg:px-24">
             <div className="max-w-2xl">
 
@@ -253,6 +255,7 @@ export function DoctorDetailClient({
                 </div>
               )}
             </div>
+
           </div>
         </section>
 
@@ -306,17 +309,11 @@ export function DoctorDetailClient({
         >
           <div className="mx-auto max-w-[1500px] px-6 sm:px-16 lg:px-24">
 
-            {/* Pull-quote */}
-            <div className="relative max-w-4xl">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-4 -top-8 select-none font-serif text-[10rem] leading-none text-[#ab834d]/10 sm:-left-8 sm:text-[14rem]"
-              >
-                "
-              </span>
-              <blockquote className="relative z-10 font-serif text-2xl leading-relaxed text-white/90 sm:text-3xl sm:leading-relaxed">
-                {pullQuote}
-              </blockquote>
+            {/* Section headline */}
+            <div className="max-w-4xl">
+              <h2 className="mt-4 font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
+                Making of the Legend
+              </h2>
             </div>
 
             {/* Two-column: bio + at-a-glance card */}
@@ -325,7 +322,7 @@ export function DoctorDetailClient({
               {/* Bio */}
               <div className="lg:col-span-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                  Bio
+                Bio
                 </p>
                 <div
                   id="about-heading"
