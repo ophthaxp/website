@@ -275,21 +275,36 @@ export function DoctorDetailClient({
               Introduction
             </h2>
 
-            <div className="mt-8 overflow-hidden rounded-2xl border border-white/5">
+            {/* Editorial portrait card — narrow, vertical aspect so portrait
+                posters fill the frame; trailer plays inside when clicked. */}
+            <div className="mt-8 mx-auto w-full max-w-md sm:max-w-lg overflow-hidden rounded-2xl border border-white/5 bg-[#0a0a0d]">
               {doctor.trailerVideoUrl ? (
                 <TrailerPlayer
                   src={doctor.trailerVideoUrl}
                   poster={doctor.doctorImage ?? doctor.imageUrl}
                   title={`${doctor.name} — Introduction`}
-                  className="aspect-video w-full"
+                  className="aspect-[3/4] w-full"
                 />
               ) : (
-                <div className="flex aspect-video items-center justify-center bg-[#0a0a0d]">
-                  <div className="text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#ab834d]/30 bg-[#ab834d]/10">
-                      <Play className="h-6 w-6 text-[#ab834d]" aria-hidden />
+                <div className="relative aspect-[3/4] w-full overflow-hidden">
+                  <Image
+                    src={doctor.doctorImage ?? doctor.imageUrl}
+                    alt={doctor.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 512px"
+                    className="object-cover object-center"
+                  />
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-7">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#ab834d]/40 bg-black/55 backdrop-blur">
+                      <Play className="h-5 w-5 text-[#ab834d]" aria-hidden />
                     </div>
-                    <p className="mt-3 text-sm text-white/40">Intro video coming soon</p>
+                    <p className="mt-3 text-xs uppercase tracking-[0.28em] text-white/55">
+                      Intro video coming soon
+                    </p>
                   </div>
                 </div>
               )}
