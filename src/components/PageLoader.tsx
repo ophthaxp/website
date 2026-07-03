@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export function PageLoader({ label = "Preparing your experience" }: { label?: string }) {
   return (
     <div
@@ -40,20 +38,19 @@ export function PageLoader({ label = "Preparing your experience" }: { label?: st
           <span className="absolute inset-3 animate-[loader-spin-reverse_3.2s_linear_infinite] rounded-full border border-transparent [border-bottom-color:theme(colors.accent.soft)] [border-left-color:rgba(167,139,250,0.25)]" />
           {/* Soft glow ring */}
           <span className="absolute inset-5 rounded-full bg-accent/15 blur-md" />
-          {/* Logo */}
-          <Image
-            src="/logoloading.png"
-            alt=""
-            width={120}
-            height={120}
-            priority
-            className="relative h-12 w-12 object-contain opacity-90 [animation:loader-pulse_2.4s_ease-in-out_infinite]"
-          />
+          {/* Brand monogram — the two pillars from the Legends of Medicine mark */}
+          <span
+            aria-hidden
+            className="relative flex items-end gap-[5px] [animation:loader-pulse_2.4s_ease-in-out_infinite]"
+          >
+            <span className="block h-9 w-[6px] rounded-[2px] bg-gradient-to-b from-white/95 via-white/85 to-white/60 shadow-[0_0_18px_rgba(255,255,255,0.25)]" />
+            <span className="block h-9 w-[6px] rounded-[2px] bg-gradient-to-b from-white/95 via-white/85 to-white/60 shadow-[0_0_18px_rgba(255,255,255,0.25)]" />
+          </span>
         </div>
 
         <div className="flex flex-col items-center gap-2">
           <h2 className="loader-shimmer font-serif text-2xl tracking-wide sm:text-3xl">
-            OphthaXP
+            Legends of Medicine
           </h2>
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-white/45">
             <span className="h-[3px] w-3 rounded-full bg-accent/70" />
