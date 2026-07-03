@@ -27,7 +27,6 @@ import { Footer } from "@/components/Footer";
 import { TrailerPlayer } from "@/components/TrailerPlayer";
 import { CourseRoiBlock } from "@/components/CourseRoiBlock";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
-import { ProgramsPricingTiers } from "@/components/ProgramsPricingTiers";
 import { CourseFaqList } from "@/components/CourseFaqList";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
@@ -697,14 +696,43 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {/* Plans & pricing — three tiers derived from the course's base price,
-            so visitors land on a clear pricing choice right before the final
-            apply CTA. */}
-        <ProgramsPricingTiers
-          basePriceInr={p.priceInr}
-          courseName={p.name}
-          courseId={p.id}
-        />
+        {/* Investment — single horizontal pricing card */}
+        {p.priceInr ? (
+          <section aria-labelledby="investment-title" className="mt-20 sm:mt-24">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-6 sm:p-8">
+              <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div>
+                  <p
+                    id="investment-title"
+                    className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]"
+                  >
+                    Investment
+                  </p>
+                  <p className="mt-3 font-serif text-4xl leading-none text-white sm:text-5xl">
+                    {formatINR(p.priceInr)}
+                  </p>
+                  <p className="mt-2 text-sm text-white/55">
+                    {p.pricePerDayInr ? `Starting at ₹${p.pricePerDayInr}/day · ` : ""}
+                    excluding GST
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6a76b]">
+                    <span aria-hidden>✦</span>
+                    Scholarships available
+                  </span>
+                </div>
+                <div className="sm:justify-self-end">
+                  <CourseApplyButton
+                    courseId={p.id}
+                    courseName={p.name}
+                    mentorName={faculty?.name}
+                    brochureUrl={p.brochureUrl}
+                    label={cta}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* How it works — three fixed steps from interest to first cohort call */}
         <section aria-labelledby="how-it-works-title" className="mt-20 sm:mt-24">
