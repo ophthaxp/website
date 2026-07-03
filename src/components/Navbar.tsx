@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { LoMaIcon } from "./LoMaIcon";
 
 export function Navbar() {
   return (
@@ -27,7 +27,7 @@ export function Navbar() {
             aria-label="Ask OphthaXP"
             className="inline-flex items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-white/85 transition hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3.5"
           >
-            <Sparkles className="h-3.5 w-3.5 text-accent-soft" aria-hidden />
+            <LoMaIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Ask LoMa</span>
           </Link>
          <Link
