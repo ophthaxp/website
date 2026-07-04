@@ -37,7 +37,7 @@ export function LegendsVideo() {
         className="mx-auto max-w-2xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
       >
         Meet the world&rsquo;s best. <br className="hidden sm:block" />
-        New classes added every month.
+        New cohorts added every month.
       </h2>
 
       <div className="relative mx-auto mt-10 aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-ink-800 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]">
