@@ -11,10 +11,6 @@ import {
   Stethoscope,
   BookOpen,
   GraduationCap,
-  CalendarDays,
-  Clock,
-  PlayCircle,
-  Tag,
   PhoneCall,
   Sparkles,
 } from "lucide-react";
@@ -120,6 +116,21 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
   const durationLabel = formatDuration(p.durationMinutes);
   const launchLabel = formatLaunch(p);
   const cta = "Apply Now";
+  // Hero stat: prefer whole-month/week fellowship duration, fall back to the
+  // lesson-length label so the strip always shows something meaningful.
+  const heroDuration = p.durationMonths
+    ? `${p.durationMonths} ${p.durationMonths === 1 ? "Month" : "Months"}`
+    : p.durationWeeks
+      ? `${p.durationWeeks} ${p.durationWeeks === 1 ? "Week" : "Weeks"}`
+      : durationLabel;
+  const enrollLabel = p.ctaLabel || "Reserve your Seat";
+  const heroImage = p.doctorImage || p.heroImage;
+  // Fallback mentor name for the hero credit line when no faculty record could
+  // be resolved. Skip it if it just duplicates the course title/headline.
+  const mentorName =
+    p.mentorName && p.mentorName !== p.name && p.mentorName !== p.headline
+      ? p.mentorName
+      : undefined;
 
   const courseLd = {
     "@context": "https://schema.org",
@@ -158,195 +169,193 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
       />
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-6 py-10 pb-28 sm:px-16 sm:py-14 sm:pb-32 lg:px-24">
-        {/* Back link */}
-        <Link
-          href="/programs"
-          className="inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white"
+      <main className="text-white">
+        {/* ══════════════════════════════════════════════════════════════
+            § 1 — HERO   Cinematic portrait + fellowship enrollment
+        ══════════════════════════════════════════════════════════════ */}
+        <section
+          aria-labelledby="program-title"
+          className="relative overflow-hidden bg-[#06070a]"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to all courses
-        </Link>
-
-        {/* Hero: trailer/cover (65%) + info card (35%) */}
-        <section className="mt-6 grid gap-8 lg:grid-cols-[13fr_7fr] lg:items-stretch">
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950">
-            <div className="relative aspect-video w-full lg:aspect-auto lg:h-full lg:min-h-[460px]">
-              {p.trailerVideoUrl ? (
-                // Cover poster doubles as the play surface — click anywhere on
-                // the image to start the trailer inline (TrailerPlayer handles
-                // YouTube, Vimeo, and direct mp4/webm/mov).
-                <TrailerPlayer
-                  src={p.trailerVideoUrl}
-                  poster={p.heroImage}
-                  title={`${p.name} — Trailer`}
-                  className="absolute inset-0 h-full w-full"
-                />
-              ) : p.heroImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.heroImage}
-                  alt={p.name}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                    Trailer
-                  </span>
-                  <span className="mt-1 text-sm text-white/70">Coming soon</span>
-                </div>
-              )}
-            </div>
+          {/* Portrait — full-bleed on mobile, constrained to the left ~62% on
+              desktop. It runs a touch past centre so the horizontal scrim can
+              fade the right edge into the dark panel with no visible seam. */}
+          <div className="absolute inset-y-0 left-0 right-0 lg:right-auto lg:w-[62%]">
+            {heroImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={heroImage}
+                alt={faculty?.name || p.name}
+                className="h-full w-full object-cover object-[center_top]"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950" />
+            )}
           </div>
 
-          <div className="relative flex flex-col justify-center rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-sm sm:p-8 lg:p-9">
-            {/* Course title — show the marketing headline as the only heading.
-                Falls back to the raw course name when no headline is set. */}
-            <h1 className="font-serif text-3xl leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.4rem]">
-              {p.headline || p.name}
-            </h1>
+          {/* Overall mood wash — knocks the photo back so it reads cinematic
+              rather than a bright stock shot. */}
+          <div className="absolute inset-0 bg-black/25" />
 
-            {faculty?.name && (
-              <Link
-                href={`/doctors/${faculty.slug}`}
-                className="group mt-5 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-white/55 transition hover:text-white"
+          {/* Mobile scrim — darken the whole photo so bottom text is readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/80 to-[#06070a]/45 lg:hidden" />
+
+          {/* Desktop horizontal scrim — solid dark on the right, then a long,
+              gentle fade that carries well past the photo's 62% edge so the
+              image dissolves into the panel instead of ending on a hard line. */}
+          <div className="absolute inset-0 hidden bg-gradient-to-l from-[#06070a] from-42% via-[#06070a]/85 via-62% to-transparent to-90% lg:block" />
+
+          {/* Desktop vertical vignette — subtle top/bottom darkening for depth. */}
+          <div className="absolute inset-0 hidden bg-gradient-to-b from-[#06070a]/55 via-transparent to-[#06070a]/65 lg:block" />
+
+          {/* Content — text column pinned to the right on desktop */}
+          <div className="relative mx-auto flex min-h-[86svh] max-w-[1500px] flex-col justify-end px-6 pb-16 pt-40 sm:px-16 lg:min-h-[92svh] lg:flex-row lg:justify-end lg:px-24 lg:pb-0 lg:pt-0">
+            <div className="flex w-full flex-col items-center justify-center text-center lg:w-[46%] lg:py-24">
+              {/* Title (marketing headline; falls back to the raw name) */}
+              <h1
+                id="program-title"
+                className="font-serif text-4xl leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]"
               >
-                <span aria-hidden className="h-px w-6 bg-white/40 transition group-hover:bg-[#ab834d]" />
-                <span>
-                  By <span className="text-white">Dr. {faculty.name.replace(/^Dr\.?\s+/i, "")}</span>
-                </span>
-              </Link>
-            )}
+                {p.headline || p.name}
+              </h1>
 
-            {p.tagline && (
-              <p className="mt-5 text-[15px] leading-relaxed text-white/70 sm:text-base">
-                {p.tagline}
-              </p>
-            )}
+              <span aria-hidden className="mt-6 block h-px w-8 bg-white/40" />
 
-            {/* Quick facts — icon-prefixed stacked list */}
-            {(launchLabel ||
-              p.durationMonths ||
-              p.durationWeeks ||
-              p.lessonsCount ||
-              durationLabel ||
-              p.cohortSize ||
-              p.startDate ||
-              p.priceInr) && (
-              <ul className="mt-7 space-y-px overflow-hidden rounded-2xl border border-white/10 bg-ink-950/30 text-sm">
-                {launchLabel && (
-                  <li className="flex items-center justify-between gap-3 bg-[#ab834d]/[0.08] px-4 py-3">
-                    <span className="inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
-                      <CalendarDays className="h-4 w-4" aria-hidden />
-                      Launches
-                    </span>
-                    <span className="font-semibold text-white">{launchLabel}</span>
-                  </li>
-                )}
-                {(p.durationMonths || p.durationWeeks) && (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <Clock className="h-4 w-4" aria-hidden />
-                      Duration
-                    </span>
-                    <span className="font-medium text-white/90">
-                      {p.durationMonths
-                        ? `${p.durationMonths} months`
-                        : `${p.durationWeeks} weeks`}
-                    </span>
-                  </li>
-                )}
-                {p.lessonsCount ? (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <PlayCircle className="h-4 w-4" aria-hidden />
-                      Lessons
-                    </span>
-                    <span className="font-medium text-white/90">{p.lessonsCount}</span>
-                  </li>
-                ) : null}
-                {durationLabel && !p.durationMonths && !p.durationWeeks ? (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <Clock className="h-4 w-4" aria-hidden />
-                      Length
-                    </span>
-                    <span className="font-medium text-white/90">{durationLabel}</span>
-                  </li>
-                ) : null}
-                {p.cohortSize ? (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <Users className="h-4 w-4" aria-hidden />
-                      Cohort
-                    </span>
-                    <span className="font-medium text-white/90">
-                      {p.cohortSize} seats
-                    </span>
-                  </li>
-                ) : null}
-                {p.startDate ? (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <CalendarDays className="h-4 w-4" aria-hidden />
-                      Starts
-                    </span>
-                    <span className="font-medium text-white/90">
-                      {new Date(p.startDate).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </li>
-                ) : null}
-                {p.priceInr ? (
-                  <li className="flex items-center justify-between gap-3 px-4 py-3 odd:bg-white/[0.015]">
-                    <span className="inline-flex items-center gap-2.5 text-white/55">
-                      <Tag className="h-4 w-4" aria-hidden />
-                      Fee
-                    </span>
-                    <span className="font-semibold text-white">
-                      {p.pricePerDayInr
-                        ? `₹${p.pricePerDayInr}/day`
-                        : formatINR(p.priceInr)}
-                      {p.billingPeriod === "annual" ? (
-                        <span className="ml-1 text-xs font-normal text-white/45">/ year</span>
-                      ) : null}
-                    </span>
-                  </li>
-                ) : null}
-              </ul>
-            )}
-
-            <div className="mt-7">
-              <CourseApplyButton
-                courseId={p.id}
-                courseName={p.name}
-                mentorName={faculty?.name}
-                brochureUrl={p.brochureUrl}
-                label={cta}
-                block
-              />
-              {p.brochureUrl && (
-                <a
-                  href={p.brochureUrl}
-                  target="_blank"
-                  rel="noopener"
-                  className="mt-3 block text-center text-xs text-white/55 underline-offset-4 hover:text-white hover:underline"
+              {/* Hero credit — link to the doctor page when a faculty record
+                  resolved; otherwise fall back to the mentor name carried on
+                  the course row so the "with Dr. …" line always appears. */}
+              {faculty?.name ? (
+                <Link
+                  href={`/doctors/${faculty.slug}`}
+                  className="mt-6 text-sm text-white/55 transition hover:text-white"
                 >
-                  Download brochure (PDF)
-                </a>
-              )}
-              {p.moneyBackDays ? (
-                <p className="mt-3 text-center text-[11px] text-white/45">
-                  {p.moneyBackDays}-day money-back guarantee
+                  with{" "}
+                  <span className="font-semibold text-white">
+                    Dr. {faculty.name.replace(/^Dr\.?\s+/i, "")}
+                  </span>
+                </Link>
+              ) : mentorName ? (
+                <p className="mt-6 text-sm text-white/55">
+                  with{" "}
+                  <span className="font-semibold text-white">
+                    Dr. {mentorName.replace(/^Dr\.?\s+/i, "")}
+                  </span>
                 </p>
               ) : null}
+
+              {p.tagline && (
+                <p className="mt-5 max-w-md text-sm leading-relaxed text-white/60 sm:text-[15px]">
+                  {p.tagline}
+                </p>
+              )}
+
+              {p.trailerVideoUrl && (
+                <a
+                  href="#trailer"
+                  className="mt-6 text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+                >
+                  Watch Trailer
+                </a>
+              )}
+
+              {/* Stat strip — duration · cohort · launch */}
+              {(heroDuration || p.cohortSize || launchLabel) && (
+                <div className="mt-10 flex items-stretch justify-center divide-x divide-white/10 text-center">
+                  {heroDuration && (
+                    <div className="px-5 sm:px-7">
+                      <p className="font-serif text-xl font-semibold text-white sm:text-2xl">
+                        {heroDuration}
+                      </p>
+                      <p className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-white/45">
+                        Fellowship duration
+                      </p>
+                    </div>
+                  )}
+                  {p.cohortSize ? (
+                    <div className="px-5 sm:px-7">
+                      <p className="font-serif text-xl font-semibold text-white sm:text-2xl">
+                        {String(p.cohortSize).padStart(2, "0")}
+                      </p>
+                      <p className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-white/45">
+                        Cohort Size
+                      </p>
+                    </div>
+                  ) : null}
+                  {launchLabel && (
+                    <div className="px-5 sm:px-7">
+                      <p className="font-serif text-xl font-semibold text-white sm:text-2xl">
+                        {launchLabel}
+                      </p>
+                      <p className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-white/45">
+                        Program Begins
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Enrollment card */}
+              <div className="mt-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+                <p className="text-sm font-semibold text-white">
+                  Fellowship Enrollment
+                </p>
+                <div className="mt-4">
+                  <CourseApplyButton
+                    courseId={p.id}
+                    courseName={p.name}
+                    mentorName={faculty?.name}
+                    brochureUrl={p.brochureUrl}
+                    label={enrollLabel}
+                    block
+                  />
+                </div>
+                <p className="mt-4 text-xs leading-relaxed text-white/45">
+                  Every module is designed to translate directly into clinical
+                  practice.
+                </p>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            § 2 — MEET YOUR LEGEND   Documentary trailer
+        ══════════════════════════════════════════════════════════════ */}
+        {(p.trailerVideoUrl || heroImage) && (
+          <section
+            id="trailer"
+            aria-labelledby="legend-title"
+            className="scroll-mt-24 bg-[#06070a] pb-4 pt-14 sm:pt-20"
+          >
+            <div className="mx-auto max-w-[1500px] px-6 sm:px-16 lg:px-24">
+              <h2
+                id="legend-title"
+                className="font-serif text-3xl leading-tight text-white sm:text-4xl"
+              >
+                Meet your Legend
+              </h2>
+              <div className="mt-8 overflow-hidden rounded-3xl border border-white/10 bg-black">
+                <TrailerPlayer
+                  src={p.trailerVideoUrl}
+                  poster={heroImage}
+                  title={`${faculty?.name || p.name} — Documentary Trailer`}
+                  className="aspect-video w-full"
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Remaining detail sections (constrained column) ── */}
+        <div className="mx-auto max-w-[1500px] px-6 py-10 pb-28 sm:px-16 sm:py-14 sm:pb-32 lg:px-24">
+          {/* Back link */}
+          <Link
+            href="/programs"
+            className="inline-flex items-center gap-2 text-sm text-white/55 transition hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to all courses
+          </Link>
 
         {/* Faculty card */}
         {faculty && (
@@ -807,6 +816,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             </div>
           </section>
         )}
+        </div>
       </main>
       <Footer />
       <CourseStickyFooter
