@@ -84,17 +84,17 @@ export function Hero({ images }: { images?: HeroImg[] }) {
         <div className="flex flex-col items-center pt-28 text-center sm:pt-26">
           <h1
             id="hero-title"
-            className="font-serif text-4xl leading-[1.05] tracking-tight text-white sm:text-6xl"
+            className="font-canela text-4xl leading-[1.05] tracking-tight text-white sm:text-6xl"
           >
-            Be the Best
+           Become 
             <br />
-            Learn from the
+            Legendary
             <br />
-            <span className="italic">Legends</span>
+            <span className="text-2xl font-bold italic text-accent sm:text-4xl">Learn from the Legends</span>
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-white/75 sm:text-base">
-        ACCESS. KNOWLEDGE. BREAKTHROUGH
-         </p>
+          <p className="mt-5 max-w-md font-canela text-base font-bold tracking-wide text-white/90 sm:text-lg">
+            ACCESS. KNOWLEDGE. BREAKTHROUGH
+          </p>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="#programs"

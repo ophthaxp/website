@@ -401,7 +401,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               id="eligibility-title"
               className="font-serif text-3xl text-white sm:text-4xl"
             >
-              Eligibility
+              The Roadmap
             </h2>
             <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-white/75 sm:text-lg">
               {p.eligibility}
@@ -592,6 +592,118 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           brochureUrl={p.brochureUrl}
         />
 
+        {/* How it works — three fixed steps from interest to first cohort call */}
+        <section aria-labelledby="how-it-works-title" className="mt-20 sm:mt-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+              How it works
+            </p>
+            <h2
+              id="how-it-works-title"
+              className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl"
+            >
+              Three steps from interest to your first cohort call
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm text-white/55 sm:text-base">
+              A simple, mentor-led path designed to align outcomes from day one.
+            </p>
+          </div>
+
+          <ol className="relative mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-12 right-12 top-[42px] hidden h-px bg-gradient-to-r from-transparent via-white/15 to-transparent sm:block"
+            />
+            {[
+              {
+                Icon: ClipboardList,
+                title: "Apply",
+                description:
+                  "Tell us about your practice and the outcomes you want.",
+              },
+              {
+                Icon: PhoneCall,
+                title: "Talk to the Legend",
+                description:
+                  "1:1 discovery call with the mentor to align on goals.",
+              },
+              {
+                Icon: Sparkles,
+                title: "Onboarding",
+                description:
+                  "Cohort kickoff, schedule and private community access.",
+              },
+            ].map(({ Icon, title, description }, i) => {
+              const stepNum = String(i + 1).padStart(2, "0");
+              return (
+                <li
+                  key={`hiw-${i}`}
+                  className="relative flex flex-col items-center text-center"
+                >
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute top-2 select-none font-serif text-7xl font-bold leading-none text-white/[0.04] sm:text-8xl"
+                  >
+                    {stepNum}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="relative z-10 inline-flex h-[84px] w-[84px] items-center justify-center rounded-full border border-[#ab834d]/40 bg-ink-950"
+                  >
+                    <Icon className="h-7 w-7 text-[#ab834d]" />
+                  </span>
+                  <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ab834d]">
+                    Step {stepNum}
+                  </p>
+                  <h3 className="mt-3 font-serif text-2xl leading-tight text-white sm:text-3xl">
+                    {title}
+                  </h3>
+                  <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
+                    {description}
+                  </p>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+
+        {/* Investment — single horizontal pricing card */}
+        {p.priceInr ? (
+          <section aria-labelledby="investment-title" className="mt-20 sm:mt-24">
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-6 sm:p-8">
+              <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div>
+                  <p
+                    id="investment-title"
+                    className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]"
+                  >
+                    Investment
+                  </p>
+                  <p className="mt-3 font-serif text-4xl leading-none text-white sm:text-5xl">
+                    {formatINR(p.priceInr)}
+                  </p>
+                  <p className="mt-2 text-sm text-white/55">
+                    {p.pricePerDayInr ? `Starting at ₹${p.pricePerDayInr}/day · ` : ""}
+                    excluding GST
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6a76b]">
+                    <span aria-hidden>✦</span>
+                    Scholarships available
+                  </span>
+                </div>
+                <div className="sm:justify-self-end">
+                  <CourseApplyButton
+                    courseId={p.id}
+                    courseName={p.name}
+                    mentorName={faculty?.name}
+                    brochureUrl={p.brochureUrl}
+                    label={cta}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* Certificate */}
         {(p.certificateNote || p.sampleCertificateImage) && (
@@ -695,140 +807,6 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             </div>
           </section>
         )}
-
-        {/* Investment — single horizontal pricing card */}
-        {p.priceInr ? (
-          <section aria-labelledby="investment-title" className="mt-20 sm:mt-24">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.04] via-white/[0.015] to-transparent p-6 sm:p-8">
-              <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div>
-                  <p
-                    id="investment-title"
-                    className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]"
-                  >
-                    Investment
-                  </p>
-                  <p className="mt-3 font-serif text-4xl leading-none text-white sm:text-5xl">
-                    {formatINR(p.priceInr)}
-                  </p>
-                  <p className="mt-2 text-sm text-white/55">
-                    {p.pricePerDayInr ? `Starting at ₹${p.pricePerDayInr}/day · ` : ""}
-                    excluding GST
-                  </p>
-                  <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d6a76b]">
-                    <span aria-hidden>✦</span>
-                    Scholarships available
-                  </span>
-                </div>
-                <div className="sm:justify-self-end">
-                  <CourseApplyButton
-                    courseId={p.id}
-                    courseName={p.name}
-                    mentorName={faculty?.name}
-                    brochureUrl={p.brochureUrl}
-                    label={cta}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : null}
-
-        {/* How it works — three fixed steps from interest to first cohort call */}
-        <section aria-labelledby="how-it-works-title" className="mt-20 sm:mt-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-              How it works
-            </p>
-            <h2
-              id="how-it-works-title"
-              className="mt-4 font-serif text-4xl leading-tight text-white sm:text-5xl"
-            >
-              Three steps from interest to your first cohort call
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-sm text-white/55 sm:text-base">
-              A simple, mentor-led path designed to align outcomes from day one.
-            </p>
-          </div>
-
-          <ol className="relative mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-12 right-12 top-[42px] hidden h-px bg-gradient-to-r from-transparent via-white/15 to-transparent sm:block"
-            />
-            {[
-              {
-                Icon: ClipboardList,
-                title: "Apply",
-                description:
-                  "Tell us about your practice and the outcomes you want.",
-              },
-              {
-                Icon: PhoneCall,
-                title: "Talk to a Legend",
-                description:
-                  "1:1 discovery call with the mentor to align on goals.",
-              },
-              {
-                Icon: Sparkles,
-                title: "Onboarding",
-                description:
-                  "Cohort kickoff, schedule and private community access.",
-              },
-            ].map(({ Icon, title, description }, i) => {
-              const stepNum = String(i + 1).padStart(2, "0");
-              return (
-                <li
-                  key={`hiw-${i}`}
-                  className="relative flex flex-col items-center text-center"
-                >
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute top-2 select-none font-serif text-7xl font-bold leading-none text-white/[0.04] sm:text-8xl"
-                  >
-                    {stepNum}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="relative z-10 inline-flex h-[84px] w-[84px] items-center justify-center rounded-full border border-[#ab834d]/40 bg-ink-950"
-                  >
-                    <Icon className="h-7 w-7 text-[#ab834d]" />
-                  </span>
-                  <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ab834d]">
-                    Step {stepNum}
-                  </p>
-                  <h3 className="mt-3 font-serif text-2xl leading-tight text-white sm:text-3xl">
-                    {title}
-                  </h3>
-                  <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-white/60">
-                    {description}
-                  </p>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-
-        {/* Final CTA banner */}
-        <section className="mt-20 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/15 via-ink-900 to-ink-950 p-8 sm:p-12">
-          <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <h3 className="font-serif text-2xl text-white sm:text-3xl">
-                Ready to shift from theory to surgical confidence?
-              </h3>
-              <p className="mt-2 text-sm text-white/65 sm:text-base">
-                Seats are limited each cohort. Apply now and we&apos;ll reach out as soon as your application is reviewed.
-              </p>
-            </div>
-            <CourseApplyButton
-              courseId={p.id}
-              courseName={p.name}
-              mentorName={faculty?.name}
-              brochureUrl={p.brochureUrl}
-              label={cta}
-            />
-          </div>
-        </section>
       </main>
       <Footer />
       <CourseStickyFooter
