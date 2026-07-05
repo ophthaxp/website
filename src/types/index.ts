@@ -118,6 +118,10 @@ export interface Program {
   // Faculty resolved from `doctorSlug` reference
   doctorSlug?: string;
   faculty?: Faculty;
+  // Doctor/mentor name carried on the course row itself. Used as a fallback for
+  // the hero credit line ("with Dr. …") in merged-module rows where the linked
+  // doctor record can't be resolved (doctor-side slug/name left blank).
+  mentorName?: string;
 }
 
 export interface ChatMessage {

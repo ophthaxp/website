@@ -181,6 +181,65 @@ function pickObjectArray<T>(rec: RawRecord, ...keys: string[]): T[] {
 }
 
 /**
+ * Recover a doctor reference from the course row's `doctorSlug` field. The
+ * nocode backend sometimes stores this reference cleanly (a slug string or a
+ * numeric row id) but often stores a corrupted, multiply-nested JSON blob:
+ *   {"slug":null,"name":null,"id":"{\"slug\":null,...\"id\":\"{\\\"slug\\\":
+ *    \\\"dr-srinivas-k-rao\\\",\\\"name\\\":\\\"Dr. Srinivas K Rao\\\",...}\"}"}
+ * where only the innermost object carries the real values. Recursively unwrap
+ * it, preferring the deepest (innermost) non-null slug/name/title/city.
+ */
+function parseDoctorReference(v: unknown): {
+  slug?: string;
+  name?: string;
+  title?: string;
+  city?: string;
+} {
+  const best: { slug?: string; name?: string; title?: string; city?: string } = {};
+  const visit = (node: unknown, depth: number): void => {
+    if (node == null || depth > 8) return;
+    if (typeof node === "number") {
+      if (!best.slug) best.slug = String(node);
+      return;
+    }
+    if (typeof node === "string") {
+      const s = node.trim();
+      if (!s) return;
+      if (s.startsWith("{")) {
+        try {
+          visit(JSON.parse(s), depth + 1);
+          return;
+        } catch {
+          // not JSON — fall through and treat as a plain slug
+        }
+      }
+      if (!best.slug) best.slug = s;
+      return;
+    }
+    if (typeof node === "object") {
+      const o = node as Record<string, unknown>;
+      // Recurse into a nested `id` blob FIRST so innermost values win.
+      if (typeof o.id === "string" && o.id.trim().startsWith("{")) {
+        visit(o.id, depth + 1);
+      }
+      for (const key of ["slug", "name", "title", "city"] as const) {
+        const val = o[key];
+        if (typeof val === "string" && val.trim() && !best[key]) best[key] = val.trim();
+      }
+      if (!best.slug) {
+        if (typeof o.id === "string" && o.id.trim() && !o.id.trim().startsWith("{")) {
+          best.slug = o.id.trim();
+        } else if (typeof o.id === "number") {
+          best.slug = String(o.id);
+        }
+      }
+    }
+  };
+  visit(v, 0);
+  return best;
+}
+
+/**
  * Map a raw record from the nocode-backend public module endpoint into the
  * Program shape this app already uses. Field names map flexibly so the user
  * can name them either camelCase or snake_case in the admin panel.
@@ -205,6 +264,9 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
   const doctorImageFallback = absoluteUrl(
     pickString(rec, "doctorImage", "doctor_image", "imageUrl", "image_url"),
   );
+  // The `doctorSlug` reference field frequently arrives as a corrupted nested
+  // JSON blob — parse it robustly to recover the linked doctor's slug + name.
+  const doctorRef = parseDoctorReference(rec.doctorSlug ?? rec.doctor_slug);
 
   return {
     id: String(pickString(rec, "id") ?? rec.id ?? slug),
@@ -293,12 +355,22 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
     // The backend stores `doctorSlug` (a `type: reference` field) as the
     // doctor's numeric row id — not the slug string — so coerce whatever
     // shape it comes back in to a string the matcher can compare.
-    doctorSlug: (() => {
-      const v = rec.doctorSlug ?? rec.doctor_slug;
-      if (typeof v === "string" && v.trim()) return v;
-      if (typeof v === "number") return String(v);
-      return undefined;
-    })(),
+    doctorSlug: doctorRef.slug,
+    // Doctor name for the hero credit line. Prefer the name recovered from the
+    // `doctorSlug` reference blob, then any explicit mentor-name field. This
+    // survives even when the doctor record itself can't be resolved into
+    // `faculty` (e.g. a broken reference id that matches no doctor row).
+    mentorName:
+      doctorRef.name ||
+      pickString(
+        rec,
+        "mentorName",
+        "mentor_name",
+        "doctorName",
+        "doctor_name",
+        "facultyName",
+        "faculty_name",
+      ),
   };
 }
 
