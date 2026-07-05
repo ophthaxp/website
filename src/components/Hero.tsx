@@ -90,7 +90,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
             <br />
             Legendary
             <br />
-            <span className="text-2xl italic text-accent sm:text-4xl">Learn from the Legends</span>
+            <span className="text-2xl font-bold italic text-accent sm:text-4xl">Learn from the Legends</span>
           </h1>
           <p className="mt-5 max-w-md font-canela text-base font-bold tracking-wide text-white/90 sm:text-lg">
             ACCESS. KNOWLEDGE. BREAKTHROUGH
