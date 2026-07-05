@@ -401,7 +401,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               id="eligibility-title"
               className="font-serif text-3xl text-white sm:text-4xl"
             >
-              Eligibility
+              The Roadmap
             </h2>
             <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-white/75 sm:text-lg">
               {p.eligibility}

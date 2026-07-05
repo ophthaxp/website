@@ -29,18 +29,6 @@ const SPECIALTY_LABELS: Record<string, string> = {
   "ophthalmology-practice-mastery": "Practice Mastery",
 };
 
-const EXTENDED_BIO = `In ophthalmology, there are accomplished surgeons, accomplished researchers, and accomplished teachers. Rarely does one individual excel across all three. Dr. Murali Ariga belongs to that uncommon group.
-
-Over more than three decades, Dr. Murali has built a reputation as one of the most respected clinician-academicians in Indian ophthalmology. While many know him for his expertise in premium cataract surgery, glaucoma management, refractive procedures, and ophthalmic lasers, his influence extends far beyond the operating room. Throughout his career, he has remained deeply committed to advancing the scientific foundations of ophthalmic practice, constantly bridging the gap between what is performed in clinics and what is validated through evidence.
-
-As a trusted referral specialist for complex glaucoma cases, Dr. Murali became known not only for his surgical skill but also for his methodical approach to decision-making. Colleagues often sought his opinion on challenging cases because his recommendations were grounded in both extensive clinical experience and a deep understanding of the scientific literature. In an era where medicine increasingly demands evidence-based practice, he exemplified what it means to combine judgment with scholarship.
-
-His academic contributions have been equally significant. With more than 44 scientific publications and 15 book chapters to his name, Dr. Murali has helped shape the body of knowledge that guides ophthalmologists across the country. As a reviewer for leading journals including the Indian Journal of Ophthalmology, Journal of Current Glaucoma Practice, TJOSR, and AJO Case Reports, he has also played an important role in maintaining the quality and integrity of ophthalmic research itself.
-
-Yet perhaps his greatest contribution lies in the example he has set for generations of ophthalmologists. Through his work as a clinician, researcher, teacher, and mentor, Dr. Murali has demonstrated that excellence in medicine is not achieved through technical mastery alone. It is achieved through a lifelong commitment to learning, questioning, publishing, teaching, and continually pushing the profession forward.
-
-For many ophthalmologists, Dr. Murali Ariga represents an ideal that few achieve — the complete ophthalmologist, equally respected in the clinic, the operating room, and the academic world. Learning from him is not merely about understanding surgical techniques or disease management. It is about understanding how a life dedicated to both science and patient care can leave a lasting mark on an entire profession.`;
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function DoctorDetailClient({
@@ -95,7 +83,8 @@ export function DoctorDetailClient({
 
   // ─── Computed values ──────────────────────────────────────────────────────
 
-  const fullBio = doctor.description ?? EXTENDED_BIO;
+  const fullBio = (doctor.description || doctor.bio || "").trim();
+  const hasBio = fullBio.length > 0;
   const PREVIEW_LEN = 460;
   const needsTruncation = fullBio.length > PREVIEW_LEN;
   const previewBio = needsTruncation
@@ -328,9 +317,13 @@ export function DoctorDetailClient({
                   id="about-heading"
                   className="mt-5 whitespace-pre-line text-[15px] leading-relaxed text-white/70"
                 >
-                  {bioExpanded || !needsTruncation ? fullBio : previewBio}
+                  {hasBio
+                    ? bioExpanded || !needsTruncation
+                      ? fullBio
+                      : previewBio
+                    : "Biography coming soon."}
                 </div>
-                {needsTruncation && (
+                {hasBio && needsTruncation && (
                   <button
                     type="button"
                     onClick={() => setBioExpanded((v) => !v)}
@@ -499,7 +492,7 @@ export function DoctorDetailClient({
         {/* ════════════════════════════════════════════════════════════
             § 5 — OTHER LEGENDS RAIL
         ════════════════════════════════════════════════════════════ */}
-        {otherDoctors.length > 0 && (
+        {false && otherDoctors.length > 0 && (
           <section
             aria-labelledby="other-legends-title"
             className="mx-auto max-w-[1500px] px-6 py-14 sm:px-16 sm:py-16 lg:px-24"
