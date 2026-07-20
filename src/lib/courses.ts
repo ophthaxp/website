@@ -474,6 +474,14 @@ async function fetchJson(url: string): Promise<{ ok: boolean; json: any }> {
     }
     return { ok: true, json };
   } catch (err) {
+    // Next.js signals internal control flow (static->dynamic bailout,
+    // redirects, notFound) by throwing an error with a `digest` tag from
+    // *inside* fetch/notFound/redirect. Swallowing those here would hide the
+    // signal from the framework and break rendering, so let them propagate.
+    const digest = (err as { digest?: string } | null)?.digest;
+    if (typeof digest === "string" && (digest === "DYNAMIC_SERVER_USAGE" || digest.startsWith("NEXT_"))) {
+      throw err;
+    }
     console.error("[courses] fetch failed:", url, err);
     return { ok: false, json: null };
   }
