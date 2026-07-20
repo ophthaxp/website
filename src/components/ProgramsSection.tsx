@@ -143,6 +143,7 @@ export function ProgramsSection({
         id="programs-title"
         className="mx-auto max-w-3xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
       >
+        
         Legacy Transfer Programs <br className="hidden sm:block" />
       </h2>
       <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-white/60 sm:text-base">
