@@ -5,11 +5,11 @@ import { Plus } from "lucide-react";
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: "What is OphthaXP?",
-    a: "OphthaXP is a mentor-led learning platform built specifically for ophthalmologists. Each program is taught by a senior surgeon — covering clinical reasoning, advanced surgical decision-making and the business of running a modern specialty practice. Cohorts are small, intentional and outcome-focused.",
+    q: "What is Legends of Medicine?",
+    a: "Legends of Medicine is a mentor-led learning platform built specifically for ophthalmologists. Each program is taught by a senior surgeon — covering clinical reasoning, advanced surgical decision-making and the business of running a modern specialty practice. Cohorts are small, intentional and outcome-focused.",
   },
   {
-    q: "Who is OphthaXP designed for?",
+    q: "Who is Legends of Medicine designed for?",
     a: "Practising ophthalmologists, fellows, DNB residents and clinic owners who want to move beyond textbook protocols. Whether you are sharpening a sub-specialty (cornea, glaucoma, retina, paediatric, oculoplasty) or scaling a practice, there is a track for your stage of career.",
   },
   {
@@ -22,7 +22,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Will I receive a certificate?",
-    a: "Yes — on successful completion you receive a verifiable OphthaXP certificate co-signed by the mentor. Several programs are also recognised toward continuing medical education credits, depending on your council.",
+    a: "Yes — on successful completion you receive a verifiable Legends of Medicine certificate co-signed by the mentor. Several programs are also recognised toward continuing medical education credits, depending on your council.",
   },
   {
     q: "What does the program cost? Are scholarships available?",
@@ -33,7 +33,7 @@ const FAQS: { q: string; a: string }[] = [
     a: "Yes. Most programs support 3, 6 and 12-month EMI through partnered lenders. We also offer a 7-day full refund window from the cohort start, no questions asked.",
   },
   {
-    q: "How is OphthaXP different from a typical online course?",
+    q: "How is Legends of Medicine different from a typical online course?",
     a: "You learn from the surgeon, not a slide deck. Our mentors review your real cases, share unedited operating-room footage, and stay engaged through the cohort. The goal is measurable change in your clinical confidence and practice outcomes — not just a completion certificate.",
   },
 ];
@@ -58,7 +58,7 @@ export function FaqSection() {
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/55">
           Everything you need to know before joining a cohort. Still curious? Ask
-          the OphthaXP Mentor Bot above or apply to any program for a 1:1 call.
+          the Legends of Medicine Mentor Bot above or apply to any program for a 1:1 call.
         </p>
       </div>
 

@@ -26,6 +26,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
         serif: ["var(--font-playfair)", "ui-serif", "Georgia", "serif"],
+        canela: ["var(--font-fraunces)", "ui-serif", "Georgia", "serif"],
       },
       keyframes: {
         scrollY: {

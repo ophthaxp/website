@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Sparkles, Loader2 } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
+import { LoMaIcon } from "./LoMaIcon";
 
 const QUICK_PROMPTS = [
   "What is OphthaXP?",
@@ -71,22 +72,25 @@ export function SmartAssist() {
       aria-labelledby="smart-title"
       className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24"
     >
-      <div className="grid gap-10 sm:grid-cols-[0.9fr_1.1fr] sm:items-end">
+      <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
         <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">
+            <LoMaIcon className="h-3.5 w-3.5" />
+            Meet LoMa
+          </span>
           <h2
             id="smart-title"
-            className="font-serif text-3xl leading-tight text-white sm:text-5xl"
+            className="mt-5 font-serif text-3xl leading-tight text-white sm:text-5xl"
           >
             Smart assistance <br /> for every step.
           </h2>
+          <p className="mt-5 max-w-lg text-sm text-white/60 sm:text-base">
+            Ask anything about programs, outcomes, or what suits you best — with
+            instant answers about mentors, cohorts, and the path that fits you.
+          </p>
         </div>
-        <p className="text-sm text-white/60 sm:text-base">
-          Ask anything about programs, outcomes, or what suits you best — with
-          instant answers about mentors, cohorts, and the path that fits you.
-        </p>
-      </div>
 
-      <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-ink-850/80">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-ink-850/80">
         {/* Thread / welcome state */}
         <div
           ref={threadRef}
@@ -95,7 +99,7 @@ export function SmartAssist() {
           {empty ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-3">
-                <Sparkles className="h-5 w-5 text-accent-soft" aria-hidden />
+                <LoMaIcon className="h-6 w-6" />
               </div>
               <p className="mt-5 font-serif text-2xl text-white sm:text-3xl">
                 How can I assist you today?
@@ -184,6 +188,7 @@ export function SmartAssist() {
               {error}
             </p>
           )}
+        </div>
         </div>
       </div>
     </section>
