@@ -36,7 +36,7 @@ export async function generateMetadata({
       type: "profile",
       url: pageUrl,
       siteName: SITE_NAME,
-      title: `${d.name} — ${d.title} · OphthaXP`,
+      title: `${d.name} — ${d.title} · Legends of Medicine`,
       description: descSnippet,
       locale: "en_IN",
       images: ogImage
@@ -45,7 +45,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${d.name} — ${d.title} · OphthaXP`,
+      title: `${d.name} — ${d.title} · Legends of Medicine`,
       description: descSnippet,
       images: ogImage ? [ogImage] : ["/og.jpg"],
     },

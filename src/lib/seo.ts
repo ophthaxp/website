@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://ophthaxp.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://legendsofmedicine.com";
 
-export const SITE_NAME = "OphthaXP";
+export const SITE_NAME = "Legends of Medicine";
 
 export const SITE_DESCRIPTION =
-  "OphthaXP — ACCESS. KNOWLEDGE. BREAKTHROUGH";
+  "Legends of Medicine — ACCESS. KNOWLEDGE. BREAKTHROUGH";
 
 export const DEFAULT_KEYWORDS = [
   "ophthalmology mentorship",
@@ -19,7 +19,7 @@ export const DEFAULT_KEYWORDS = [
   "neuro-ophthalmology course",
   "pediatric ophthalmology training",
   "ophthalmology continuing medical education",
-  "OphthaXP",
+  "Legends of Medicine",
 ];
 
 export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {

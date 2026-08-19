@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HERO_IMAGES as FALLBACK_HERO_IMAGES } from "@/lib/data";
+import { JoinWaitlistButton } from "@/components/JoinWaitlistButton";
 import { cn } from "@/lib/utils";
 
 type HeroImg = { src: string; alt: string };
@@ -103,6 +104,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
               Take me to Courses
               <span aria-hidden className="translate-x-0 transition group-hover:translate-x-0.5">→</span>
             </Link>
+            <JoinWaitlistButton />
           </div>
         </div>
 

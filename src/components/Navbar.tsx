@@ -9,10 +9,10 @@ export function Navbar() {
         aria-label="Primary"
         className="mx-auto flex max-w-[1500px] items-center justify-between px-6 py-3 sm:px-16 lg:px-24"
       >
-        <Link href="/" aria-label="OphthaXP — home" className="inline-flex items-center">
+        <Link href="/" aria-label="Legends of Medicine — home" className="inline-flex items-center">
           <Image
             src="/logo.png"
-            alt="OphthaXP"
+            alt="Legends of Medicine"
             width={410}
             height={74}
             priority
@@ -24,7 +24,7 @@ export function Navbar() {
           {/* Desktop: full pill — Mobile: icon-only */}
           <AskLomaButton />
          <Link
-            href="https://learn.ophthaxp.com/"
+            href="https://learn.legendsofmedicine.com/"
             className="rounded-[12px] bg-white px-4 py-1.5 text-xs font-semibold text-ink-950 shadow-sm transition hover:bg-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
           >
             Login

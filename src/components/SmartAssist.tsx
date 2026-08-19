@@ -5,7 +5,7 @@ import { ArrowUp, Loader2 } from "lucide-react";
 import { LoMaIcon } from "./LoMaIcon";
 
 const QUICK_PROMPTS = [
-  "What is OphthaXP?",
+  "What is Legends of Medicine?",
   "Compare Specialties",
   "What fits me?",
 ];
@@ -105,7 +105,7 @@ export function SmartAssist() {
                 How can I assist you today?
               </p>
               <p className="mt-2 max-w-md text-sm text-white/55">
-                Chat with the OphthaXP Mentor Assistant — get instant answers
+                Chat with the Legends of Medicine Mentor Assistant — get instant answers
                 about programs, mentors, and what suits your career stage.
               </p>
             </div>
@@ -167,7 +167,7 @@ export function SmartAssist() {
               rows={1}
               placeholder="Ask anything…"
               className="max-h-32 flex-1 resize-none bg-transparent px-1 py-1.5 text-sm text-white placeholder:text-white/35 focus:outline-none"
-              aria-label="Ask the OphthaXP assistant"
+              aria-label="Ask the Legends of Medicine assistant"
             />
             <button
               type="button"

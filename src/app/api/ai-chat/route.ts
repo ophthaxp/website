@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         model: process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001",
         max_tokens: 512,
         system:
-          "You are the OphthaXP assistant. Help final-year MBBS students and practising ophthalmologists choose mentorship cohorts (cataract, retina, glaucoma, cornea, paediatric, neuro, refractive, uveitis). Keep replies under 4 sentences. Suggest a relevant program slug when helpful.",
+          "You are the Legends of Medicine assistant. Help final-year MBBS students and practising ophthalmologists choose mentorship cohorts (cataract, retina, glaucoma, cornea, paediatric, neuro, refractive, uveitis). Keep replies under 4 sentences. Suggest a relevant program slug when helpful.",
         messages: [
           ...(body?.history ?? []).map((m) => ({ role: m.role, content: m.content })),
           { role: "user", content: message },
@@ -72,7 +72,8 @@ function stubReply(message: string) {
     return "If you've just finished MBBS and want to specialise in ophthalmology, start with the Cornea & Refractive Fellowship Prep cohort or the Cataract Mastery Cohort — both are designed to bridge from MBBS to confident clinical practice.";
   if (m.includes("compare"))
     return "Cataract is best for surgical volume; Retina/Vitreo-Retinal for posterior segment depth; Cornea/Refractive for high-precision day-care surgery; Glaucoma for long-term medical decision-making.";
-  if (m.includes("what is") || m.includes("ophthaxp"))
-    return "OphthaXP is a live, cohort-based mentorship platform where senior ophthalmologists teach practising clinicians and MBBS graduates through real cases, small groups and a practice-first curriculum.";
+  // Both names are matched: people will type the old one for a long while.
+  if (m.includes("what is") || m.includes("ophthaxp") || m.includes("legends of medicine"))
+    return "Legends of Medicine is a live, cohort-based mentorship platform where senior ophthalmologists teach practising clinicians and MBBS graduates through real cases, small groups and a practice-first curriculum.";
   return "Tell me your current qualification and which subspecialty interests you — I'll match you to the right cohort.";
 }

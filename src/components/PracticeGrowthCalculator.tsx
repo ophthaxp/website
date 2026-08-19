@@ -450,7 +450,7 @@ export function PracticeGrowthCalculator({
           <input
             id="growth-radius"
             type="range"
-            min={1}
+            min={0}
             max={100}
             step={1}
             value={radiusKm}
@@ -458,9 +458,14 @@ export function PracticeGrowthCalculator({
             className="mt-3 w-full accent-accent"
           />
           <div className="mt-1 flex justify-between text-xs text-white/55">
-            <span>1 KM</span>
+            <span>0 KM</span>
             <span>100 KM</span>
           </div>
+          {radiusKm === 0 && (
+            <p className="mt-1 text-xs text-white/55">
+              Total population of this pincode only.
+            </p>
+          )}
 
           {/* Expected patients slider */}
           <div className="mt-8 flex items-end justify-between">

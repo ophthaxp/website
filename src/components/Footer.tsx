@@ -251,7 +251,7 @@ export function Footer() {
               </button>
             </div>
             <div className="mx-auto flex w-full max-w-[1500px] flex-col items-center justify-between gap-2 px-6 pb-6 text-sm text-white/70 sm:flex-row sm:px-16 lg:px-24">
-              <span>© {year} OphthaXP · All Rights Reserved</span>
+              <span>© {year} Legends of Medicine · All Rights Reserved</span>
               <nav aria-label="Footer legal links" className="flex items-center">
                 <Link href="/privacy" className="transition-colors hover:text-white">
                   Privacy Policy

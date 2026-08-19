@@ -22,12 +22,12 @@ const PORTRAIT_SENIOR =
 export const HERO_IMAGES: { src: string; alt: string }[] = Array.from({ length: 10 }).map(
   (_, i) => ({
     src: i % 2 === 0 ? PORTRAIT_F : PORTRAIT_M,
-    alt: `OphthaXP mentor portrait ${i + 1}`,
+    alt: `Legends of Medicine mentor portrait ${i + 1}`,
   }),
 );
 
 export const HERO_VIDEO_POSTER = "/mainvideothumnailimage.png";
-// Override with NEXT_PUBLIC_HERO_VIDEO_SRC in your env to use a real OphthaXP trailer.
+// Override with NEXT_PUBLIC_HERO_VIDEO_SRC in your env to use a real Legends of Medicine trailer.
 // The default below points at Google's long-lived public test bucket so dev never breaks.
 export const HERO_VIDEO_SRC =
   process.env.NEXT_PUBLIC_HERO_VIDEO_SRC ||
