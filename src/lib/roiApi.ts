@@ -16,6 +16,8 @@ export interface RoiPincodeLookup {
   state?: string | null;
   region?: string | null;
   populationPerSqKm: number;
+  /** The pincode's own geographic footprint (km2); null when unknown. */
+  areaSqKm?: number | null;
   source: string;
 }
 
@@ -27,6 +29,18 @@ export interface RoiCalculateInput {
   leadEmail?: string;
 }
 
+/** One pincode's contribution to the radius, as the backend catchment reports it. */
+export interface RoiCatchmentContribution {
+  pincode: string;
+  office: string;
+  /** Centre-to-centre distance; can exceed the radius while the pincode's edge is inside. */
+  distanceKm: number;
+  /** Share of that pincode's PEOPLE inside the circle — population-based, not area. */
+  exposurePct: number;
+  totalPop: number;
+  inCirclePop: number;
+}
+
 export interface RoiCalculateResult {
   specialization: { slug: string; label: string };
   pincode: string;
@@ -35,6 +49,12 @@ export interface RoiCalculateResult {
   radiusKm: number;
   expectedPatients: number;
   serviceablePopulation: number;
+  /** How the population was derived: real pincode catchment, or an area x density estimate. */
+  serviceablePopulationSource?: "catchment" | "density";
+  /** Pincodes the radius touches. */
+  pincodesInRadius?: number;
+  /** Per-pincode split, nearest first. Absent when the catchment falls back to density. */
+  breakdown?: RoiCatchmentContribution[];
   prevalencePct: number;
   prevalenceCount: number;
   avgSellingPriceInr: number;

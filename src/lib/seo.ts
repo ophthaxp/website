@@ -85,9 +85,9 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     sameAs: [
-      "https://www.linkedin.com/company/ophthaxp",
-      "https://www.instagram.com/ophthaxp",
-      "https://twitter.com/ophthaxp",
+      "https://www.linkedin.com/company/legends-of-medicine",
+      "https://www.instagram.com/legends_of_medicine",
+      "https://twitter.com/legends_of_medicine",
     ],
     description: SITE_DESCRIPTION,
     address: {

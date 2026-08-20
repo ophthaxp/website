@@ -11,6 +11,13 @@ interface Specialization {
   factsBlurb: string | null;
 }
 
+/** Compact km2 label: one decimal below 10 so small circles don't read as "3". */
+function formatSqKm(value: number): string {
+  return value.toLocaleString("en-IN", {
+    maximumFractionDigits: value < 10 ? 1 : 0,
+  });
+}
+
 interface PincodeLookup {
   pincode: string;
   city?: string | null;
@@ -18,6 +25,19 @@ interface PincodeLookup {
   state?: string | null;
   region?: string | null;
   populationPerSqKm: number;
+  areaSqKm?: number | null;
+}
+
+/** One pincode's share of the radius — what the "Additional Geographical Info" table shows. */
+interface CatchmentContribution {
+  pincode: string;
+  office: string;
+  /** Centre-to-centre; a large pincode can sit further away than the radius and still reach in. */
+  distanceKm: number;
+  /** Share of that pincode's PEOPLE inside the circle, not the share of its area. */
+  exposurePct: number;
+  totalPop: number;
+  inCirclePop: number;
 }
 
 interface RoiResult {
@@ -28,6 +48,9 @@ interface RoiResult {
   radiusKm: number;
   expectedPatients: number;
   serviceablePopulation: number;
+  serviceablePopulationSource?: "catchment" | "density";
+  pincodesInRadius?: number;
+  breakdown?: CatchmentContribution[];
   prevalencePct: number;
   prevalenceCount: number;
   avgSellingPriceInr: number;
@@ -64,6 +87,25 @@ const FALLBACK_SPECIALIZATIONS: Specialization[] = [
   },
 ];
 
+// India Post tags every office with its type — S.O (sub office), H.O (head office),
+// B.O (branch office), G.P.O, P.O. That is postal-network vocabulary, not part of the
+// place name, so it is noise in a list of areas: "Karinkal S.O" is just Karinkal.
+// Matched as a whole token only, and on the boundary rather than a lookbehind, which
+// Safari below 16.4 rejects at parse time — a crash, not a missed match.
+const POST_OFFICE_CODE = /(^|[\s,])(?:[BSHP]\.?O\.?|G\.?P\.?O\.?)(?=[\s,]|$)/gi;
+
+/** Drop the India Post office-type code from a place name, for display only. */
+function cleanAreaName(raw: string): string {
+  const out = raw
+    .replace(POST_OFFICE_CODE, "$1")
+    .replace(/\s*,\s*/g, ", ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s,]+|[\s,]+$/g, "");
+  // Verified against all 19,312 names in pincode-geo.csv: none reduce to nothing.
+  // The fallback is here so a future data quirk shows the raw name, never a blank cell.
+  return out || raw;
+}
+
 function formatINRShort(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return "₹0";
   if (n >= 1_00_00_000) return `₹${(n / 1_00_00_000).toFixed(2)} Cr`;
@@ -93,7 +135,7 @@ interface Props {
   defaultExpectedPatients?: number;
   /** Override the bottom CTA label. Defaults differ by mode:
    *  - link mode (no onCtaClick): "Know more"
-   *  - button mode (onCtaClick set): "Speak to Ophthaxp Concierge" */
+   *  - button mode (onCtaClick set): "Speak to Legends of Medicine Concierge" */
   ctaLabel?: string;
 }
 
@@ -157,7 +199,7 @@ export function PracticeGrowthCalculator({
   const [specs, setSpecs] = useState<Specialization[]>([]);
   const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty);
   const [pincode, setPincode] = useState<string>(defaultPincode);
-  const [radiusKm, setRadiusKm] = useState<number>(defaultRadiusKm);
+  const [radiusKm, setRadiusKm] = useState<number>(Math.max(1, defaultRadiusKm));
   const [expectedPatients, setExpectedPatients] = useState<number>(
     defaultExpectedPatients,
   );
@@ -298,12 +340,43 @@ export function PracticeGrowthCalculator({
     [specs, specSlug],
   );
 
+  // Area of the serviceable circle (pi * r^2), shown live while dragging.
+  const areaSqKm = useMemo(() => Math.PI * radiusKm * radiusKm, [radiusKm]);
+  const areaLabel = useMemo(() => formatSqKm(areaSqKm), [areaSqKm]);
+
+  // The pincode's own footprint, which the radius circle may be smaller or
+  // larger than. Null when the backend has no boundary polygon for it.
+  const pincodeAreaSqKm = pinLookup?.areaSqKm ?? null;
+  const pincodeAreaLabel =
+    pincodeAreaSqKm !== null ? formatSqKm(pincodeAreaSqKm) : null;
+
   // ─── derived display values (use backend result when present) ─────────────
   const serviceablePopulation = result?.serviceablePopulation ?? 0;
   const prevalenceCount = result?.prevalenceCount ?? 0;
   const projectedRevenue = result?.projectedRevenue ?? 0;
   const impactPct = result?.impactPct ?? 0;
-  const stature = result?.stature ?? "—";
+
+  // ─── additional geographical info ─────────────────────────────────────────
+  // The radius rarely stops at the pincode boundary: it clips neighbours, and it may
+  // not even cover all of the pincode it starts in. The backend already returns that
+  // split per pincode, so show it rather than leave one aggregate number to be
+  // taken on trust.
+  const coverage = result?.breakdown ?? [];
+  const coverageOthers = coverage.filter((c) => c.pincode !== result?.pincode).length;
+  // No breakdown means the catchment found no grid cells and the backend fell back to
+  // area x density. Say so rather than hide the section: the headline number changes
+  // meaning, and silently dropping the panel just looks like a bug.
+  const densityFallback =
+    !coverage.length && result?.serviceablePopulationSource === "density";
+  const coverageSummary = densityFallback
+    ? "Estimated by area × density — no grid cells in this radius"
+    : !coverage.length
+      ? null
+      : coverageOthers === 0
+        ? `Stays inside ${result?.pincode} — no neighbouring pincode is touched`
+        : `Reaches ${coverageOthers} other pincode${coverageOthers === 1 ? "" : "s"} ` +
+          `beyond ${result?.pincode}`;
+
   const regionLabel =
     pinLookup?.city ||
     pinLookup?.district ||
@@ -416,6 +489,16 @@ export function PracticeGrowthCalculator({
                 {[pinLookup.city, pinLookup.district, pinLookup.state]
                   .filter(Boolean)
                   .join(", ")}
+                {pincodeAreaLabel && (
+                  <>
+                    {" "}
+                    &#183;{" "}
+                    <span className="font-semibold tabular-nums text-white/80">
+                      {pincodeAreaLabel} km&sup2;
+                    </span>{" "}
+                    total area
+                  </>
+                )}
               </span>
             ) : null}
           </div>
@@ -443,29 +526,25 @@ export function PracticeGrowthCalculator({
             >
               Serviceable Radius
             </label>
-            <span className="ml-3 shrink-0 text-base font-bold tabular-nums text-white">
+            <span className="ml-3 shrink-0 text-right text-base font-bold tabular-nums text-white">
               {radiusKm} KM
             </span>
           </div>
           <input
             id="growth-radius"
             type="range"
-            min={0}
+            min={1}
             max={100}
             step={1}
             value={radiusKm}
             onChange={(e) => setRadiusKm(Number(e.target.value))}
+            aria-valuetext={`${radiusKm} kilometres, ${areaLabel} square kilometres`}
             className="mt-3 w-full accent-accent"
           />
           <div className="mt-1 flex justify-between text-xs text-white/55">
-            <span>0 KM</span>
+            <span>1 KM</span>
             <span>100 KM</span>
           </div>
-          {radiusKm === 0 && (
-            <p className="mt-1 text-xs text-white/55">
-              Total population of this pincode only.
-            </p>
-          )}
 
           {/* Expected patients slider */}
           <div className="mt-8 flex items-end justify-between">
@@ -529,12 +608,12 @@ export function PracticeGrowthCalculator({
                 {impactPct ? `${impactPct.toFixed(2)}%` : "—"}
               </dd>
             </div>
-            <div className="rounded-lg border border-accent/40 bg-accent/10 p-3">
-              <dt className="text-[11px] uppercase tracking-wider text-white/65">
-                Stature Ranking
+            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
+              <dt className="text-[11px] uppercase tracking-wider text-white/55">
+                Serviceable Area
               </dt>
-              <dd className="mt-1 text-lg font-semibold text-accent-soft">
-                {stature}
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-white">
+                {areaLabel} km&sup2;
               </dd>
             </div>
           </dl>
@@ -556,7 +635,7 @@ export function PracticeGrowthCalculator({
                 onClick={onCtaClick}
                 className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
               >
-                {ctaLabel ?? "Speak to Ophthaxp Concierge"}
+                {ctaLabel ?? "Speak to Legends of Medicine Concierge"}
               </button>
             ) : (
               <a
@@ -569,6 +648,150 @@ export function PracticeGrowthCalculator({
           </div>
         </div>
       </div>
+
+      {/* ─────────── How the population model works ─────────── */}
+      {/* Collapsed by default: this is reassurance-on-demand, not something the
+          reader needs before the numbers above. Native <details> so it works
+          without JS, keyboard, and on touch (a hover tooltip would not). */}
+      <details className="group mt-8 rounded-xl border border-white/10 bg-ink-950/40 open:bg-ink-950/60">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white/65 transition hover:text-white/85 [&::-webkit-details-marker]:hidden">
+          <span>How we count the population</span>
+          <ChevronDown
+            aria-hidden
+            className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
+          />
+        </summary>
+        <p className="px-5 pb-4 text-xs leading-relaxed text-white/55">
+          India is mapped as a grid of ~200 m cells, each with its own headcount, and
+          your radius sums the real cells inside it — never radius &times; average
+          density. Cells come from{" "}
+          <span className="text-white/75">Google Open Buildings</span> footprints scaled
+          by <span className="text-white/75">GHSL</span> height, carrying{" "}
+          <span className="text-white/75">WorldPop</span> totals blended with Meta&apos;s{" "}
+          <span className="text-white/75">HRSL</span> at a ratio tuned per density band,
+          then tagged to 2025 pincode boundaries (localities from the{" "}
+          <span className="text-white/75">India Post</span> directory). Calibrated
+          against ground-truth data for hundreds of pincodes — estimates, not a census.
+        </p>
+      </details>
+
+      {/* ─────────── Additional Geographical Info ─────────── */}
+      {(coverage.length > 0 || densityFallback) && (
+        <div className="mt-8 rounded-xl border border-white/10 bg-ink-950/40 p-5 sm:p-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h3 className="text-sm font-semibold text-white">
+              Additional Geographical Info
+            </h3>
+            <p className="text-xs text-white/60">{coverageSummary}</p>
+          </div>
+
+          {densityFallback ? (
+            <p className="mt-3 rounded-lg border border-white/10 bg-ink-900/60 p-3 text-xs leading-relaxed text-white/60">
+              No population-grid cells fall inside this radius, so the serviceable
+              population above is an area × density estimate rather than a
+              pincode-by-pincode count. This happens in sparsely populated areas where
+              the grid has nothing to measure — widen the radius for a counted figure.
+            </p>
+          ) : (
+            <>
+          <p className="mt-1 text-xs leading-relaxed text-white/45">
+            Coverage is the share of each pincode&apos;s people inside your {radiusKm} km
+            radius — counted cell by cell from a 200 m population grid, not by area.
+            Distance runs from the centre of your radius to the centre of that pincode,
+            so a large pincode can sit further away than {radiusKm} km and still reach
+            into the circle.
+          </p>
+
+          <div className="mt-4 max-h-72 overflow-y-auto rounded-lg ring-1 ring-white/5">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead className="sticky top-0 z-10 bg-ink-900">
+                <tr className="text-[11px] uppercase tracking-wider text-white/45">
+                  <th scope="col" className="px-3 py-2 font-medium">Pincode</th>
+                  <th scope="col" className="px-3 py-2 font-medium">Area</th>
+                  <th scope="col" className="px-3 py-2 text-right font-medium">Distance</th>
+                  <th scope="col" className="px-3 py-2 font-medium">Coverage</th>
+                  <th scope="col" className="px-3 py-2 text-right font-medium">
+                    People in radius
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {coverage.map((c) => {
+                  const isHome = c.pincode === result?.pincode;
+                  return (
+                    <tr
+                      key={c.pincode}
+                      className={
+                        isHome
+                          ? "border-t border-white/5 bg-accent/10"
+                          : "border-t border-white/5"
+                      }
+                    >
+                      <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums text-white">
+                        {c.pincode}
+                        {isHome && (
+                          <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-soft">
+                            yours
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-white/70">
+                        {c.office ? cleanAreaName(c.office) : "—"}
+                      </td>
+                      {/* The circle is centred on this pincode's population-weighted
+                          point while distances are measured to India Post's geometric
+                          centre, so its own row lands ~0.5 km from itself. That gap is
+                          an artefact of two different centres, not a real distance —
+                          name the row for what it is instead of printing it. */}
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white/70">
+                        {isHome ? (
+                          <span className="text-white/50">centre</span>
+                        ) : (
+                          `${c.distanceKm.toFixed(1)} km`
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-white/10"
+                            aria-hidden="true"
+                          >
+                            <div
+                              className="h-full rounded-full bg-accent"
+                              style={{
+                                width: `${Math.max(2, Math.min(100, c.exposurePct))}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="tabular-nums text-white/80">
+                            {c.exposurePct >= 99.95
+                              ? "100%"
+                              : `${c.exposurePct.toFixed(1)}%`}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white">
+                        {formatNumber(Math.round(c.inCirclePop))}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-3 text-right text-xs text-white/55">
+            {formatNumber(coverage.length)} pincode
+            {coverage.length === 1 ? "" : "s"} ·{" "}
+            <span className="font-semibold text-white/80">
+              {formatNumber(serviceablePopulation)}
+            </span>{" "}
+            people in radius
+          </p>
+            </>
+          )}
+        </div>
+      )}
     </section>
   );
 }
