@@ -21,6 +21,17 @@ export interface RoiPincodeLookup {
   source: string;
 }
 
+/** One row of the location typeahead: a place name and the pincode behind it. */
+export interface RoiPlaceSuggestion {
+  pincode: string;
+  /** Display name — the India Post office name minus its type code. */
+  place: string;
+  officeName: string;
+  population: number;
+  /** Whether the query hit the place name or the pincode digits. */
+  matchedOn: "place" | "pincode";
+}
+
 export interface RoiCalculateInput {
   specializationSlug: string;
   pincode: string;
@@ -99,6 +110,12 @@ export function fetchSpecializations(): Promise<RoiSpecialization[]> {
 export function fetchPincode(pincode: string): Promise<RoiPincodeLookup> {
   return backendFetch<RoiPincodeLookup>(
     `/api/public/roi/pincode/${encodeURIComponent(pincode)}`,
+  );
+}
+
+export function fetchPlaces(q: string, limit = 8): Promise<RoiPlaceSuggestion[]> {
+  return backendFetch<RoiPlaceSuggestion[]>(
+    `/api/public/roi/places?q=${encodeURIComponent(q)}&limit=${limit}`,
   );
 }
 

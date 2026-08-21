@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 
 interface Specialization {
   slug: string;
@@ -16,6 +16,15 @@ function formatSqKm(value: number): string {
   return value.toLocaleString("en-IN", {
     maximumFractionDigits: value < 10 ? 1 : 0,
   });
+}
+
+/** One row of the location typeahead — a place name and the pincode behind it. */
+interface PlaceSuggestion {
+  pincode: string;
+  place: string;
+  officeName: string;
+  population: number;
+  matchedOn: "place" | "pincode";
 }
 
 interface PincodeLookup {
@@ -104,6 +113,15 @@ function cleanAreaName(raw: string): string {
   // Verified against all 19,312 names in pincode-geo.csv: none reduce to nothing.
   // The fallback is here so a future data quirk shows the raw name, never a blank cell.
   return out || raw;
+}
+
+/** Compact head-count for the suggestion rows: 1.4 L, 2.6 Cr. */
+function formatPeopleShort(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "—";
+  if (n >= 1_00_00_000) return `${(n / 1_00_00_000).toFixed(1)} Cr`;
+  if (n >= 1_00_000) return `${(n / 1_00_000).toFixed(1)} L`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(Math.round(n));
 }
 
 function formatINRShort(n: number): string {
@@ -208,6 +226,22 @@ export function PracticeGrowthCalculator({
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinLoading, setPinLoading] = useState(false);
 
+  // ─── location box: one field for a pincode OR a place name ────────────────
+  // Digits keep the original behaviour (typed straight into `pincode`); letters
+  // run the place typeahead, and picking a row fills `pincode` for us — so
+  // everything downstream still keys off a 6-digit pincode exactly as before.
+  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode);
+  const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
+  const [placesOpen, setPlacesOpen] = useState(false);
+  const [placesLoading, setPlacesLoading] = useState(false);
+  const [highlight, setHighlight] = useState(-1);
+  // The query values we wrote ourselves — the prefilled default, and the label
+  // written after a pick — neither of which should open a dropdown. Held as a
+  // value to compare against rather than a flag to consume, because Strict Mode
+  // double-invokes the mount effect and a one-shot flag leaks the second run.
+  const selfSetQuery = useRef<string>(defaultPincode);
+  const locationBoxRef = useRef<HTMLDivElement | null>(null);
+
   const [result, setResult] = useState<RoiResult | null>(null);
   const [calcError, setCalcError] = useState<string | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
@@ -256,6 +290,105 @@ export function PracticeGrowthCalculator({
     // We only want this on mount; specSlug seed is consumed once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ─── place typeahead (debounced) ──────────────────────────────────────────
+  useEffect(() => {
+    const q = locationQuery.trim();
+
+    // A digits-only entry is a pincode being typed: feed it straight through so
+    // the six-digit path behaves exactly as it did before this box existed.
+    if (/^\d+$/.test(q)) setPincode(q.slice(0, 6));
+
+    if (q === selfSetQuery.current) return;
+    if (q.length < 2) {
+      setPlaces([]);
+      setPlacesOpen(false);
+      setHighlight(-1);
+      return;
+    }
+
+    let cancelled = false;
+    setPlacesLoading(true);
+    const handle = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/roi/places?q=${encodeURIComponent(q)}`, {
+          cache: "no-store",
+        });
+        const body = await res.json();
+        if (cancelled) return;
+        const list: PlaceSuggestion[] =
+          body?.success && Array.isArray(body.data) ? body.data : [];
+        setPlaces(list);
+        setHighlight(list.length > 0 ? 0 : -1);
+        setPlacesOpen(list.length > 0);
+      } catch {
+        if (cancelled) return;
+        setPlaces([]);
+        setPlacesOpen(false);
+        setHighlight(-1);
+      } finally {
+        if (!cancelled) setPlacesLoading(false);
+      }
+    }, 200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [locationQuery]);
+
+  // Clicking anywhere outside the box dismisses the list.
+  useEffect(() => {
+    if (!placesOpen) return;
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      if (!locationBoxRef.current?.contains(e.target as Node)) setPlacesOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [placesOpen]);
+
+  /** Take the pincode off the chosen row and hand it to the existing flow. */
+  const selectPlace = useCallback((s: PlaceSuggestion) => {
+    const label = `${s.place} — ${s.pincode}`;
+    selfSetQuery.current = label;
+    setLocationQuery(label);
+    setPincode(s.pincode);
+    setPlaces([]);
+    setPlacesOpen(false);
+    setHighlight(-1);
+  }, []);
+
+  const onLocationKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Escape") {
+        setPlacesOpen(false);
+        return;
+      }
+      if (places.length === 0) return;
+      if (!placesOpen) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setPlacesOpen(true);
+        }
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlight((h) => (h + 1) % places.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlight((h) => (h - 1 + places.length) % places.length);
+      } else if (e.key === "Enter" && highlight >= 0) {
+        e.preventDefault();
+        selectPlace(places[highlight]);
+      }
+    },
+    [places, placesOpen, highlight, selectPlace],
+  );
 
   // ─── pincode lookup (debounced) ───────────────────────────────────────────
   useEffect(() => {
@@ -415,8 +548,9 @@ export function PracticeGrowthCalculator({
           </h2>
           {!compact && (
             <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Pick a specialization, enter your pincode and serviceable radius —
-              we'll project your revenue and impact in that catchment.
+              Pick a specialization, search your pincode or area, set a
+              serviceable radius — we'll project your revenue and impact in that
+              catchment.
             </p>
           )}
 
@@ -460,27 +594,96 @@ export function PracticeGrowthCalculator({
             </div>
           )}
 
-          {/* Pincode */}
+          {/* Pincode or place */}
           <label
-            htmlFor="growth-pincode"
+            htmlFor="growth-location"
             className="mt-8 block text-sm font-semibold text-white"
           >
-            Pincode
+            Pincode or Place
           </label>
-          <input
-            id="growth-pincode"
-            inputMode="numeric"
-            pattern="[0-9]{6}"
-            maxLength={6}
-            value={pincode}
-            onChange={(e) =>
-              setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
-            }
-            placeholder="e.g. 600037"
-            className="mt-2 w-full rounded-lg bg-ink-700 px-4 py-3 text-sm font-medium text-white ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
-          />
+          <div ref={locationBoxRef} className="relative mt-2">
+            <input
+              id="growth-location"
+              type="text"
+              role="combobox"
+              aria-expanded={placesOpen}
+              aria-controls="growth-location-list"
+              aria-autocomplete="list"
+              aria-activedescendant={
+                placesOpen && highlight >= 0
+                  ? `growth-location-opt-${highlight}`
+                  : undefined
+              }
+              autoComplete="off"
+              value={locationQuery}
+              onChange={(e) => setLocationQuery(e.target.value.slice(0, 60))}
+              onKeyDown={onLocationKeyDown}
+              onFocus={(e) => {
+                // A picked place reads "Anna Nagar — 600040"; select it so the
+                // next keystroke starts a fresh search instead of editing it.
+                if (/[^\d\s]/.test(e.currentTarget.value)) e.currentTarget.select();
+                if (places.length > 0) setPlacesOpen(true);
+              }}
+              placeholder="e.g. 600037 or Anna Nagar"
+              className="w-full rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
+            />
+
+            {placesOpen && places.length > 0 && (
+              <ul
+                id="growth-location-list"
+                role="listbox"
+                aria-label="Matching places"
+                className="no-scrollbar absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-[#ab834d]/40 bg-[#1A1A1A] py-1 shadow-2xl shadow-black/60 ring-1 ring-[#ab834d]/20"
+              >
+                {places.map((s, i) => {
+                  const isActive = i === highlight;
+                  return (
+                    <li
+                      key={`${s.pincode}-${s.place}`}
+                      id={`growth-location-opt-${i}`}
+                      role="option"
+                      aria-selected={s.pincode === pincode}
+                      onMouseEnter={() => setHighlight(i)}
+                      onMouseDown={(e) => {
+                        // Commit on mousedown, before the input can blur.
+                        e.preventDefault();
+                        selectPlace(s);
+                      }}
+                      className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm transition ${
+                        isActive
+                          ? "bg-[#ab834d] text-white"
+                          : "text-white/85 hover:bg-[#ab834d]/10"
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium">
+                          {s.place}
+                        </span>
+                        <span
+                          className={`block text-[11px] ${
+                            isActive ? "text-white/75" : "text-white/45"
+                          }`}
+                        >
+                          {formatPeopleShort(s.population)} people
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-xs font-semibold tabular-nums">
+                        {s.pincode}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
           <div className="mt-1 min-h-[1.25rem] text-xs">
-            {pinLoading ? (
+            {placesLoading ? (
+              <span className="text-white/55">Searching places…</span>
+            ) : pinLoading ? (
               <span className="text-white/55">Looking up pincode…</span>
             ) : pinError ? (
               <span className="text-red-300">{pinError}</span>
