@@ -65,7 +65,7 @@ export function LegendsVideo() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={HERO_VIDEO_POSTER}
-              alt="Senior ophthalmology consultant introducing the OphthaXP mentorship cohorts"
+              alt="Senior ophthalmology consultant introducing the Legends of Medicine mentorship cohorts"
               className="h-full w-full object-cover"
             />
 

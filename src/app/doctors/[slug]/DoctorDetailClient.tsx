@@ -64,8 +64,8 @@ export function DoctorDetailClient({
 
   // Share handlers
   const handleShare = useCallback(async () => {
-    const title = `${doctor.name} — ${doctor.title} · OphthaXP`;
-    const text = `${doctor.name}, ${doctor.title}, is teaching at OphthaXP. Learn directly from one of India's finest ophthalmologists.`;
+    const title = `${doctor.name} — ${doctor.title} · Legends of Medicine`;
+    const text = `${doctor.name}, ${doctor.title}, is teaching at Legends of Medicine. Learn directly from one of India's finest ophthalmologists.`;
     if (typeof navigator !== "undefined" && navigator.share) {
       try { await navigator.share({ title, text, url: pageUrl }); } catch {}
     } else {
@@ -94,7 +94,7 @@ export function DoctorDetailClient({
     fullBio.split(/\.|\n/)[0]?.trim().replace(/^["']/, "") ?? doctor.bio;
 
   const shareText = encodeURIComponent(
-    `${doctor.name}, ${doctor.title}, is teaching at OphthaXP — learn directly from one of India's finest ophthalmologists.`
+    `${doctor.name}, ${doctor.title}, is teaching at Legends of Medicine — learn directly from one of India's finest ophthalmologists.`
   );
   const shareUrlEnc = pageUrl ? encodeURIComponent(pageUrl) : "";
   const whatsappHref = `https://wa.me/?text=${shareText}${shareUrlEnc ? `%20${shareUrlEnc}` : ""}`;
@@ -436,7 +436,7 @@ export function DoctorDetailClient({
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-white">{doctor.name}</p>
                   <p className="truncate text-xs text-white/50">
-                    {doctor.title} · OphthaXP
+                    {doctor.title} · Legends of Medicine
                   </p>
                 </div>
               </div>
@@ -445,7 +445,7 @@ export function DoctorDetailClient({
                   {doctor.bio}
                 </p>
               )}
-              <p className="mt-3 text-xs text-[#ab834d]">ophthaxp.com</p>
+              <p className="mt-3 text-xs text-[#ab834d]">legendsofmedicine.com</p>
             </div>
 
             {/* Share buttons */}

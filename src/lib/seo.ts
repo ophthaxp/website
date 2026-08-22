@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://ophthaxp.com";
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://legendsofmedicine.com";
 
-export const SITE_NAME = "OphthaXP";
+export const SITE_NAME = "Legends of Medicine";
 
 export const SITE_DESCRIPTION =
-  "OphthaXP — ACCESS. KNOWLEDGE. BREAKTHROUGH";
+  "Legends of Medicine — ACCESS. KNOWLEDGE. BREAKTHROUGH";
 
 export const DEFAULT_KEYWORDS = [
   "ophthalmology mentorship",
@@ -19,7 +19,7 @@ export const DEFAULT_KEYWORDS = [
   "neuro-ophthalmology course",
   "pediatric ophthalmology training",
   "ophthalmology continuing medical education",
-  "OphthaXP",
+  "Legends of Medicine",
 ];
 
 export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
@@ -85,9 +85,9 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo.png`,
     sameAs: [
-      "https://www.linkedin.com/company/ophthaxp",
-      "https://www.instagram.com/ophthaxp",
-      "https://twitter.com/ophthaxp",
+      "https://www.linkedin.com/company/legends-of-medicine",
+      "https://www.instagram.com/legends_of_medicine",
+      "https://twitter.com/legends_of_medicine",
     ],
     description: SITE_DESCRIPTION,
     address: {

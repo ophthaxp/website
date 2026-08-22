@@ -46,7 +46,7 @@ export function AskLomaButton() {
     <a
       href="/#smart-assist"
       onClick={handleClick}
-      aria-label="Ask OphthaXP"
+      aria-label="Ask Legends of Medicine"
       className="inline-flex items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-medium text-white/85 transition hover:border-white/20 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:px-3.5"
     >
       <LoMaIcon className="h-4 w-4" />

@@ -12,7 +12,7 @@ export function CertificatesPromo() {
         {/* Left — copy + CTA */}
         <div>
           <p className="flex items-baseline gap-2 font-serif text-base font-semibold tracking-tight">
-            <span>OphthaXP</span>
+            <span>Legends of Medicine</span>
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#1a1a1a]/85">
               Certification
             </span>
@@ -48,7 +48,7 @@ export function CertificatesPromo() {
           <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-[28px] bg-[#0a0a0d] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)]">
             <Image
               src="/Ophtha_Certificate.png"
-              alt="OphthaXP certificate of completion"
+              alt="Legends of Medicine certificate of completion"
               fill
               sizes="(max-width: 1024px) 90vw, 28rem"
               className="object-contain"
