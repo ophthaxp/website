@@ -104,7 +104,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
               Take me to Courses
               <span aria-hidden className="translate-x-0 transition group-hover:translate-x-0.5">→</span>
             </Link>
-            <JoinWaitlistButton />
+            {/* <JoinWaitlistButton /> */}
           </div>
         </div>
 
