@@ -42,17 +42,48 @@ interface IncomingPayload {
  * payment link for this specific lead and send the mail through the org's own
  * sender. This route just says "this lead exists, welcome them".
  */
-async function requestWelcomeEmail(leadId: number | string, payload: IncomingPayload) {
+/**
+ * What happened when we asked the platform to welcome this lead.
+ *
+ * Returned to the browser so the outcome is visible in the console: this all
+ * runs server-side, and on Vercel `console.log` only reaches the runtime logs,
+ * which is no help to whoever is looking at the form.
+ */
+export interface WelcomeDiagnostic {
+  /** false when we never got as far as calling the platform. */
+  attempted: boolean;
+  ok: boolean;
+  status?: number;
+  provider?: string;
+  paymentLink?: boolean;
+  reason?: string;
+}
+
+/** Long enough for a payment link plus a provider send, short enough that the
+ *  form still returns inside a serverless function's default budget. */
+const WELCOME_TIMEOUT_MS = 8000;
+
+async function requestWelcomeEmail(
+  leadId: number | string,
+  payload: IncomingPayload,
+): Promise<WelcomeDiagnostic> {
   if (!NOCODE_API_KEY) {
-    console.error(
-      "[leads/welcome] NOCODE_API_KEY not set — no welcome email will be sent. " +
-        "Create an API key in the platform and set NOCODE_API_KEY.",
-    );
-    return;
+    const reason =
+      "NOCODE_API_KEY not set on the server — create an API key in the platform and set it in the deployment's environment";
+    console.error(`[leads/welcome] ${reason}`);
+    return { attempted: false, ok: false, reason };
   }
 
+  const url = `${NOCODE_BASE}/api/lom/leads/${leadId}/welcome`;
+  console.log(`[leads/welcome] lead ${leadId}: POST → ${url}`);
+
+  // Without a deadline a slow platform would hold the form open until the
+  // function itself is killed, and the caller would learn nothing.
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), WELCOME_TIMEOUT_MS);
+
   try {
-    const res = await fetch(`${NOCODE_BASE}/api/lom/leads/${leadId}/welcome`, {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -64,27 +95,43 @@ async function requestWelcomeEmail(leadId: number | string, payload: IncomingPay
         mentorName: payload.mentorName ?? "",
         courseName: payload.courseName ?? "",
       }),
+      signal: controller.signal,
     });
 
     const body = (await res.json().catch(() => ({}))) as {
       payUrl?: string | null;
       email?: { sent?: boolean; provider?: string; reason?: string };
       error?: string;
+      message?: string;
     };
 
     if (!res.ok || !body?.email?.sent) {
-      console.error(
-        `[leads/welcome] lead ${leadId}: email not sent — ${body?.email?.reason ?? body?.error ?? `status ${res.status}`}`,
-      );
-      return;
+      const reason =
+        body?.email?.reason ?? body?.error ?? body?.message ?? `status ${res.status}`;
+      console.error(`[leads/welcome] lead ${leadId}: email not sent — ${reason}`);
+      return { attempted: true, ok: false, status: res.status, reason };
     }
 
     console.log(
       `[leads/welcome] lead ${leadId}: sent via ${body.email.provider}` +
         (body.payUrl ? " with payment link" : " WITHOUT a payment link"),
     );
+    return {
+      attempted: true,
+      ok: true,
+      status: res.status,
+      provider: body.email.provider,
+      paymentLink: Boolean(body.payUrl),
+    };
   } catch (err) {
-    console.error(`[leads/welcome] lead ${leadId}: request failed`, err);
+    const reason =
+      (err as Error)?.name === "AbortError"
+        ? `no response from the platform within ${WELCOME_TIMEOUT_MS}ms`
+        : ((err as Error)?.message ?? String(err));
+    console.error(`[leads/welcome] lead ${leadId}: request failed — ${reason}`);
+    return { attempted: true, ok: false, reason };
+  } finally {
+    clearTimeout(deadline);
   }
 }
 
@@ -125,14 +172,15 @@ async function sendWhatsApp(
   firstName: string,
   courseName: string,
   brochureUrl?: string,
-) {
+): Promise<WelcomeDiagnostic> {
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_WHATSAPP_FROM;
 
   if (!sid || !token || !from || sid.startsWith("YOUR_")) {
-    console.warn("[leads/whatsapp] Twilio env not configured — skipping WhatsApp message");
-    return;
+    const reason = "Twilio env not configured";
+    console.warn(`[leads/whatsapp] ${reason} — skipping WhatsApp message`);
+    return { attempted: false, ok: false, reason };
   }
 
   const to = `whatsapp:${toE164(rawPhone)}`;
@@ -153,14 +201,22 @@ async function sendWhatsApp(
       },
       body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
     });
-    const data = await res.json().catch(() => ({}));
+    const data = (await res.json().catch(() => ({}))) as { sid?: string; message?: string };
     if (!res.ok) {
       console.error(`[leads/whatsapp] Twilio error ${res.status}:`, data);
-    } else {
-      console.log(`[leads/whatsapp] WhatsApp sent to ${to} sid=${(data as any).sid}`);
+      return {
+        attempted: true,
+        ok: false,
+        status: res.status,
+        reason: data?.message ?? `status ${res.status}`,
+      };
     }
+    console.log(`[leads/whatsapp] WhatsApp sent to ${to} sid=${data.sid}`);
+    return { attempted: true, ok: true, status: res.status };
   } catch (err) {
-    console.error("[leads/whatsapp] failed to send WhatsApp:", err);
+    const reason = (err as Error)?.message ?? String(err);
+    console.error(`[leads/whatsapp] failed to send WhatsApp — ${reason}`);
+    return { attempted: true, ok: false, reason };
   }
 }
 
@@ -264,18 +320,28 @@ export async function POST(req: Request) {
 
       const leadId = (data as { data?: { id?: number } })?.data?.id;
 
-      // Off the response path: the doctor sees the form succeed immediately
-      // while the payment link is created and the email goes out.
+      // Awaited, not fired and forgotten. A serverless function is frozen the
+      // moment it responds, so work left running past the response is killed
+      // before it reaches the platform — which is why this worked in `next dev`
+      // and never ran once deployed.
+      let welcome: WelcomeDiagnostic;
       if (leadId) {
-        void requestWelcomeEmail(leadId, { ...payload, intent });
+        welcome = await requestWelcomeEmail(leadId, { ...payload, intent });
       } else {
-        console.error(
-          "[leads] insert returned no lead id — no welcome email requested",
-        );
+        const reason = "the insert returned no lead id, and the welcome is addressed by lead id";
+        console.error(`[leads] ${reason} — no welcome email requested`);
+        welcome = { attempted: false, ok: false, reason };
       }
-      void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
 
-      return NextResponse.json({ ok: true, intent, data });
+      const whatsapp = await sendWhatsApp(
+        intent,
+        phone,
+        firstName,
+        payload.courseName ?? "",
+        payload.brochureUrl,
+      );
+
+      return NextResponse.json({ ok: true, intent, data, leadId: leadId ?? null, welcome, whatsapp });
     } catch (err) {
       console.error("[leads] nocode insert threw", err);
       return NextResponse.json(
@@ -303,13 +369,22 @@ export async function POST(req: Request) {
 
   // No lead row means no lead id, and the welcome email is addressed by lead id
   // — so this path can only do WhatsApp.
-  console.warn("[leads] echo path — welcome email skipped (lead was not stored)");
-  void sendWhatsApp(intent, phone, firstName, payload.courseName ?? "", payload.brochureUrl);
+  const echoReason = "echo path — the lead was never stored, so there is no lead id to welcome";
+  console.warn(`[leads] ${echoReason}`);
+  const whatsapp = await sendWhatsApp(
+    intent,
+    phone,
+    firstName,
+    payload.courseName ?? "",
+    payload.brochureUrl,
+  );
 
   return NextResponse.json({
     ok: true,
     intent,
     id: `lead_${Date.now()}`,
     received: record,
+    welcome: { attempted: false, ok: false, reason: echoReason } satisfies WelcomeDiagnostic,
+    whatsapp,
   });
 }
