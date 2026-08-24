@@ -4,6 +4,55 @@ import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { ThemedSelect } from "@/components/ThemedSelect";
 
+/** What /api/leads reports about each side-effect it attempted. */
+interface StepOutcome {
+  attempted?: boolean;
+  ok?: boolean;
+  status?: number;
+  provider?: string;
+  paymentLink?: boolean;
+  reason?: string;
+}
+
+interface LeadResponse {
+  ok?: boolean;
+  error?: string;
+  leadId?: number | null;
+  welcome?: StepOutcome;
+  whatsapp?: StepOutcome;
+}
+
+function describe(step: StepOutcome | undefined): string {
+  if (!step) return "not reported by the server (old build?)";
+  if (step.ok) {
+    return `sent${step.provider ? ` via ${step.provider}` : ""}${
+      step.paymentLink === false ? " — but WITHOUT a payment link" : ""
+    }`;
+  }
+  if (!step.attempted) return `never attempted — ${step.reason ?? "no reason given"}`;
+  return `FAILED${step.status ? ` (status ${step.status})` : ""} — ${step.reason ?? "no reason given"}`;
+}
+
+/**
+ * Print what the server did with this submission.
+ *
+ * Everything after the lead row is written happens server-side, so the only
+ * trace is in the deployment's runtime logs. Echoing it here means anyone
+ * testing the form can see, in the console, how far the welcome email got.
+ */
+function logLeadOutcome(status: number, body: LeadResponse) {
+  const label = "[lead submit]";
+  if (!body?.ok) {
+    console.error(`${label} rejected (HTTP ${status}) — ${body?.error ?? "no error given"}`, body);
+    return;
+  }
+  console.groupCollapsed(`${label} saved — lead id ${body.leadId ?? "unknown"}`);
+  console.log("welcome email:", describe(body.welcome));
+  console.log("whatsapp:", describe(body.whatsapp));
+  console.log("full response:", body);
+  console.groupEnd();
+}
+
 const QUALIFICATIONS = [
   "MBBS",
   "MS",
@@ -182,8 +231,14 @@ export function ApplyFormModal({
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const body = await res.json().catch(() => ({}));
+
+      // The welcome email and WhatsApp are sent server-side, where their logs
+      // land in the deployment's runtime logs rather than anywhere the person
+      // testing the form can see. The route reports what happened; print it.
+      logLeadOutcome(res.status, body);
+
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
         throw new Error(body?.error ?? "Submission failed");
       }
       setStatus("success");
