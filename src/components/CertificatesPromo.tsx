@@ -1,59 +1,66 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
+/**
+ * Certification band — a warm, lit interior with the framed certificate on the
+ * right and the headline sitting in the open wall space on the left. The whole
+ * card is the link target; the visible CTA is there for affordance.
+ */
 export function CertificatesPromo() {
   return (
     <section
       aria-labelledby="certificates-title"
-      className="bg-[#ead8c0] text-[#1a1a1a]"
+      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-20 lg:px-[120px]"
     >
-      <div className="mx-auto grid max-w-[1500px] items-center gap-10 px-6 py-16 sm:px-16 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:px-24 lg:py-24">
-        {/* Left — copy + CTA */}
-        <div>
-          <p className="flex items-baseline gap-2 font-serif text-base font-semibold tracking-tight">
-            <span>Legends of Medicine</span>
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#1a1a1a]/85">
-              Certification
-            </span>
-          </p>
+      <div className="relative isolate overflow-hidden rounded-[16px] bg-[linear-gradient(115deg,#efe7dc_0%,#e6dbcd_45%,#d9ccbc_100%)]">
+        {/* Soft raking light from the upper right, as in the reference shot. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_85%_10%,rgba(255,255,255,0.75)_0%,rgba(255,255,255,0)_55%)]"
+        />
+        {/* Shelf edge the frame rests on. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] bg-[linear-gradient(to_top,rgba(120,102,84,0.28)_0%,rgba(120,102,84,0.06)_60%,rgba(120,102,84,0)_100%)]"
+        />
 
-          <h2
-            id="certificates-title"
-            className="mt-6 font-serif text-4xl leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl"
-          >
-            Wear Your Mastery
-            <br />
-            with Pride
-          </h2>
+        <div className="relative grid items-center gap-10 px-7 py-12 sm:px-12 sm:py-16 lg:grid-cols-[1fr_minmax(0,560px)] lg:gap-8 lg:px-16 lg:py-20">
+          {/* Left — headline */}
+          <div>
+            <p className="text-[clamp(1.25rem,2vw,1.75rem)] font-bold leading-tight text-[#2a2622]">
+              Become part of this
+            </p>
+            <h2
+              id="certificates-title"
+              className="mt-2 font-display text-[clamp(2.25rem,4.5vw,3.5rem)] uppercase leading-[0.95] tracking-[0.005em] text-accent"
+            >
+              Elite Community
+            </h2>
+            <p className="mt-6 max-w-md text-[15px] leading-relaxed text-[#3a342d]/75">
+              Train with the surgeons who defined modern ophthalmology, and earn a
+              certificate that belongs on your wall — and in the trust of your patients.
+            </p>
+            <Link
+              href="/programs"
+              className="mt-8 inline-flex items-center rounded-[10px] bg-accent px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#e6dbcd]"
+            >
+              Explore Programs
+            </Link>
+          </div>
 
-          <p className="mt-6 max-w-md text-base leading-relaxed text-[#1a1a1a]/75">
-            Train with the surgeons who defined modern ophthalmology,
-             and earn a certificate that belongs on your wall — and in the trust of your patients.
-          </p>
-
-          <Link
-            href="programs"
-            className="mt-8 inline-flex items-center gap-3 rounded-full bg-black py-3 pl-6 pr-2 text-sm font-semibold text-white transition hover:bg-[#1a1a1a]"
-          >
-            Explore Courses
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#c5e833] text-black">
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </span>
-          </Link>
-        </div>
-
-        {/* Right — certificate preview */}
-        <div className="flex justify-center lg:justify-end">
-          <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-[28px] bg-[#0a0a0d] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.35)]">
-            <Image
-              src="/Ophtha_Certificate.png"
-              alt="Legends of Medicine certificate of completion"
-              fill
-              sizes="(max-width: 1024px) 90vw, 28rem"
-              className="object-contain"
-              priority={false}
-            />
+          {/* Right — the certificate. The asset is already a photograph of a
+              framed award, so it gets a shadow and nothing else; adding a
+              border here would read as a frame around a frame. */}
+          <div className="flex justify-center lg:justify-end">
+            <div className="relative aspect-[4/3] w-full max-w-[540px] rotate-[-0.6deg] overflow-hidden rounded-[8px] shadow-[18px_26px_48px_-18px_rgba(76,62,48,0.5)]">
+              <Image
+                src="/Ophtha_Certificate.png"
+                alt="Legends of Medicine certificate of completion, presented to a graduating fellow"
+                fill
+                sizes="(max-width: 1024px) 90vw, 540px"
+                className="object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>

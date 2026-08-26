@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Loader2 } from "lucide-react";
-import { LoMaIcon } from "./LoMaIcon";
+import { ArrowUp, AudioLines, Loader2, Mic, Paperclip, Repeat2 } from "lucide-react";
 
 const QUICK_PROMPTS = [
-  "What is Legends of Medicine?",
-  "Compare Specialties",
-  "What fits me?",
+  "Help diagnose this retinal condition",
+  "Show upcoming fellowship cohort opportunities",
+  "Recommend the right fellowship program",
 ];
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -39,10 +38,7 @@ export function SmartAssist() {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          message,
-          history: messages,
-        }),
+        body: JSON.stringify({ message, history: messages }),
       });
       const data = (await res.json()) as { reply?: string; error?: string };
       if (!res.ok || !data.reply) {
@@ -70,125 +66,146 @@ export function SmartAssist() {
     <section
       id="smart-assist"
       aria-labelledby="smart-title"
-      className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24"
+      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-24 lg:px-[120px]"
     >
-      <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-14">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">
-            <LoMaIcon className="h-3.5 w-3.5" />
-            Meet LoMa
-          </span>
-          <h2
-            id="smart-title"
-            className="mt-5 font-serif text-3xl leading-tight text-white sm:text-5xl"
-          >
-            Smart assistance <br /> for every step.
-          </h2>
-          <p className="mt-5 max-w-lg text-sm text-white/60 sm:text-base">
-            Ask anything about programs, outcomes, or what suits you best — with
-            instant answers about mentors, cohorts, and the path that fits you.
-          </p>
-        </div>
+      <h2
+        id="smart-title"
+        className="text-[clamp(1.75rem,3.1vw,2.6rem)] font-extrabold leading-tight tracking-[-0.015em] text-white"
+      >
+        Where Curiosity Finds Clarity
+      </h2>
+      <p className="mt-3 text-[15px] text-white/40">
+        Ask anything. LOMA AI finds the answers that matter.
+      </p>
 
-        <div className="overflow-hidden rounded-3xl border border-white/10 bg-ink-850/80">
-        {/* Thread / welcome state */}
-        <div
-          ref={threadRef}
-          className="max-h-[520px] min-h-[360px] overflow-y-auto px-6 py-8 sm:px-10 sm:py-12"
-        >
+      <div className="mt-10 flex items-center rounded-[14px] bg-ink-800 px-5 py-12 sm:mt-12 sm:px-10 sm:py-16 lg:min-h-[600px] lg:px-16">
+        <div className="mx-auto flex w-full max-w-[720px] flex-col justify-center">
           {empty ? (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <div className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-3">
-                <LoMaIcon className="h-6 w-6" />
-              </div>
-              <p className="mt-5 font-serif text-2xl text-white sm:text-3xl">
-                How can I assist you today?
+            <>
+              <p className="text-center text-[clamp(2rem,3.6vw,3rem)] font-light leading-none text-white">
+                <span className="text-white/45">Meet</span>{" "}
+                <span
+                  aria-hidden
+                  className="relative -top-[0.04em] mx-1 inline-block text-[1.45em] leading-[0] text-accent"
+                >
+                  &#8734;
+                </span>{" "}
+                LOMA
               </p>
-              <p className="mt-2 max-w-md text-sm text-white/55">
-                Chat with the Legends of Medicine Mentor Assistant — get instant answers
-                about programs, mentors, and what suits your career stage.
+              <p className="mt-4 text-center text-sm text-white/40">
+                Your AI mentor for clinical decisions, fellowships and lifelong learning.
               </p>
-            </div>
+            </>
           ) : (
-            <ul className="flex flex-col gap-4">
-              {messages.map((m, i) => (
-                <li
-                  key={i}
-                  className={
-                    m.role === "user" ? "flex justify-end" : "flex justify-start"
-                  }
-                >
-                  <div
-                    className={
-                      m.role === "user"
-                        ? "max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-[#ab834d] px-4 py-2.5 text-sm text-white"
-                        : "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/90"
-                    }
+            <div
+              ref={threadRef}
+              className="mb-6 max-h-[420px] min-h-[240px] overflow-y-auto pr-1"
+            >
+              <ul className="flex flex-col gap-4">
+                {messages.map((m, i) => (
+                  <li
+                    key={i}
+                    className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
                   >
-                    {m.content}
-                  </div>
-                </li>
-              ))}
-              {pending && (
-                <li className="flex justify-start">
-                  <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-md border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Thinking…
-                  </div>
-                </li>
-              )}
-            </ul>
-          )}
-        </div>
-
-        {/* Composer */}
-        <div className="border-t border-white/10 bg-ink-900/60 px-4 py-3 sm:px-6 sm:py-4">
-          {empty && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {QUICK_PROMPTS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => send(p)}
-                  disabled={pending}
-                  className="rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs text-white/80 transition hover:border-[#ab834d] hover:bg-[#ab834d]/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {p}
-                </button>
-              ))}
+                    <div
+                      className={
+                        m.role === "user"
+                          ? "max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm text-white"
+                          : "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-ink-700 px-4 py-2.5 text-sm text-white/90"
+                      }
+                    >
+                      {m.content}
+                    </div>
+                  </li>
+                ))}
+                {pending && (
+                  <li className="flex justify-start">
+                    <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-md bg-ink-700 px-4 py-2.5 text-sm text-white/60">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      Thinking…
+                    </div>
+                  </li>
+                )}
+              </ul>
             </div>
           )}
-          <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-ink-950/60 px-3 py-2 focus-within:border-[#ab834d]/60">
+
+          {/* Composer */}
+          <div
+            className={`flex items-center gap-3 rounded-full border border-white/12 bg-[#171717] py-2 pl-2 pr-2 transition focus-within:border-accent/60 ${
+              empty ? "mt-10" : "mt-0"
+            }`}
+          >
+            <button
+              type="button"
+              aria-label="Attach a file"
+              title="Attach"
+              disabled
+              className="inline-flex h-10 w-10 shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-ink-700 text-white/60"
+            >
+              <Paperclip className="h-4 w-4" aria-hidden />
+            </button>
+
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
               rows={1}
-              placeholder="Ask anything…"
-              className="max-h-32 flex-1 resize-none bg-transparent px-1 py-1.5 text-sm text-white placeholder:text-white/35 focus:outline-none"
-              aria-label="Ask the Legends of Medicine assistant"
+              placeholder="Ask anything with LOMA..."
+              aria-label="Ask LOMA"
+              className="max-h-28 min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] text-white placeholder:text-white/35 focus:outline-none"
             />
+
+            <button
+              type="button"
+              aria-label="Voice input"
+              title="Voice input"
+              disabled
+              className="inline-flex h-9 w-9 shrink-0 cursor-not-allowed items-center justify-center rounded-full text-white/55"
+            >
+              <Mic className="h-[18px] w-[18px]" aria-hidden />
+            </button>
+
             <button
               type="button"
               onClick={() => send(input)}
-              disabled={pending || !input.trim()}
+              disabled={pending}
               aria-label="Send message"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#ab834d] text-white transition hover:bg-[#8a6a40] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-tint text-accent transition hover:bg-white disabled:opacity-60"
             >
               {pending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : input.trim() ? (
+                <ArrowUp className="h-[18px] w-[18px]" aria-hidden />
               ) : (
-                <ArrowUp className="h-4 w-4" />
+                <AudioLines className="h-[18px] w-[18px]" aria-hidden />
               )}
             </button>
           </div>
+
           {error && (
-            <p className="mt-2 text-xs text-red-400/90" role="alert">
+            <p className="mt-3 text-xs text-red-400/90" role="alert">
               {error}
             </p>
           )}
-        </div>
+
+          {empty && (
+            <ul className="mt-7 flex flex-col gap-1">
+              {QUICK_PROMPTS.map((p) => (
+                <li key={p}>
+                  <button
+                    type="button"
+                    onClick={() => send(p)}
+                    className="inline-flex items-center gap-3 rounded-lg px-2.5 py-2 text-left text-[15px] text-white/55 transition hover:text-white"
+                  >
+                    <Repeat2 className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+                    {p}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </section>

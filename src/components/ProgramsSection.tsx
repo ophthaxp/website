@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   GraduationCap,
   Eye,
   Sparkles,
@@ -13,7 +13,7 @@ import {
   Droplet,
   Baby,
   Scissors,
-  Briefcase,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
@@ -28,7 +28,17 @@ const SPECIALTY_ICONS: Record<Specialty, LucideIcon> = {
   glaucoma: Droplet,
   "pediatric-ophthalmology": Baby,
   oculoplasty: Scissors,
-  "ophthalmology-practice-mastery": Briefcase,
+  "ophthalmology-practice-mastery": Building2,
+};
+
+/* The filter row runs across a single line in the design, so the tabs show the
+   short clinical name rather than the full title carried in SPECIALTY_TABS. */
+const SHORT_LABELS: Partial<Record<Specialty, string>> = {
+  "cornea-ocular-surface": "Cornea",
+  "phaco-refractive-surgery": "Refractive Surgery",
+  "retina-vitreo-retinal-surgery": "Retina",
+  "pediatric-ophthalmology": "Pediatric",
+  "ophthalmology-practice-mastery": "Practice Management",
 };
 
 export function ProgramsSection({
@@ -72,7 +82,7 @@ export function ProgramsSection({
     return data.filter((d) => d.specialty.includes(active));
   }, [active, data]);
 
-  // Track scroll position so the bottom dot pagination reflects the user's place
+  // Track scroll position so the bottom pagination reflects the reader's place
   // in the rail. Recomputes on scroll, on filter change, and when the rail resizes.
   useEffect(() => {
     const el = railRef.current;
@@ -137,16 +147,15 @@ export function ProgramsSection({
     <section
       id="programs"
       aria-labelledby="programs-title"
-      className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24"
+      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-24 lg:px-[120px]"
     >
       <h2
         id="programs-title"
-        className="mx-auto max-w-3xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
+        className="text-center text-[clamp(1.75rem,3.1vw,2.6rem)] font-extrabold leading-tight tracking-[-0.015em] text-white"
       >
-        
-        Legacy Transfer Programs <br className="hidden sm:block" />
+        Legacy Transfer Programs
       </h2>
-      <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-white/60 sm:text-base">
+      <p className="mx-auto mt-4 max-w-[46rem] text-center text-sm leading-relaxed text-white/45 sm:text-[15px]">
         Each program is carefully structured and led by experienced practitioners,
         designed to help you advance through focused, real-time learning.
       </p>
@@ -155,7 +164,7 @@ export function ProgramsSection({
       <div
         role="tablist"
         aria-label="Specialty filters"
-        className="mx-auto mt-8 flex max-w-5xl flex-wrap justify-center gap-2 sm:gap-3"
+        className="mx-auto mt-10 flex max-w-5xl flex-wrap justify-center gap-3 sm:mt-14"
       >
         {SPECIALTY_TABS.map((tab) => {
           const selected = active === tab.key;
@@ -168,54 +177,52 @@ export function ProgramsSection({
               aria-selected={selected}
               onClick={() => setActive(tab.key)}
               className={cn(
-                "inline-flex items-center gap-2 rounded-[12px] border px-4 py-2.5 text-sm font-medium transition",
+                "inline-flex items-center gap-2.5 rounded-[10px] border px-5 py-3 text-[15px] transition",
                 selected
-                  ? "border-[#ab834d] bg-[#ab834d] text-white"
-                  : "border-[#2A2A2A] bg-[#1A1A1A] text-white/70 hover:border-[#ab834d] hover:bg-[#ab834d] hover:text-white",
+                  ? "border-spark bg-transparent font-medium text-spark"
+                  : "border-transparent bg-ink-800 text-white/70 hover:bg-ink-700 hover:text-white",
               )}
             >
-              <Icon className="h-4 w-4" aria-hidden />
-              {tab.label}
+              <Icon className="h-[18px] w-[18px]" aria-hidden />
+              {SHORT_LABELS[tab.key] ?? tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* Doctor rail carousel. Outer wrapper stays within the section's max-w-7xl
-          so the chevron buttons align with the heading's right edge. The inner rail
-          breaks out to the viewport right with mr-[calc(50%-50vw)], so cards visibly
-          overflow past the main layout instead of being clipped at section padding.
-          Body has overflow-x: hidden so this doesn't trigger horizontal page scroll. */}
-      <div className="relative mt-10">
-        <div className="absolute right-2 top-0 z-10 hidden -translate-y-12 items-center gap-2 sm:flex">
+      {/* Mentor rail. The inner track breaks out to the viewport's right edge so
+          cards run off-canvas instead of stopping at the section padding; body
+          has overflow-x: clip so this never adds a horizontal page scrollbar. */}
+      <div className="relative mt-14">
+        <div className="absolute right-0 top-0 z-10 hidden -translate-y-14 items-center gap-2.5 sm:flex">
           <button
             type="button"
             onClick={() => scroll("left")}
-            aria-label="Scroll doctors left"
-            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-[#ab834d]"
+            aria-label="Scroll programs left"
+            className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-ink-800 text-white transition hover:bg-ink-700"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronsLeft className="h-5 w-5" />
           </button>
           <button
             type="button"
             onClick={() => scroll("right")}
-            aria-label="Scroll doctors right"
-            className="inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white backdrop-blur-md transition hover:bg-[#ab834d]"
+            aria-label="Scroll programs right"
+            className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-white text-black transition hover:bg-white/85"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronsRight className="h-5 w-5" />
           </button>
         </div>
 
         <div
           ref={railRef}
           role="region"
-          aria-label="Featured mentors"
+          aria-label="Featured programs"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onFocusCapture={() => setIsPaused(true)}
           onBlurCapture={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}
-          className="no-scrollbar mr-[calc(50%-50vw)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-8"
+          className="no-scrollbar mr-[calc(50%-50vw)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-10"
         >
           {data.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
@@ -244,10 +251,10 @@ export function ProgramsSection({
                 <Link
                   key={d.id}
                   href={href}
-                  className="group relative aspect-[3/4] w-[230px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[290px]"
+                  className="group relative aspect-[306/482] w-[248px] shrink-0 snap-start overflow-hidden rounded-xl border border-white/15 bg-ink-850 sm:w-[306px]"
                 >
                   {linkedCourse?.isNew && (
-                    <span className="absolute left-2 top-2 z-10 rounded-full bg-emerald-400/95 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-950 shadow">
+                    <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
                       New
                     </span>
                   )}
@@ -256,29 +263,34 @@ export function ProgramsSection({
                       src={d.imageUrl}
                       alt={`${d.name}${courseName ? `, ${courseName}` : ""}${d.city ? ` — ${d.city}` : ""}`}
                       fill
-                      sizes="(max-width: 640px) 230px, 290px"
-                      className="object-cover object-top transition duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 248px, 306px"
+                      className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-700/40 to-violet-900/40" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-deep/50 to-black" />
                   )}
-                  {/* Bottom-up dark scrim — extends ~half the card so titles stay legible */}
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.7)_40%,rgba(0,0,0,0)_100%)]" />
-                  <div className="absolute inset-x-0 bottom-0 px-4 pb-5 pt-10 text-center">
-                    <p className="font-serif text-xl leading-tight text-white sm:text-2xl">
-                      {d.name}
+                  {/* Bottom-up scrim so the title stays readable over any portrait. */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.72)_38%,rgba(0,0,0,0)_100%)]"
+                  />
+                  {/* Title is the program; the mentor is the credit line under
+                      it. Without a linked course the mentor becomes the title,
+                      so credit their specialty instead of repeating the name. */}
+                  <div className="absolute inset-x-0 bottom-0 px-5 pb-6 pt-12 text-center">
+                    <p className="font-serif text-[26px] font-medium leading-[1.12] text-white">
+                      {courseName ?? d.name}
                     </p>
+                    <span className="mx-auto mt-3 block h-px w-5 bg-white/70" aria-hidden />
                     {courseName ? (
-                      <>
-                        <span
-                          className="mx-auto mt-2 block h-px w-7 bg-white/70"
-                          aria-hidden
-                        />
-                        <p className="mt-2 line-clamp-2 text-xs font-semibold text-white/85 sm:text-sm">
-                          {courseName}
-                        </p>
-                      </>
-                    ) : null}
+                      <p className="mt-3 text-[13px] text-white/70">
+                        with <span className="font-semibold text-white">{d.name}</span>
+                      </p>
+                    ) : (
+                      <p className="mt-3 line-clamp-1 text-[13px] font-semibold text-white/85">
+                        {d.specialistTitle || d.title}
+                      </p>
+                    )}
                   </div>
                 </Link>
               );
@@ -286,12 +298,12 @@ export function ProgramsSection({
           )}
         </div>
 
-        {/* Bottom carousel pagination — clickable dots reflect rail scroll position */}
+        {/* Rail pagination — the active page reads as a bar, the rest as dots. */}
         {pageCount > 1 && (
           <div
             role="tablist"
-            aria-label="Doctor list pages"
-            className="mt-6 flex items-center justify-center gap-2"
+            aria-label="Program list pages"
+            className="mt-8 flex items-center justify-center gap-2"
           >
             {Array.from({ length: pageCount }).map((_, i) => {
               const selected = i === activePage;
@@ -305,9 +317,7 @@ export function ProgramsSection({
                   onClick={() => goToPage(i)}
                   className={cn(
                     "h-1.5 rounded-full transition-all duration-300",
-                    selected
-                      ? "w-6 bg-[#ab834d]"
-                      : "w-1.5 bg-white/30 hover:bg-white/60",
+                    selected ? "w-7 bg-white" : "w-1.5 bg-white/25 hover:bg-white/50",
                   )}
                 />
               );
@@ -316,16 +326,16 @@ export function ProgramsSection({
         )}
       </div>
 
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
+      <div className="mt-12 flex flex-wrap justify-center gap-3">
         <Link
           href="/programs"
-          className="rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_28px_-12px_rgba(171,131,77,0.6)] transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+          className="rounded-[10px] bg-accent px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          Explore Courses
+          Explore Programs
         </Link>
         <Link
           href="/doctors"
-          className="rounded-[12px] border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/85 transition hover:border-white/30 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+          className="rounded-[10px] bg-ink-700 px-7 py-3.5 text-[15px] font-medium text-white/85 transition hover:bg-ink-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           Explore Legends
         </Link>

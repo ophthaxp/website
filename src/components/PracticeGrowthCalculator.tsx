@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import {
+  ChevronDown,
+  Info,
+  Loader2,
+  LocateFixed,
+  Minus,
+  Plus,
+  Sparkles,
+} from "lucide-react";
 
 interface Specialization {
   slug: string;
@@ -115,6 +123,33 @@ function cleanAreaName(raw: string): string {
   return out || raw;
 }
 
+/**
+ * Coverage at the precision the table prints it, so rows that read the same
+ * sort as the same. Without this, four rows all showing "100%" come back in an
+ * order set by hundredths the reader cannot see — which looks like no sort ran.
+ */
+function shownCoverage(c: CatchmentContribution): number {
+  return c.exposurePct >= 99.95 ? 100 : Math.round(c.exposurePct * 10) / 10;
+}
+
+/**
+ * How the per-pincode rows can be ordered. Every question a reader actually has
+ * of that table is a sort: which neighbour brings the most people, what the
+ * radius only clips, how far it really reaches. Coverage ties break on
+ * head-count, so equal bands lead with the pincodes that matter most.
+ */
+type Row = CatchmentContribution;
+const COVERAGE_SORTS = [
+  { key: "distance-asc", label: "Nearest first", compare: (a: Row, b: Row) => a.distanceKm - b.distanceKm },
+  { key: "distance-desc", label: "Farthest first", compare: (a: Row, b: Row) => b.distanceKm - a.distanceKm },
+  { key: "people-desc", label: "Most people", compare: (a: Row, b: Row) => b.inCirclePop - a.inCirclePop },
+  { key: "people-asc", label: "Fewest people", compare: (a: Row, b: Row) => a.inCirclePop - b.inCirclePop },
+  { key: "coverage-desc", label: "Highest coverage", compare: (a: Row, b: Row) => shownCoverage(b) - shownCoverage(a) || b.inCirclePop - a.inCirclePop },
+  { key: "coverage-asc", label: "Lowest coverage", compare: (a: Row, b: Row) => shownCoverage(a) - shownCoverage(b) || b.inCirclePop - a.inCirclePop },
+] as const;
+
+type CoverageSortKey = (typeof COVERAGE_SORTS)[number]["key"];
+
 /** Compact head-count for the suggestion rows: 1.4 L, 2.6 Cr. */
 function formatPeopleShort(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return "—";
@@ -134,6 +169,243 @@ function formatINRShort(n: number): string {
 function formatNumber(n: number): string {
   if (!Number.isFinite(n)) return "—";
   return Math.round(n).toLocaleString("en-IN");
+}
+
+/**
+ * The ROI endpoints proxy a separate service, so a transport failure arrives
+ * here as its raw Node error string ("read ECONNRESET", "fetch failed"). Those
+ * say nothing to a surgeon sizing up a catchment — swap them for the one thing
+ * that is actually true and actionable.
+ */
+function friendlyError(raw: string | null | undefined): string {
+  const msg = (raw ?? "").trim();
+  if (!msg) return "Something went wrong. Try again.";
+  if (/ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|fetch failed|socket hang up|network/i.test(msg)) {
+    return "Population data is unavailable right now. Try again in a moment.";
+  }
+  return msg;
+}
+
+/* ── presentational pieces of the ROI panel ───────────────────────────────
+   Declared at module scope on purpose: defined inside the component they
+   would be a fresh type on every render, so React would unmount and remount
+   each slider mid-drag instead of updating it. */
+
+/** Label + value chip that sits above every slider. */
+function Field({
+  htmlFor,
+  label,
+  hint,
+  value,
+}: {
+  htmlFor: string;
+  label: string;
+  hint: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <label
+        htmlFor={htmlFor}
+        className="inline-flex items-center gap-2 text-[15px] text-white"
+      >
+        {label}
+        <Info className="h-3.5 w-3.5 text-white" aria-hidden />
+        <span className="sr-only">{hint}</span>
+      </label>
+      <span className="inline-flex h-7 items-center rounded-md bg-ink-600 px-3 text-[14px] font-semibold tabular-nums text-white">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/** The unit beside a value chip's number — "Km", "₹" — greyed as in the Figma. */
+function Unit({ children, side }: { children: React.ReactNode; side: "left" | "right" }) {
+  return (
+    <span className={`font-normal text-[#A5A5A5] ${side === "left" ? "mr-1.5" : "ml-1.5"}`}>
+      {children}
+    </span>
+  );
+}
+
+/**
+ * Native range input dressed as the Figma's track: a bar that fades out toward
+ * the left, ending in a cap concentric with a white knob, over tick marks that
+ * show through the part not yet covered.
+ *
+ * The bar and the knob are drawn as elements rather than as the input's track
+ * and thumb pseudo-elements — see .roi-fill in globals.css for why the cap
+ * cannot be a percentage-width background. The input itself stays on top and
+ * keeps every native behaviour; only its own paint is gone.
+ */
+function Slider({
+  id,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+  fill,
+  valueText,
+}: {
+  id: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (n: number) => void;
+  fill: string;
+  valueText: string;
+}) {
+  // Rounded before it reaches an attribute: the raw double differs in its last
+  // bit between the server and the browser, which React reports as a hydration
+  // mismatch. Four places is finer than a pixel on any width this renders at.
+  const frac = Math.round(
+    Math.min(1, Math.max(0, (value - min) / (max - min))) * 10000,
+  ) / 10000;
+
+  return (
+    <div
+      className="roi-slider"
+      style={{ "--frac": frac, "--roi-fill": fill } as React.CSSProperties}
+    >
+      <div className="roi-ticks" aria-hidden>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <span key={i} />
+        ))}
+      </div>
+      <div className="roi-fill" aria-hidden />
+      <div className="roi-thumb" aria-hidden>
+        {/* Two facing arrows, the Figma's grip. */}
+        <svg viewBox="0 0 18 9" className="h-[9px] w-[18px]" fill="#8B8B8B">
+          <path d="M0.4 4.5 7.8 0.3V8.7Z" />
+          <path d="M17.6 4.5 10.2 0.3V8.7Z" />
+        </svg>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        aria-valuetext={valueText}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="roi-range"
+      />
+    </div>
+  );
+}
+
+/**
+ * The standing figure from the Figma, at its own 15×24 geometry. The two arm
+ * strokes reach a hair past the box on each side; the viewport clips them, as
+ * the Figma's own clip path does.
+ */
+const FIGURE_HEAD =
+  "M5.2678 2.25C5.2678 1.6532 5.5029 1.0809 5.9216 0.659C6.3402 0.237 6.9079 0 7.4999 0C8.0919 0 8.6597 0.237 9.0783 0.659C9.4969 1.0809 9.7321 1.6532 9.7321 2.25C9.7321 2.8467 9.4969 3.419 9.0783 3.8409C8.6597 4.2629 8.0919 4.5 7.4999 4.5C6.9079 4.5 6.3402 4.2629 5.9216 3.8409C5.5029 3.419 5.2678 2.8467 5.2678 2.25Z";
+const FIGURE_BODY =
+  "M7.1279 16.5V22.5C7.1279 23.3296 6.4629 24 5.6398 24C4.8167 24 4.1517 23.3296 4.1517 22.5V12.0421L2.8217 14.2734C2.3985 14.9812 1.4824 15.2109 0.7802 14.7843C0.078 14.3578 -0.1498 13.4343 0.2734 12.7265L2.9845 8.1796C3.7936 6.825 5.2445 5.9953 6.8117 5.9953H8.1928C9.76 5.9953 11.2109 6.825 12.02 8.1796L14.7311 12.7265C15.1543 13.4343 14.9264 14.3578 14.2242 14.7843C13.522 15.2109 12.6059 14.9812 12.1828 14.2734L10.8481 12.0421V22.5C10.8481 23.3296 10.1831 24 9.36 24C8.5369 24 7.8719 23.3296 7.8719 22.5V16.5H7.1279Z";
+
+/** Ten figures, the first `filled` of them solid and the rest faded back. */
+function FigureRow({ filled, tone }: { filled: number; tone: "accent" | "white" }) {
+  return (
+    <div className="mt-3.5 flex gap-1.5" aria-hidden>
+      {Array.from({ length: 10 }).map((_, i) => (
+        <svg
+          key={i}
+          viewBox="0 0 15 24"
+          className={`h-6 w-[15px] shrink-0 ${
+            tone === "accent" ? "text-accent" : "text-white"
+          } ${i < filled ? "" : "opacity-30"}`}
+          fill="currentColor"
+        >
+          <path d={FIGURE_HEAD} />
+          <path d={FIGURE_BODY} />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The dial face, to the Figma geometry scaled into a 234×118 box: centre
+ * (117, 117), radius 105, a 20-wide band, cut flat at the centre line — which is
+ * what makes the hub a half-disc and squares off the ends of the arc. Declared
+ * at module scope because both the track and the reading are the same arc drawn
+ * twice.
+ */
+const GAUGE_ARC = "M12 117A105 105 0 0 1 222 117";
+
+/** Half-circle tick gauge for the impact figure, with the reading on its face. */
+function ImpactGauge({ pct }: { pct: number }) {
+  const value = Math.min(100, Math.max(0, pct));
+  // Rounded before it reaches an attribute: the raw double differs in its last
+  // bit between the server and the browser engines, which React reports as a
+  // hydration mismatch.
+  const filled = Math.round(value * 100) / 100;
+  // 0% points the needle at the left end of the arc, 100% at the right end.
+  const angle = Math.round((filled * 1.8 - 90) * 100) / 100;
+
+  return (
+    <div className="relative mx-auto w-full max-w-[234px]">
+      <svg
+        viewBox="0 0 234 118"
+        className="w-full"
+        role="img"
+        aria-label={`${pct.toFixed(2)} percent of local burden addressed`}
+      >
+        {/* The ticks are one dashed path, not eighty <line> elements: a 20-wide
+            band broken every 2 units is the same picture for a fraction of the
+            DOM, and it stays evenly spaced at any width. */}
+        <path
+          d={GAUGE_ARC}
+          fill="none"
+          stroke="#C2C2C2"
+          strokeWidth={20}
+          strokeDasharray="2 2"
+        />
+        {/* The reading, drawn solid over the ticks. pathLength renames the arc's
+            length to 100, so the dash array below is literally the percentage —
+            no arc-length arithmetic, and it cannot drift from the needle. */}
+        <path
+          d={GAUGE_ARC}
+          fill="none"
+          stroke="#2563EB"
+          strokeWidth={20}
+          pathLength={100}
+          strokeDasharray={`${filled} 100`}
+        />
+        <circle cx="117" cy="117" r="17" fill="#FF383C" />
+        <circle cx="117" cy="117" r="7.5" fill="#A5A5A5" />
+        {/* Needle over the hub, as in the Figma: grey shaft, blue tip. */}
+        <g transform={`rotate(${angle} 117 117)`}>
+          <line
+            x1="117"
+            y1="112"
+            x2="117"
+            y2="86"
+            stroke="#A5A5A5"
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+          <line
+            x1="117"
+            y1="92"
+            x2="117"
+            y2="86"
+            stroke="#2563EB"
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+        </g>
+      </svg>
+      <p className="pointer-events-none absolute inset-x-0 top-[55%] -translate-y-1/2 text-center text-[clamp(1.5rem,2.4vw,1.875rem)] font-semibold tabular-nums text-black">
+        {pct ? `${pct.toFixed(2)}%` : "—"}
+      </p>
+    </div>
+  );
 }
 
 interface Props {
@@ -218,8 +490,20 @@ export function PracticeGrowthCalculator({
   const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty);
   const [pincode, setPincode] = useState<string>(defaultPincode);
   const [radiusKm, setRadiusKm] = useState<number>(Math.max(1, defaultRadiusKm));
-  const [expectedPatients, setExpectedPatients] = useState<number>(
-    defaultExpectedPatients,
+
+  // Practice profile. The backend ROI model has no fee inputs, so revenue is
+  // derived here from what the reader actually sets (see `projectedRevenue`
+  // below); the backend still owns population and disease burden.
+  const [annualOutpatients, setAnnualOutpatients] = useState<number>(8000);
+  const [opFeeInr, setOpFeeInr] = useState<number>(600);
+  const [annualInpatients, setAnnualInpatients] = useState<number>(2500);
+  const [ipFeeInr, setIpFeeInr] = useState<number>(15000);
+
+  // What we send the backend as "patients treated". Its contract caps this at
+  // 2000, so clamp rather than pass the raw annual volume and risk a 400.
+  const expectedPatients = useMemo(
+    () => Math.max(10, Math.min(2000, Math.round(annualInpatients))),
+    [annualInpatients],
   );
 
   const [pinLookup, setPinLookup] = useState<PincodeLookup | null>(null);
@@ -245,6 +529,7 @@ export function PracticeGrowthCalculator({
   const [result, setResult] = useState<RoiResult | null>(null);
   const [calcError, setCalcError] = useState<string | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
+  const [coverageSort, setCoverageSort] = useState<CoverageSortKey>("distance-asc");
 
   // ─── load specializations once ────────────────────────────────────────────
   useEffect(() => {
@@ -409,12 +694,12 @@ export function PracticeGrowthCalculator({
           setPinLookup(body.data as PincodeLookup);
         } else {
           setPinLookup(null);
-          setPinError(body?.error || "Pincode not found");
+          setPinError(body?.error ? friendlyError(body.error) : "Pincode not found");
         }
       } catch (err) {
         if (cancelled) return;
         setPinLookup(null);
-        setPinError(err instanceof Error ? err.message : "Pincode lookup failed");
+        setPinError(friendlyError(err instanceof Error ? err.message : "Pincode lookup failed"));
       } finally {
         if (!cancelled) setPinLoading(false);
       }
@@ -449,11 +734,11 @@ export function PracticeGrowthCalculator({
         setResult(body.data as RoiResult);
       } else {
         setResult(null);
-        setCalcError(body?.error || "Calculation failed");
+        setCalcError(friendlyError(body?.error || "Calculation failed"));
       }
     } catch (err) {
       setResult(null);
-      setCalcError(err instanceof Error ? err.message : "Calculation failed");
+      setCalcError(friendlyError(err instanceof Error ? err.message : "Calculation failed"));
     } finally {
       setCalcLoading(false);
     }
@@ -486,15 +771,36 @@ export function PracticeGrowthCalculator({
   // ─── derived display values (use backend result when present) ─────────────
   const serviceablePopulation = result?.serviceablePopulation ?? 0;
   const prevalenceCount = result?.prevalenceCount ?? 0;
-  const projectedRevenue = result?.projectedRevenue ?? 0;
-  const impactPct = result?.impactPct ?? 0;
+
+  // Revenue and impact are computed from the four practice-profile inputs
+  // rather than read off the result: the backend prices a single "patients
+  // treated" figure at one average selling price and has no notion of an
+  // OP/IP split, so it cannot answer what the reader is being asked here.
+  const projectedRevenue = useMemo(
+    () => annualOutpatients * opFeeInr + annualInpatients * ipFeeInr,
+    [annualOutpatients, opFeeInr, annualInpatients, ipFeeInr],
+  );
+
+  /** Share of the local disease burden this practice volume could reach. */
+  const impactPct = useMemo(() => {
+    if (!prevalenceCount) return 0;
+    const treated = annualOutpatients + annualInpatients;
+    return Math.min(100, (treated / prevalenceCount) * 100);
+  }, [prevalenceCount, annualOutpatients, annualInpatients]);
+
+  /** Figures in the burden row, one per ~2% of the catchment. */
+  const burdenFigures = useMemo(() => {
+    if (!serviceablePopulation || !prevalenceCount) return 0;
+    const pct = (prevalenceCount / serviceablePopulation) * 100;
+    return Math.max(1, Math.min(10, Math.round(pct / 2)));
+  }, [prevalenceCount, serviceablePopulation]);
 
   // ─── additional geographical info ─────────────────────────────────────────
   // The radius rarely stops at the pincode boundary: it clips neighbours, and it may
   // not even cover all of the pincode it starts in. The backend already returns that
   // split per pincode, so show it rather than leave one aggregate number to be
   // taken on trust.
-  const coverage = result?.breakdown ?? [];
+  const coverage = useMemo(() => result?.breakdown ?? [], [result]);
   const coverageOthers = coverage.filter((c) => c.pincode !== result?.pincode).length;
   // No breakdown means the catchment found no grid cells and the backend fell back to
   // area x density. Say so rather than hide the section: the headline number changes
@@ -510,6 +816,13 @@ export function PracticeGrowthCalculator({
         : `Reaches ${coverageOthers} other pincode${coverageOthers === 1 ? "" : "s"} ` +
           `beyond ${result?.pincode}`;
 
+  // The rows in whatever order the reader picked. Sorted off a copy — the array
+  // is the backend result itself, and sorting in place would mutate state.
+  const sortedCoverage = useMemo(() => {
+    const chosen = COVERAGE_SORTS.find((s) => s.key === coverageSort) ?? COVERAGE_SORTS[0];
+    return [...coverage].sort(chosen.compare);
+  }, [coverage, coverageSort]);
+
   const regionLabel =
     pinLookup?.city ||
     pinLookup?.district ||
@@ -517,481 +830,653 @@ export function PracticeGrowthCalculator({
     result?.region ||
     "";
 
+
+  const placeLabel = [pinLookup?.city, pinLookup?.district, pinLookup?.state]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <section
       aria-labelledby="growth-title"
       className={
         compact
-          ? "h-full overflow-hidden rounded-md bg-ink-850 p-6 ring-1 ring-white/5"
-          : "mt-16 overflow-hidden rounded-2xl bg-ink-850 p-6 ring-1 ring-white/5 sm:p-10"
+          ? "h-full overflow-hidden rounded-xl bg-ink-800"
+          : "overflow-hidden rounded-[16px] bg-ink-800"
       }
     >
-      <div
-        className={
-          compact
-            ? "grid h-full gap-6"
-            : "grid gap-10 lg:grid-cols-2 lg:items-center"
-        }
-      >
-        {/* ─────────── LEFT: Inputs ─────────── */}
-        <div>
-          <h2
-            id="growth-title"
-            className={
-              compact
-                ? "font-serif text-2xl leading-tight text-white"
-                : "font-serif text-3xl leading-tight text-white sm:text-4xl"
-            }
-          >
-            Estimate Your{" "}
-            <span className="text-accent-soft">Practice Growth</span>
-          </h2>
-          {!compact && (
-            <p className="mt-3 text-sm leading-relaxed text-white/65">
-              Pick a specialization, search your pincode or area, set a
-              serviceable radius — we'll project your revenue and impact in that
-              catchment.
-            </p>
-          )}
+      <h2 id="growth-title" className="sr-only">
+        Estimate your practice growth
+      </h2>
 
-          {/* Specialization dropdown */}
-          <label
-            htmlFor="growth-specialty"
-            className="mt-8 block text-sm font-semibold text-white"
-          >
-            Specialization (Condition)
-          </label>
-          <div className="relative mt-2">
-            <select
-              id="growth-specialty"
-              value={specSlug}
-              onChange={(e) => setSpecSlug(e.target.value)}
-              disabled={lockSpecialty || specs.length === 0}
-              aria-readonly={lockSpecialty}
-              className={`w-full appearance-none rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 transition focus:outline-none focus:ring-2 focus:ring-accent ${
-                lockSpecialty ? "cursor-not-allowed opacity-80" : "cursor-pointer"
-              }`}
+      <div className="grid lg:grid-cols-[412px_minmax(0,1fr)]">
+        {/* ─────────── LEFT: practice profile ─────────── */}
+        <div className="space-y-6 border-b border-white/[0.07] p-6 lg:border-b-0 lg:border-r">
+          {/* Specialization */}
+          <div>
+            <label
+              htmlFor="growth-specialty"
+              className="inline-flex items-center gap-2 text-[15px] text-white"
             >
-              {specs.map((s) => (
-                <option key={s.slug} value={s.slug} className="bg-ink-800">
-                  {s.label}
-                </option>
-              ))}
-            </select>
-            {!lockSpecialty ? (
-              <ChevronDown
-                aria-hidden
-                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
-              />
-            ) : null}
-          </div>
-
-          {activeSpec?.factsBlurb && (
-            <div className="mt-4 rounded-xl border border-accent/30 bg-accent/10 p-4">
-              <p className="text-sm leading-relaxed text-white/90">
-                {activeSpec.factsBlurb}
-              </p>
-            </div>
-          )}
-
-          {/* Pincode or place */}
-          <label
-            htmlFor="growth-location"
-            className="mt-8 block text-sm font-semibold text-white"
-          >
-            Pincode or Place
-          </label>
-          <div ref={locationBoxRef} className="relative mt-2">
-            <input
-              id="growth-location"
-              type="text"
-              role="combobox"
-              aria-expanded={placesOpen}
-              aria-controls="growth-location-list"
-              aria-autocomplete="list"
-              aria-activedescendant={
-                placesOpen && highlight >= 0
-                  ? `growth-location-opt-${highlight}`
-                  : undefined
-              }
-              autoComplete="off"
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value.slice(0, 60))}
-              onKeyDown={onLocationKeyDown}
-              onFocus={(e) => {
-                // A picked place reads "Anna Nagar — 600040"; select it so the
-                // next keystroke starts a fresh search instead of editing it.
-                if (/[^\d\s]/.test(e.currentTarget.value)) e.currentTarget.select();
-                if (places.length > 0) setPlacesOpen(true);
-              }}
-              placeholder="e.g. 600037 or Anna Nagar"
-              className="w-full rounded-lg bg-ink-700 px-4 py-3 pr-10 text-sm font-medium text-white ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
-            />
-
-            {placesOpen && places.length > 0 && (
-              <ul
-                id="growth-location-list"
-                role="listbox"
-                aria-label="Matching places"
-                className="no-scrollbar absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-[#ab834d]/40 bg-[#1A1A1A] py-1 shadow-2xl shadow-black/60 ring-1 ring-[#ab834d]/20"
+              Specialization
+              <Info className="h-3.5 w-3.5 text-white" aria-hidden />
+            </label>
+            <div className="relative mt-3">
+              <select
+                id="growth-specialty"
+                value={specSlug}
+                onChange={(e) => setSpecSlug(e.target.value)}
+                disabled={lockSpecialty || specs.length === 0}
+                aria-readonly={lockSpecialty}
+                className={`h-[43px] w-full appearance-none rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-10 text-[15px] font-medium text-white outline-none transition focus:ring-2 focus:ring-accent ${
+                  lockSpecialty ? "cursor-not-allowed opacity-80" : "cursor-pointer"
+                }`}
               >
-                {places.map((s, i) => {
-                  const isActive = i === highlight;
-                  return (
-                    <li
-                      key={`${s.pincode}-${s.place}`}
-                      id={`growth-location-opt-${i}`}
-                      role="option"
-                      aria-selected={s.pincode === pincode}
-                      onMouseEnter={() => setHighlight(i)}
-                      onMouseDown={(e) => {
-                        // Commit on mousedown, before the input can blur.
-                        e.preventDefault();
-                        selectPlace(s);
-                      }}
-                      className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm transition ${
-                        isActive
-                          ? "bg-[#ab834d] text-white"
-                          : "text-white/85 hover:bg-[#ab834d]/10"
-                      }`}
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium">
-                          {s.place}
-                        </span>
-                        <span
-                          className={`block text-[11px] ${
-                            isActive ? "text-white/75" : "text-white/45"
-                          }`}
-                        >
-                          {formatPeopleShort(s.population)} people
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-xs font-semibold tabular-nums">
-                        {s.pincode}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-          <div className="mt-1 min-h-[1.25rem] text-xs">
-            {placesLoading ? (
-              <span className="text-white/55">Searching places…</span>
-            ) : pinLoading ? (
-              <span className="text-white/55">Looking up pincode…</span>
-            ) : pinError ? (
-              <span className="text-red-300">{pinError}</span>
-            ) : pinLookup ? (
-              <span className="text-white/65">
-                {[pinLookup.city, pinLookup.district, pinLookup.state]
-                  .filter(Boolean)
-                  .join(", ")}
-                {pincodeAreaLabel && (
-                  <>
-                    {" "}
-                    &#183;{" "}
-                    <span className="font-semibold tabular-nums text-white/80">
-                      {pincodeAreaLabel} km&sup2;
-                    </span>{" "}
-                    total area
-                  </>
-                )}
-              </span>
-            ) : null}
+                {specs.map((s) => (
+                  <option key={s.slug} value={s.slug} className="bg-ink-800">
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              {!lockSpecialty ? (
+                <ChevronDown
+                  aria-hidden
+                  className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60"
+                />
+              ) : null}
+            </div>
           </div>
 
-          {/* Serviceable region (auto) */}
-          <label
-            htmlFor="growth-region"
-            className="mt-6 block text-sm font-semibold text-white"
-          >
-            Serviceable Region / City
-          </label>
-          <input
-            id="growth-region"
-            readOnly
-            value={regionLabel}
-            placeholder="Auto-filled from pincode"
-            className="mt-2 w-full cursor-not-allowed rounded-lg bg-ink-700/60 px-4 py-3 text-sm font-medium text-white/80 ring-1 ring-white/10"
-          />
-
-          {/* Radius slider */}
-          <div className="mt-8 flex items-end justify-between">
+          {/* Practice location */}
+          <div>
             <label
+              htmlFor="growth-location"
+              className="inline-flex items-center gap-2 text-[15px] text-white"
+            >
+              Practice Location
+              <Info className="h-3.5 w-3.5 text-white" aria-hidden />
+            </label>
+            <div ref={locationBoxRef} className="relative mt-3">
+              <input
+                id="growth-location"
+                type="text"
+                role="combobox"
+                aria-expanded={placesOpen}
+                aria-controls="growth-location-list"
+                aria-autocomplete="list"
+                aria-activedescendant={
+                  placesOpen && highlight >= 0
+                    ? `growth-location-opt-${highlight}`
+                    : undefined
+                }
+                autoComplete="off"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value.slice(0, 60))}
+                onKeyDown={onLocationKeyDown}
+                onFocus={(e) => {
+                  // A picked place reads "Anna Nagar — 600040"; select it so the
+                  // next keystroke starts a fresh search instead of editing it.
+                  if (/[^\d\s]/.test(e.currentTarget.value)) e.currentTarget.select();
+                  if (places.length > 0) setPlacesOpen(true);
+                }}
+                placeholder="e.g. 560102 or Whitefield"
+                className="h-[43px] w-full rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-11 text-[15px] font-medium text-white outline-none transition placeholder:text-white/40 focus:ring-2 focus:ring-accent"
+              />
+              <LocateFixed
+                aria-hidden
+                className="pointer-events-none absolute right-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-white/70"
+              />
+
+              {placesOpen && places.length > 0 && (
+                <ul
+                  id="growth-location-list"
+                  role="listbox"
+                  aria-label="Matching places"
+                  className="no-scrollbar absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-accent/40 bg-ink-850 py-1 shadow-2xl shadow-black/60"
+                >
+                  {places.map((s, i) => {
+                    const isActive = i === highlight;
+                    return (
+                      <li
+                        key={`${s.pincode}-${s.place}`}
+                        id={`growth-location-opt-${i}`}
+                        role="option"
+                        aria-selected={s.pincode === pincode}
+                        onMouseEnter={() => setHighlight(i)}
+                        onMouseDown={(e) => {
+                          // Commit on mousedown, before the input can blur.
+                          e.preventDefault();
+                          selectPlace(s);
+                        }}
+                        className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-sm transition ${
+                          isActive ? "bg-accent text-white" : "text-white/85 hover:bg-accent/10"
+                        }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">{s.place}</span>
+                          <span
+                            className={`block text-[11px] ${
+                              isActive ? "text-white/75" : "text-white/45"
+                            }`}
+                          >
+                            {formatPeopleShort(s.population)} people
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-xs font-semibold tabular-nums">
+                          {s.pincode}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            <p className="mt-2 min-h-[1.25rem] text-[13px]">
+              {placesLoading ? (
+                <span className="text-white/45">Searching places…</span>
+              ) : pinLoading ? (
+                <span className="text-white/45">Looking up pincode…</span>
+              ) : pinError ? (
+                <span className="text-red-300">{pinError}</span>
+              ) : placeLabel ? (
+                <span className="text-[#A5A5A5]">{placeLabel}</span>
+              ) : null}
+            </p>
+          </div>
+
+          {/* Service radius — blue track, the one geographic control. */}
+          <div>
+            <Field
               htmlFor="growth-radius"
-              className="text-sm font-semibold text-white"
-            >
-              Serviceable Radius
-            </label>
-            <span className="ml-3 shrink-0 text-right text-base font-bold tabular-nums text-white">
-              {radiusKm} KM
-            </span>
-          </div>
-          <input
-            id="growth-radius"
-            type="range"
-            min={1}
-            max={100}
-            step={1}
-            value={radiusKm}
-            onChange={(e) => setRadiusKm(Number(e.target.value))}
-            aria-valuetext={`${radiusKm} kilometres, ${areaLabel} square kilometres`}
-            className="mt-3 w-full accent-accent"
-          />
-          <div className="mt-1 flex justify-between text-xs text-white/55">
-            <span>1 KM</span>
-            <span>100 KM</span>
+              label="Service Radius"
+              hint={`Covers about ${areaLabel} square kilometres`}
+              value={
+                <>
+                  {radiusKm}
+                  <Unit side="right">Km</Unit>
+                </>
+              }
+            />
+            <Slider
+              id="growth-radius"
+              min={1}
+              max={100}
+              step={1}
+              value={radiusKm}
+              onChange={setRadiusKm}
+              fill="#297DEA"
+              valueText={`${radiusKm} kilometres, ${areaLabel} square kilometres`}
+            />
           </div>
 
-          {/* Expected patients slider */}
-          <div className="mt-8 flex items-end justify-between">
-            <label
-              htmlFor="growth-patients"
-              className="text-sm font-semibold text-white"
-            >
-              Expected Patients Treated (per year)
-            </label>
-            <span className="ml-3 shrink-0 text-base font-bold tabular-nums text-white">
-              {expectedPatients}
-            </span>
+          {/* Practice volume + pricing */}
+          <div>
+            <Field
+              htmlFor="growth-op"
+              label="Annual Outpatients"
+              hint="Consultations you expect to see in a year"
+              value={formatNumber(annualOutpatients)}
+            />
+            <Slider
+              id="growth-op"
+              min={0}
+              max={40000}
+              step={500}
+              value={annualOutpatients}
+              onChange={setAnnualOutpatients}
+              fill="rgba(183,90,68,0.8)"
+              valueText={`${formatNumber(annualOutpatients)} outpatients a year`}
+            />
           </div>
-          <input
-            id="growth-patients"
-            type="range"
-            min={10}
-            max={2000}
-            step={10}
-            value={expectedPatients}
-            onChange={(e) => setExpectedPatients(Number(e.target.value))}
-            className="mt-3 w-full accent-accent"
-          />
-          <div className="mt-1 flex justify-between text-xs text-white/55">
-            <span>10</span>
-            <span>2000</span>
+
+          <div>
+            <Field
+              htmlFor="growth-op-fee"
+              label="Op Average Fee"
+              hint="Average consultation fee"
+              value={
+                <>
+                  <Unit side="left">₹</Unit>
+                  {formatNumber(opFeeInr)}
+                </>
+              }
+            />
+            <Slider
+              id="growth-op-fee"
+              min={0}
+              max={5000}
+              step={50}
+              value={opFeeInr}
+              onChange={setOpFeeInr}
+              fill="rgba(183,90,68,0.8)"
+              valueText={`${formatNumber(opFeeInr)} rupees per consultation`}
+            />
           </div>
+
+          <div>
+            <Field
+              htmlFor="growth-ip"
+              label="Annual Inpatients"
+              hint="Admissions or procedures you expect in a year"
+              value={formatNumber(annualInpatients)}
+            />
+            <Slider
+              id="growth-ip"
+              min={0}
+              max={20000}
+              step={100}
+              value={annualInpatients}
+              onChange={setAnnualInpatients}
+              fill="rgba(183,90,68,0.8)"
+              valueText={`${formatNumber(annualInpatients)} inpatients a year`}
+            />
+          </div>
+
+          <div>
+            <Field
+              htmlFor="growth-ip-fee"
+              label="Ip Average Fee"
+              hint="Average realisation per admission or procedure"
+              value={
+                <>
+                  <Unit side="left">₹</Unit>
+                  {formatNumber(ipFeeInr)}
+                </>
+              }
+            />
+            <Slider
+              id="growth-ip-fee"
+              min={0}
+              max={200000}
+              step={1000}
+              value={ipFeeInr}
+              onChange={setIpFeeInr}
+              fill="rgba(183,90,68,0.8)"
+              valueText={`${formatNumber(ipFeeInr)} rupees per admission`}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => computeRoi()}
+            disabled={calcLoading}
+            className="mt-1 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-accent px-6 text-[15px] font-semibold text-white transition hover:bg-accent-deep disabled:opacity-70"
+          >
+            {calcLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+            ) : (
+              <Sparkles className="h-5 w-5" aria-hidden />
+            )}
+            Generate The Outlook
+          </button>
         </div>
 
-        {/* ─────────── RIGHT: Outputs ─────────── */}
-        <div className="rounded-xl border border-accent/40 bg-ink-950/60 p-6 sm:p-8">
-          <p className="text-center text-xs uppercase tracking-wider text-white/55">
-            Projected Revenue (annual)
-          </p>
-          <p className="mt-2 text-center font-serif text-4xl leading-none text-white sm:text-5xl">
-            {formatINRShort(projectedRevenue)}
-          </p>
+        {/* ─────────── RIGHT: catchment + results ─────────── */}
+        <div className="flex min-w-0 flex-col">
+          {/* Catchment view. A real basemap is not wired up yet, so this draws
+              the radius to scale over a graticule rather than faking a map. */}
+          <div className="relative min-h-[280px] flex-1 overflow-hidden bg-[#0f0f10] lg:min-h-[440px]">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,#6b7280_1px,transparent_1px),linear-gradient(to_bottom,#6b7280_1px,transparent_1px)] [background-size:56px_56px]"
+            />
+            {/* Population glow at the centre of the catchment. */}
+            <div
+              aria-hidden
+              className="absolute left-1/2 top-1/2 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.45)_0%,rgba(37,99,235,0.12)_45%,rgba(37,99,235,0)_70%)]"
+            />
+            {/* Radius rings — the outer ring is the serviceable circle. */}
+            <div
+              aria-hidden
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/20"
+              style={{
+                width: `${Math.min(88, 26 + radiusKm * 0.62)}%`,
+                aspectRatio: "1",
+              }}
+            />
+            <div
+              aria-hidden
+              className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2563eb] ring-4 ring-[#2563eb]/25"
+            />
 
-          <dl className="mt-6 grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
-              <dt className="text-[11px] uppercase tracking-wider text-white/55">
-                Serviceable Population
-              </dt>
-              <dd className="mt-1 text-lg font-semibold text-white">
-                {formatNumber(serviceablePopulation)}
-              </dd>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
-              <dt className="text-[11px] uppercase tracking-wider text-white/55">
-                Prevalence Count
-              </dt>
-              <dd className="mt-1 text-lg font-semibold text-white">
-                {formatNumber(prevalenceCount)}
-              </dd>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
-              <dt className="text-[11px] uppercase tracking-wider text-white/55">
-                Impact %
-              </dt>
-              <dd className="mt-1 text-lg font-semibold text-white">
-                {impactPct ? `${impactPct.toFixed(2)}%` : "—"}
-              </dd>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-ink-900/60 p-3">
-              <dt className="text-[11px] uppercase tracking-wider text-white/55">
-                Serviceable Area
-              </dt>
-              <dd className="mt-1 text-lg font-semibold tabular-nums text-white">
-                {areaLabel} km&sup2;
-              </dd>
-            </div>
-          </dl>
+            <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
+              <span
+                aria-hidden
+                className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
+              />
+              Your Future is here...
+            </span>
 
-          {calcError && (
-            <p className="mt-3 text-center text-xs text-red-300">{calcError}</p>
-          )}
-          {calcLoading && !result && (
-            <p className="mt-3 text-center text-xs text-white/45">Calculating…</p>
-          )}
-
-          <p className="mt-6 text-center text-sm font-semibold text-white">
-            Ready to reimagine your practice?
-          </p>
-          <div className="mt-3 flex justify-center">
-            {onCtaClick ? (
+            <div className="absolute right-5 top-5 flex flex-col overflow-hidden rounded-md">
               <button
                 type="button"
-                onClick={onCtaClick}
-                className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
+                onClick={() => setRadiusKm((r) => Math.min(100, r + 5))}
+                aria-label="Widen the service radius by 5 kilometres"
+                className="inline-flex h-9 w-9 items-center justify-center bg-white/90 text-black transition hover:bg-white"
               >
-                {ctaLabel ?? "Speak to Legends of Medicine Concierge"}
+                <Plus className="h-4 w-4" aria-hidden />
               </button>
-            ) : (
-              <a
-                href={ctaHref}
-                className="rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink-950 transition hover:bg-white/90"
+              <button
+                type="button"
+                onClick={() => setRadiusKm((r) => Math.max(1, r - 5))}
+                aria-label="Narrow the service radius by 5 kilometres"
+                className="inline-flex h-9 w-9 items-center justify-center border-t border-black/10 bg-white/90 text-black transition hover:bg-white"
               >
-                {ctaLabel ?? "Know more"}
-              </a>
+                <Minus className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+
+            <p className="absolute bottom-4 left-5 max-w-xs text-[12px] leading-relaxed text-white/35">
+              {placeLabel || regionLabel || "Pick a location"} · {radiusKm} km radius ·{" "}
+              {areaLabel} km&sup2;
+            </p>
+          </div>
+
+          {/* Results */}
+          <div className="relative border-t border-white/[0.07] p-4 sm:p-5">
+            <span className="absolute -top-[17px] left-5 inline-flex items-center gap-2 rounded-t-lg bg-ink-800 px-4 py-2 text-[13px] text-white/85">
+              ROI Analysis
+              <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
+            </span>
+
+            {/* Column widths and the 10px gutter are the Figma's: the catchment
+                column is a little narrower than the two beside it. */}
+            <div className="grid gap-2.5 lg:grid-cols-[229fr_257fr_257fr]">
+              {/* Column 1 — catchment and burden */}
+              <div className="flex flex-col gap-2.5">
+                <div className="relative flex-1 overflow-hidden rounded-xl bg-ink-600 p-4">
+                  {/* The Figma puts a heavily blurred shape behind this corner;
+                      at that blur radius it reads as a wash, so it is one. */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -left-20 -top-10 h-40 w-52 rounded-full bg-white/[0.07] blur-3xl"
+                  />
+                  <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
+                    Catchment Population
+                    <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+                  </p>
+                  <p className="relative mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-2xl font-bold tabular-nums text-white">
+                      {serviceablePopulation
+                        ? `${formatPeopleShort(serviceablePopulation)}+`
+                        : "—"}
+                    </span>
+                    <span className="text-[11px] text-[#A5A5A5]">
+                      People within {radiusKm}km radius
+                    </span>
+                  </p>
+                  <FigureRow filled={10} tone="accent" />
+                </div>
+
+                <div className="flex-1 rounded-xl bg-accent p-4">
+                  <p className="inline-flex items-center gap-1.5 text-[13px] text-white">
+                    Disease Burden
+                    <Info className="h-3 w-3 text-white" aria-hidden />
+                  </p>
+                  <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-2xl font-bold tabular-nums text-white">
+                      {prevalenceCount ? `${formatPeopleShort(prevalenceCount)}+` : "—"}
+                    </span>
+                    <span className="text-[11px] text-white">People needing Care</span>
+                  </p>
+                  <FigureRow filled={burdenFigures} tone="white" />
+                </div>
+              </div>
+
+              {/* Column 2 — revenue */}
+              <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-ink-600 p-4">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -top-28 left-0 right-0 h-56 rounded-[50%] bg-white/[0.06] blur-3xl"
+                />
+                <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
+                  Projected Revenue (Annual)
+                  <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+                </p>
+                <p className="relative mt-3 text-[clamp(1.75rem,3vw,2.5rem)] font-bold leading-none tabular-nums text-white">
+                  {formatINRShort(projectedRevenue)}
+                </p>
+                <p className="relative mt-4 text-[12px] leading-relaxed text-[#A5A5A5]">
+                  Estimated opportunity based on your location and practice profile.
+                </p>
+              </div>
+
+              {/* Column 3 — impact */}
+              <div className="flex flex-col rounded-xl bg-white p-4">
+                <p className="inline-flex items-center gap-2 text-[14px] text-black">
+                  Impact
+                  <Info className="h-3.5 w-3.5 text-[#6B7280]" aria-hidden />
+                </p>
+                {/* The reading sits inside the arc, as on a real dial face — so it
+                    is positioned against the gauge itself rather than this card,
+                    whose height the two neighbouring columns decide. */}
+                <div className="flex flex-1 items-center">
+                  <ImpactGauge pct={impactPct} />
+                </div>
+                <p className="mt-5 text-center text-[12px] text-[#A5A5A5]">
+                  Local Burden Addressed
+                </p>
+              </div>
+            </div>
+
+            {calcError && (
+              <p className="mt-3 text-center text-xs text-red-300" role="alert">
+                {calcError}
+              </p>
+            )}
+
+            <p className="mt-4 flex items-center justify-center gap-2 text-center text-[12px] text-white/35">
+              <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Estimates are based on aggregated healthcare data &amp; Industry Benchmarks
+            </p>
+
+            {onCtaClick && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={onCtaClick}
+                  className="rounded-[10px] bg-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-accent-deep"
+                >
+                  {ctaLabel ?? "Speak to Legends of Medicine Concierge"}
+                </button>
+              </div>
+            )}
+            {!onCtaClick && ctaLabel && (
+              <div className="mt-4 flex justify-center">
+                <a
+                  href={ctaHref}
+                  className="rounded-[10px] bg-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-accent-deep"
+                >
+                  {ctaLabel}
+                </a>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* ─────────── How the population model works ─────────── */}
-      {/* Collapsed by default: this is reassurance-on-demand, not something the
-          reader needs before the numbers above. Native <details> so it works
-          without JS, keyboard, and on touch (a hover tooltip would not). */}
-      <details className="group mt-8 rounded-xl border border-white/10 bg-ink-950/40 open:bg-ink-950/60">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white/65 transition hover:text-white/85 [&::-webkit-details-marker]:hidden">
-          <span>How we count the population</span>
-          <ChevronDown
-            aria-hidden
-            className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
-          />
-        </summary>
-        <p className="px-5 pb-4 text-xs leading-relaxed text-white/55">
-          India is mapped as a grid of ~200 m cells, each with its own headcount, and
-          your radius sums the real cells inside it — never radius &times; average
-          density. Cells come from{" "}
-          <span className="text-white/75">Google Open Buildings</span> footprints scaled
-          by <span className="text-white/75">GHSL</span> height, carrying{" "}
-          <span className="text-white/75">WorldPop</span> totals blended with Meta&apos;s{" "}
-          <span className="text-white/75">HRSL</span> at a ratio tuned per density band,
-          then tagged to 2025 pincode boundaries (localities from the{" "}
-          <span className="text-white/75">India Post</span> directory). Calibrated
-          against ground-truth data for hundreds of pincodes — estimates, not a census.
-        </p>
-      </details>
-
-      {/* ─────────── Additional Geographical Info ─────────── */}
-      {(coverage.length > 0 || densityFallback) && (
-        <div className="mt-8 rounded-xl border border-white/10 bg-ink-950/40 p-5 sm:p-6">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h3 className="text-sm font-semibold text-white">
-              Additional Geographical Info
-            </h3>
-            <p className="text-xs text-white/60">{coverageSummary}</p>
-          </div>
-
-          {densityFallback ? (
-            <p className="mt-3 rounded-lg border border-white/10 bg-ink-900/60 p-3 text-xs leading-relaxed text-white/60">
-              No population-grid cells fall inside this radius, so the serviceable
-              population above is an area × density estimate rather than a
-              pincode-by-pincode count. This happens in sparsely populated areas where
-              the grid has nothing to measure — widen the radius for a counted figure.
+      {/* ─────────── Method + per-pincode breakdown ─────────── */}
+      {!compact && (
+        <div className="border-t border-white/[0.07] p-5 sm:p-6">
+          {/* Collapsed by default: reassurance-on-demand, not something the
+              reader needs before the numbers above. Native <details> so it
+              works without JS, on keyboard, and on touch. */}
+          <details className="group rounded-lg bg-ink-850">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white/60 transition hover:text-white/85 [&::-webkit-details-marker]:hidden">
+              <span>How we count the population</span>
+              <ChevronDown
+                aria-hidden
+                className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+            <p className="px-5 pb-4 text-xs leading-relaxed text-white/55">
+              India is mapped as a grid of ~200 m cells, each with its own headcount, and
+              your radius sums the real cells inside it — never radius &times; average
+              density. Cells come from{" "}
+              <span className="text-white/75">Google Open Buildings</span> footprints scaled
+              by <span className="text-white/75">GHSL</span> height, carrying{" "}
+              <span className="text-white/75">WorldPop</span> totals blended with Meta&apos;s{" "}
+              <span className="text-white/75">HRSL</span> at a ratio tuned per density band,
+              then tagged to 2025 pincode boundaries (localities from the{" "}
+              <span className="text-white/75">India Post</span> directory). Calibrated
+              against ground-truth data for hundreds of pincodes — estimates, not a census.
             </p>
-          ) : (
-            <>
-          <p className="mt-1 text-xs leading-relaxed text-white/45">
-            Coverage is the share of each pincode&apos;s people inside your {radiusKm} km
-            radius — counted cell by cell from a 200 m population grid, not by area.
-            Distance runs from the centre of your radius to the centre of that pincode,
-            so a large pincode can sit further away than {radiusKm} km and still reach
-            into the circle.
-          </p>
+          </details>
 
-          <div className="mt-4 max-h-72 overflow-y-auto rounded-lg ring-1 ring-white/5">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead className="sticky top-0 z-10 bg-ink-900">
-                <tr className="text-[11px] uppercase tracking-wider text-white/45">
-                  <th scope="col" className="px-3 py-2 font-medium">Pincode</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Area</th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">Distance</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Coverage</th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">
-                    People in radius
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {coverage.map((c) => {
-                  const isHome = c.pincode === result?.pincode;
-                  return (
-                    <tr
-                      key={c.pincode}
-                      className={
-                        isHome
-                          ? "border-t border-white/5 bg-accent/10"
-                          : "border-t border-white/5"
-                      }
-                    >
-                      <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums text-white">
-                        {c.pincode}
-                        {isHome && (
-                          <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-soft">
-                            yours
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-white/70">
-                        {c.office ? cleanAreaName(c.office) : "—"}
-                      </td>
-                      {/* The circle is centred on this pincode's population-weighted
-                          point while distances are measured to India Post's geometric
-                          centre, so its own row lands ~0.5 km from itself. That gap is
-                          an artefact of two different centres, not a real distance —
-                          name the row for what it is instead of printing it. */}
-                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white/70">
-                        {isHome ? (
-                          <span className="text-white/50">centre</span>
-                        ) : (
-                          `${c.distanceKm.toFixed(1)} km`
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-white/10"
-                            aria-hidden="true"
-                          >
-                            <div
-                              className="h-full rounded-full bg-accent"
-                              style={{
-                                width: `${Math.max(2, Math.min(100, c.exposurePct))}%`,
-                              }}
-                            />
-                          </div>
-                          <span className="tabular-nums text-white/80">
-                            {c.exposurePct >= 99.95
-                              ? "100%"
-                              : `${c.exposurePct.toFixed(1)}%`}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white">
-                        {formatNumber(Math.round(c.inCirclePop))}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          {(coverage.length > 0 || densityFallback) && (
+            /* Collapsed like the method note above it. The table can run to
+               dozens of rows, so left open it buries everything under a scroll
+               of detail nobody has asked for yet; the summary line keeps the one
+               fact worth reading at a glance. Native <details> for the same
+               reason as above: it works without JS, on keyboard, and on touch. */
+            <details className="group mt-4 rounded-lg bg-ink-850">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
+                <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                  <span className="text-sm font-semibold text-white">
+                    Additional Geographical Info
+                  </span>
+                  <span className="text-xs text-white/60">{coverageSummary}</span>
+                </span>
+                <ChevronDown
+                  aria-hidden
+                  className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
+                />
+              </summary>
 
-          <p className="mt-3 text-right text-xs text-white/55">
-            {formatNumber(coverage.length)} pincode
-            {coverage.length === 1 ? "" : "s"} ·{" "}
-            <span className="font-semibold text-white/80">
-              {formatNumber(serviceablePopulation)}
-            </span>{" "}
-            people in radius
-          </p>
-            </>
+              <div className="px-5 pb-5">
+                {densityFallback ? (
+                  <p className="rounded-lg bg-ink-800 p-3 text-xs leading-relaxed text-white/60">
+                    No population-grid cells fall inside this radius, so the catchment
+                    above is an area × density estimate rather than a pincode-by-pincode
+                    count. This happens in sparsely populated areas where the grid has
+                    nothing to measure — widen the radius for a counted figure.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">
+                      Coverage is the share of each pincode&apos;s people inside your{" "}
+                      {radiusKm} km radius — counted cell by cell from a 200 m population
+                      grid, not by area. Distance runs from the centre of your radius to
+                      the centre of that pincode, so a large pincode can sit further away
+                      than {radiusKm} km and still reach into the circle.
+                    </p>
+
+                    {/* One control, on the right, above the column headers it reorders.
+                        Native select: it opens without JS and gets the OS picker on
+                        touch, where a custom menu over a scrolling table would fight
+                        the finger. */}
+                    <div className="mt-4 flex items-center justify-end gap-2">
+                      <label
+                        htmlFor="coverage-sort"
+                        className="text-[11px] uppercase tracking-wider text-white/40"
+                      >
+                        Sort
+                      </label>
+                      <select
+                        id="coverage-sort"
+                        value={coverageSort}
+                        onChange={(e) => setCoverageSort(e.target.value as CoverageSortKey)}
+                        className="cursor-pointer rounded-md bg-ink-800 px-2 py-1 text-xs text-white/80 ring-1 ring-white/10 transition hover:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+                      >
+                        {COVERAGE_SORTS.map((s) => (
+                          <option key={s.key} value={s.key} className="bg-ink-800 text-white">
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mt-2 max-h-72 overflow-y-auto rounded-lg ring-1 ring-white/5">
+                      <table className="w-full border-collapse text-left text-xs">
+                        <thead className="sticky top-0 z-10 bg-ink-800">
+                          <tr className="text-[11px] uppercase tracking-wider text-white/45">
+                            <th scope="col" className="px-3 py-2 font-medium">Pincode</th>
+                            <th scope="col" className="px-3 py-2 font-medium">Area</th>
+                            <th scope="col" className="px-3 py-2 text-right font-medium">
+                              Distance
+                            </th>
+                            <th scope="col" className="px-3 py-2 font-medium">Coverage</th>
+                            <th scope="col" className="px-3 py-2 text-right font-medium">
+                              People in radius
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedCoverage.map((c) => {
+                            const isHome = c.pincode === result?.pincode;
+                            return (
+                              <tr
+                                key={c.pincode}
+                                className={
+                                  isHome
+                                    ? "border-t border-white/5 bg-accent/10"
+                                    : "border-t border-white/5"
+                                }
+                              >
+                                <td className="whitespace-nowrap px-3 py-2 font-medium tabular-nums text-white">
+                                  {c.pincode}
+                                  {isHome && (
+                                    <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-soft">
+                                      yours
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 text-white/70">
+                                  {c.office ? cleanAreaName(c.office) : "—"}
+                                </td>
+                                {/* The circle is centred on this pincode's population-weighted
+                                    point while distances are measured to India Post's geometric
+                                    centre, so its own row lands ~0.5 km from itself. That gap is
+                                    an artefact of two different centres, not a real distance —
+                                    name the row for what it is instead of printing it. */}
+                                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white/70">
+                                  {isHome ? (
+                                    <span className="text-white/50">centre</span>
+                                  ) : (
+                                    `${c.distanceKm.toFixed(1)} km`
+                                  )}
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-white/10"
+                                      aria-hidden="true"
+                                    >
+                                      <div
+                                        className="h-full rounded-full bg-accent"
+                                        style={{
+                                          width: `${Math.max(2, Math.min(100, c.exposurePct))}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="tabular-nums text-white/80">
+                                      {c.exposurePct >= 99.95
+                                        ? "100%"
+                                        : `${c.exposurePct.toFixed(1)}%`}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-white">
+                                  {formatNumber(Math.round(c.inCirclePop))}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <p className="mt-3 text-right text-xs text-white/55">
+                      {formatNumber(coverage.length)} pincode
+                      {coverage.length === 1 ? "" : "s"} ·{" "}
+                      <span className="font-semibold text-white/80">
+                        {formatNumber(serviceablePopulation)}
+                      </span>{" "}
+                      people in radius
+                    </p>
+                  </>
+                )}
+              </div>
+            </details>
           )}
         </div>
       )}

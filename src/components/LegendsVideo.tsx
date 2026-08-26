@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, X } from "lucide-react";
+import { Play, Sparkle, X } from "lucide-react";
 import { HERO_VIDEO_POSTER } from "@/lib/data";
 
 const TRAILER_SRC = "/Screen%20Recording%202026-05-09%20132251.mp4";
@@ -30,17 +30,17 @@ export function LegendsVideo() {
   return (
     <section
       aria-labelledby="legends-title"
-      className="mx-auto max-w-[1500px] px-6 pb-16 pt-6 sm:px-16 sm:pb-24 lg:px-24"
+      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-24 lg:px-[120px]"
     >
       <h2
         id="legends-title"
-        className="mx-auto max-w-2xl text-center font-serif text-3xl leading-tight text-white sm:text-5xl"
+        className="mx-auto max-w-3xl text-center text-[clamp(1.5rem,2.6vw,2.25rem)] font-extrabold leading-[1.3] tracking-[-0.01em] text-white"
       >
-        Meet the world&rsquo;s best. <br className="hidden sm:block" />
-        New cohorts added every month.
+        Experience world-class mentorship
+        <br className="hidden sm:block" /> from the finest minds in medicine.
       </h2>
 
-      <div className="relative mx-auto mt-10 aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-ink-800 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.6)]">
+      <div className="relative mt-10 aspect-[16/10] w-full overflow-hidden rounded-[20px] bg-ink-850 sm:mt-14 sm:aspect-[1200/648]">
         {playing ? (
           <>
             <video
@@ -55,7 +55,7 @@ export function LegendsVideo() {
               type="button"
               onClick={close}
               aria-label="Close trailer"
-              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white backdrop-blur transition hover:border-[#ab834d] hover:bg-[#ab834d]"
+              className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white backdrop-blur transition hover:border-accent hover:bg-accent"
             >
               <X className="h-5 w-5" />
             </button>
@@ -69,29 +69,32 @@ export function LegendsVideo() {
               className="h-full w-full object-cover"
             />
 
-            {/* Gradient scrim — darker on the right so the overlay card stays legible */}
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.85)_25%,rgba(0,0,0,0.45)_55%,rgba(0,0,0,0)_85%)]" />
+            {/* Scrim — heaviest on the right so the overlay copy stays legible. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_left,rgba(0,0,0,0.97)_0%,rgba(0,0,0,0.9)_20%,rgba(0,0,0,0.55)_45%,rgba(0,0,0,0.12)_75%,rgba(0,0,0,0)_92%)]"
+            />
 
-            {/* Featured-class overlay card */}
-            <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col items-center justify-center px-6 text-center sm:px-10">
-              <span className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
-                New
-              </span>
-              <h3 className="mt-4 font-serif text-3xl leading-tight text-white sm:text-5xl">
-               Mastering Corneal <br></br>
-                Transplant
+            <span className="absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-medium text-black sm:right-8 sm:top-8">
+              <Sparkle className="h-3.5 w-3.5 fill-black" aria-hidden />
+              New Trailer
+            </span>
+
+            <div className="absolute inset-y-0 right-0 flex w-full max-w-[26rem] flex-col items-center justify-center px-6 text-center sm:px-10">
+              <h3 className="font-serif text-[clamp(1.5rem,2.6vw,2.25rem)] font-medium leading-[1.25] text-white">
+                Mastering Modern Corneal Surgery
               </h3>
-              <span className="mt-4 block h-px w-8 bg-white/70" aria-hidden />
-              <p className="mt-4 text-sm font-semibold text-white sm:text-base">
-                With Dr.Srinivas K Rao
+              <span className="mt-5 block h-px w-6 bg-white/70" aria-hidden />
+              <p className="mt-5 text-sm text-white/70">
+                with <span className="font-semibold text-white">Dr. K. Srinivas Roa</span>
               </p>
               <button
                 ref={triggerRef}
                 type="button"
                 onClick={() => setPlaying(true)}
-                className="mt-6 inline-flex items-center gap-2 rounded-[12px] border border-white/15 bg-black/60 px-5 py-2.5 text-sm font-medium text-white backdrop-blur transition hover:border-[#ab834d] hover:bg-[#ab834d]"
+                className="mt-6 inline-flex items-center gap-2.5 rounded-[10px] border border-white/25 bg-black/40 px-6 py-3 text-[15px] font-medium text-white backdrop-blur-sm transition hover:border-accent hover:bg-accent"
               >
-                <Play className="h-4 w-4 fill-white" aria-hidden />
+                <Play className="h-4 w-4" aria-hidden />
                 Watch Trailer
               </button>
             </div>

@@ -4,10 +4,11 @@
 
 :root {
   color-scheme: dark;
-  --bg: #06070a;
+  --bg: #000000;
   --fg: #e8eaf0;
-  --muted: #9aa3b2;
+  --muted: #8a8a8a;
   --border: rgba(255, 255, 255, 0.08);
+  --accent: #b75a44;
 }
 
 html {
@@ -42,7 +43,7 @@ body {
 }
 
 ::selection {
-  background: rgba(124, 92, 255, 0.35);
+  background: rgba(183, 90, 68, 0.45);
   color: #fff;
 }
 
@@ -69,7 +70,7 @@ body {
 
 /* Pretty focus ring — only applied where no component-level focus-visible:ring exists */
 :where(button, a, input, textarea, select):focus-visible {
-  outline: 2px solid #7c5cff;
+  outline: 2px solid #b75a44;
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -242,4 +243,216 @@ body {
 }
 .card-lift:hover {
   transform: translateY(-2px);
+}
+
+/* ============================================================
+   Figma landing-page primitives
+   ============================================================ */
+
+/* Ghost word behind the Journey cards — the huge low-contrast repeat of the
+   card's own title, clipped by the card and bled off its right edge. */
+.ghost-word {
+  color: transparent;
+  -webkit-text-stroke: 0px transparent;
+  background: #343434;
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: 0.55;
+  user-select: none;
+}
+
+/* Range sliders in the ROI panel. The Figma draws the filled part as a bar
+   whose right end is a half-circle concentric with the thumb, its colour fading
+   out toward the left, over tick marks that show through whatever the bar has
+   not covered yet. --frac is the value as 0..1, set by the component. */
+.roi-slider {
+  position: relative;
+  height: 42px;
+  margin-top: 10px;
+}
+
+/* Behind the bar, so the filled part covers the ticks it has passed and only
+   the range still ahead reads as ticks. */
+.roi-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.roi-ticks > span {
+  width: 1.5px;
+  height: 12px;
+  border-radius: 0.75px;
+  background: #a5a5a5;
+}
+
+/* The bar and the knob are elements rather than the input's own track and thumb
+   pseudo-elements, because the cap has to end exactly one radius past the
+   thumb's centre — and a background sized to the value's percentage lands short
+   of that, since a thumb travels the track minus its own width. 17px is half
+   the thumb, which is also how far its centre sits from either end. */
+.roi-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(38px + var(--frac, 0) * (100% - 34px));
+  /* At the top of the range the cap would reach 4px past the track; that
+     sliver sits entirely under the knob, so clipping it changes nothing. */
+  max-width: 100%;
+  border-radius: 0 21px 21px 0;
+  background: linear-gradient(
+    to right,
+    rgba(29, 29, 29, 0.2),
+    var(--roi-fill, #b75a44)
+  );
+  pointer-events: none;
+}
+
+.roi-thumb {
+  position: absolute;
+  top: 4px;
+  left: calc(var(--frac, 0) * (100% - 34px));
+  display: flex;
+  height: 34px;
+  width: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #ffffff;
+  pointer-events: none;
+}
+
+/* The real input, on top and carrying every native behaviour — drag, keyboard,
+   the value it reports — with nothing of its own left to see. */
+.roi-range {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 42px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.roi-range::-webkit-slider-runnable-track {
+  height: 42px;
+  background: transparent;
+}
+.roi-range::-moz-range-track {
+  height: 42px;
+  background: transparent;
+}
+.roi-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 34px;
+  width: 34px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+}
+.roi-range::-moz-range-thumb {
+  height: 34px;
+  width: 34px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+}
+.roi-range:focus-visible {
+  outline: 2px solid #b75a44;
+  outline-offset: 3px;
+  border-radius: 21px;
+}
+
+/* FAQ deck — the fanned cards behind the active one. Transform is set inline
+   per card; this only carries the shared easing so the shuffle reads as one
+   motion rather than several. */
+.faq-card {
+  transition:
+    transform 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 480ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-card {
+    transition: none;
+  }
+}
+
+/* Horizontal hero strip pauses when a visitor hovers it. */
+.hero-strip:hover .hero-strip-track {
+  animation-play-state: paused;
+}
+
+/* Journey cards stack as you scroll. Each card sticks one sliver lower than
+   the one before it, so the cards already passed stay pinned as thin edges
+   behind the incoming card instead of scrolling away. --i is the card's index,
+   set by the component; --stack-top clears the sticky navbar. */
+.journey-stack {
+  --stack-top: 96px;
+  /* Mirrors the lg:min-h-[516px] the cards carry. */
+  --card-h: 516px;
+  /* How much of each pinned card stays visible above the next one. The upper
+     bound is the look; the middle term is the most the geometry allows, since
+     the offset plus both steps plus the front card have to fit the viewport —
+     without it the front card's bottom runs off short laptop screens. The 2 is
+     the number of gaps, i.e. one fewer than the number of cards. */
+  --stack-step: clamp(
+    0px,
+    calc((100vh - var(--stack-top) - var(--card-h)) / 2),
+    60px
+  );
+}
+
+/* Default (below lg) is the plain spaced list — these are the gaps the section
+   used before the stacking was added. */
+.journey-card + .journey-card {
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .journey-card + .journey-card {
+    margin-top: 4.5rem;
+  }
+}
+
+/* The stack only starts at lg. Narrower than that the cards are barely 45% of
+   the viewport height — the design only gives them min-h-[516px] at lg — so a
+   pinned stack reads as frozen content with the next section showing beneath
+   it rather than as a deck of cards.
+
+   Note the stack also needs a trailing spacer item (see JourneySection) for the
+   last card to pin at all: padding on the list does not work, because Chrome
+   clamps a sticky element to its container's content box. */
+@media (min-width: 1024px) {
+  .journey-card {
+    position: sticky;
+    top: calc(var(--stack-top) + var(--i) * var(--stack-step));
+    /* The incoming card casts a shadow upward onto the cards pinned behind it.
+       Without this the slivers read as one flat block rather than a stack. */
+    box-shadow: 0 -20px 45px -12px rgba(0, 0, 0, 0.75);
+  }
+
+  .journey-card + .journey-card {
+    margin-top: 0;
+  }
+}
+
+/* Pinning cards on top of each other is disorienting when motion is reduced,
+   so fall back to the plainly spaced list at every width. */
+@media (prefers-reduced-motion: reduce) {
+  .journey-card {
+    position: static;
+    box-shadow: none;
+  }
+
+  .journey-card + .journey-card {
+    margin-top: 4.5rem;
+  }
 }

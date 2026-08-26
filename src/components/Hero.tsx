@@ -1,114 +1,89 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HERO_IMAGES as FALLBACK_HERO_IMAGES } from "@/lib/data";
-import { JoinWaitlistButton } from "@/components/JoinWaitlistButton";
-import { cn } from "@/lib/utils";
 
 type HeroImg = { src: string; alt: string };
 
-/**
- * Hero — two pairs of vertical marquee columns flanking the headline.
- * Each side has two columns moving in opposite directions.
- * The track is duplicated so the loop is seamless.
- *
- * Images come from backend doctors with `showInHeroSection === true`. If none
- * are flagged we fall back to the placeholder portraits in `lib/data.ts` so
- * the marquee never renders empty.
- */
-function MarqueeColumn({
-  images,
-  direction,
-  offset = 0,
-  className,
-}: {
-  images: HeroImg[];
-  direction: "up" | "down";
-  offset?: number;
-  className?: string;
-}) {
-  // Stagger the starting image so paired columns don't look identical
-  const rotated = offset
-    ? [...images.slice(offset), ...images.slice(0, offset)]
-    : images;
-  const track = [...rotated, ...rotated];
-  return (
-    <div
-      className={cn(
-        "pause-on-hover relative h-[600px] w-[180px] overflow-hidden sm:h-[760px] sm:w-[260px]",
-        className,
-      )}
-      aria-hidden
-    >
-      {/* top + bottom fade masks */}
-      <div className="pointer-events-none absolute inset-0 z-10 bg-vignette-y" />
-      <div
-        className={cn(
-          "marquee-track flex flex-col gap-4",
-          direction === "up" ? "animate-scrollY" : "animate-scrollYReverse",
-        )}
-      >
-        {track.map((img, i) => (
-          <div
-            key={`${direction}-${offset}-${i}`}
-            className="relative h-[220px] w-full shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:h-[300px]"
-          >
-            <Image
-              src={img.src}
-              alt={img.alt}
-              fill
-              sizes="(max-width: 640px) 180px, 260px"
-              className="object-cover"
-              priority={i < 2}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+/** Portraits shown in the strip on the widest breakpoint. */
+const STRIP_COUNT = 7;
 
+/**
+ * Hero — an edge-to-edge band of mentor portraits that dissolves into black,
+ * with the headline sitting on the black below it.
+ *
+ * Portraits come from backend doctors flagged `showInHeroSection`; when the
+ * admin has flagged fewer than seven the list is repeated so the band always
+ * spans the full width rather than ending mid-row.
+ */
 export function Hero({ images }: { images?: HeroImg[] }) {
-  // Need at least 4 distinct frames so the duplicated track loops smoothly.
-  // If the admin has only flagged 1–3 doctors, repeat the list to fill it.
   let list = images && images.length > 0 ? images : FALLBACK_HERO_IMAGES;
-  while (list.length < 4) list = [...list, ...list];
+  while (list.length < STRIP_COUNT) list = [...list, ...list];
+  const strip = list.slice(0, STRIP_COUNT);
 
   return (
     <section
       id="get-started"
       aria-labelledby="hero-title"
-      className="relative isolate overflow-hidden"
+      className="relative isolate overflow-hidden bg-black"
     >
-      <div className="mx-auto grid min-h-[640px] max-w-[1500px] grid-cols-[auto_1fr_auto] items-start gap-4 px-12 pb-8 pt-2 sm:gap-10 sm:px-20 sm:pb-16 sm:pt-6 lg:px-28">
-        <MarqueeColumn images={list} direction="down" className="self-center" />
-
-        <div className="flex flex-col items-center pt-28 text-center sm:pt-26">
-          <h1
-            id="hero-title"
-            className=" font-serif text-4xl leading-[1.05] tracking-tight text-white sm:text-6xl"
-          >
-           Become
-            <br />
-            Legendary
-            <br />
-            <span className="font-canela text-2xl font-bold text-accent sm:text-4xl">Learn from the Legends</span>
-          </h1>
-          <p className="mt-5 max-w-md font-canela text-base font-bold tracking-wide text-white/90 sm:text-lg">
-            ACCESS. KNOWLEDGE. BREAKTHROUGH
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="#programs"
-              className="group inline-flex items-center justify-center gap-2 rounded-[12px] border border-[#ab834d] bg-[#ab834d] px-7 py-2.5 text-sm font-semibold text-white shadow-[0_8px_28px_-12px_rgba(171,131,77,0.6)] transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+      {/* Portrait band. Columns drop off from the right as the viewport narrows
+          so each remaining portrait keeps a usable width instead of turning
+          into a sliver. */}
+      <div className="relative">
+        <div className="grid h-[260px] grid-cols-3 sm:h-[320px] sm:grid-cols-4 lg:h-[400px] lg:grid-cols-7">
+          {strip.map((img, i) => (
+            <div
+              key={`${img.src}-${i}`}
+              className={[
+                "relative h-full w-full overflow-hidden bg-ink-850",
+                i >= 3 ? "hidden sm:block" : "",
+                i >= 4 ? "hidden lg:block" : "",
+              ].join(" ")}
             >
-              Take me to Courses
-              <span aria-hidden className="translate-x-0 transition group-hover:translate-x-0.5">→</span>
-            </Link>
-            {/* <JoinWaitlistButton /> */}
-          </div>
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                sizes="(max-width: 640px) 34vw, (max-width: 1024px) 25vw, 15vw"
+                className="object-cover object-top"
+                priority={i < 4}
+              />
+            </div>
+          ))}
         </div>
+        {/* Portraits are lit brighter than the reference frames, so the band
+            carries an even scrim before the fade takes over — otherwise the
+            strip glares against the black page around it. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-black/25" />
+        {/* Bottom fade to black — the headline reads as if the band melts into it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-hero-fade"
+        />
+      </div>
 
-        <MarqueeColumn images={list} direction="up" offset={2} className="self-center" />
+      <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-8 text-center sm:px-10 sm:pb-24 sm:pt-10">
+        <h1 id="hero-title" className="text-white">
+          <span className="block font-display text-[clamp(2.5rem,5.5vw,5rem)] leading-[0.98] tracking-[-0.01em]">
+            Become <span className="text-accent">Legendary</span>
+          </span>
+          <span className="mt-2 block font-display text-[clamp(1.5rem,3.3vw,3rem)] uppercase leading-tight tracking-[0.005em]">
+            Learn from the Legends
+          </span>
+        </h1>
+
+        <p className="mx-auto mt-5 max-w-2xl text-base text-white/60 sm:text-lg">
+          Transforming how ophthalmologists think, decide, and practice
+        </p>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="#programs"
+            className="inline-flex items-center justify-center rounded-[10px] bg-accent px-7 py-3.5 text-base font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            Begin Your Journey
+          </Link>
+        </div>
       </div>
     </section>
   );

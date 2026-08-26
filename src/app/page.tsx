@@ -1,9 +1,11 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { JourneySection } from "@/components/JourneySection";
 import { LegendsVideo } from "@/components/LegendsVideo";
 import { ProgramsSection } from "@/components/ProgramsSection";
-import { CertificatesPromo } from "@/components/CertificatesPromo";
+import { HowItWorks } from "@/components/HowItWorks";
 import { HomeRoiSection } from "@/components/HomeRoiSection";
+import { CertificatesPromo } from "@/components/CertificatesPromo";
 import { SmartAssist } from "@/components/SmartAssist";
 import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
@@ -36,8 +38,10 @@ export default async function HomePage() {
       <Navbar />
       <main>
         <Hero images={heroImages} />
+        <JourneySection />
         <LegendsVideo />
         <ProgramsSection doctors={doctors} programs={programs} />
+        <HowItWorks images={heroImages} />
         <HomeRoiSection />
         <CertificatesPromo />
         <SmartAssist />
