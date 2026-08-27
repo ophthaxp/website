@@ -8,6 +8,7 @@ import { LegendTrailer } from "@/components/LegendTrailer";
 import { CourseMastery } from "@/components/CourseMastery";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
 import { CourseRoiBlock } from "@/components/CourseRoiBlock";
+import { FaqDeck } from "@/components/FaqDeck";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
@@ -180,6 +181,12 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         ]
       : []),
   ];
+
+  // The FAQ deck speaks q/a; the `faqs` column on the course row is
+  // question/answer, so it is mapped rather than duplicated in two shapes.
+  const faqItems = (p.faqs ?? [])
+    .filter((f) => f.question && f.answer)
+    .map((f) => ({ q: f.question, a: f.answer }));
 
   const inclusions = p.highlights.length > 0 ? p.highlights.slice(0, 4) : DEFAULT_INCLUSIONS;
   const priceText = p.priceInr
@@ -475,8 +482,19 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
         )}
 
         {/* ══════════════════════════════════════════════════════════════
-            § 7 — SUPPORTING DETAIL   Certificate · other Legends
+            § 7 — SUPPORTING DETAIL   FAQs · Certificate · other Legends
         ══════════════════════════════════════════════════════════════ */}
+        {faqItems.length > 0 && (
+          <section aria-labelledby="course-faq-title" className={SECTION}>
+            <h2 id="course-faq-title" className={`text-center ${HEADING}`}>
+              Frequently asked questions
+            </h2>
+            <div className="mt-10 sm:mt-16">
+              <FaqDeck key={p.slug} items={faqItems} label={p.name} />
+            </div>
+          </section>
+        )}
+
         {(p.certificateNote || p.sampleCertificateImage) && (
           <section aria-labelledby="cert-title" className={SECTION}>
             <h2 id="cert-title" className={HEADING}>
