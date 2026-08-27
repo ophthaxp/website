@@ -2,10 +2,31 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronsLeft, ChevronsRight, MessageSquare } from "lucide-react";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Faq = { q: string; a: string; cta?: { label: string; href: string } };
+/**
+ * The card's chat glyph. Figma draws lucide's messages-square — two stacked
+ * bubbles — as a solid fill at 40px, not the single stroked square lucide
+ * ships, so the path is inlined rather than imported. The viewBox keeps the
+ * export's own 28..68 coordinates so the geometry needs no translation.
+ */
+function ChatIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="28 28 40 40" fill="currentColor" aria-hidden className={className}>
+      <path d="M62 50V56L56 50H44C42.9391 50 41.9217 49.5786 41.1716 48.8284C40.4214 48.0783 40 47.0609 40 46V32C40 29.8 41.8 28 44 28H64C65.0609 28 66.0783 28.4214 66.8284 29.1716C67.5786 29.9217 68 30.9391 68 32V46C68 47.0609 67.5786 48.0783 66.8284 48.8284C66.0783 49.5786 65.0609 50 64 50H62ZM56 54V58C56 59.0609 55.5786 60.0783 54.8284 60.8284C54.0783 61.5786 53.0609 62 52 62H40L34 68V62H32C30.9391 62 29.9217 61.5786 29.1716 60.8284C28.4214 60.0783 28 59.0609 28 58V44C28 41.8 29.8 40 32 40H36V46C36 48.1217 36.8429 50.1566 38.3431 51.6569C39.8434 53.1571 41.8783 54 44 54H56Z" />
+    </svg>
+  );
+}
+
+type Faq = {
+  q: string;
+  a: string;
+  cta?: { label: string; href: string };
+  /** A closing prompt rather than a question. Nothing is hidden behind a
+   *  click on these — there is no answer to reveal. */
+  isPrompt?: boolean;
+};
 
 const CATEGORIES: { key: string; label: string; items: Faq[] }[] = [
   {
@@ -32,6 +53,7 @@ const CATEGORIES: { key: string; label: string; items: Faq[] }[] = [
         q: "Still have questions?",
         a: "Contact our support team and we will make sure everything is clear and intuitive for you!",
         cta: { label: "Contact Support", href: "/contact" },
+        isPrompt: true,
       },
     ],
   },
@@ -97,14 +119,21 @@ function deckStyle(offset: number): React.CSSProperties {
 export function FaqSection() {
   const [catIndex, setCatIndex] = useState(0);
   const [index, setIndex] = useState(0);
+  // Answers open one at a time and close again whenever the front card
+  // changes — a revealed answer should never carry over to a new question.
+  const [open, setOpen] = useState(false);
 
   const category = CATEGORIES[catIndex];
   const items = category.items;
   const total = items.length;
 
-  const go = (delta: number) => setIndex((i) => (i + delta + total) % total);
+  const go = (delta: number) => {
+    setOpen(false);
+    setIndex((i) => (i + delta + total) % total);
+  };
 
   const pickCategory = (i: number) => {
+    setOpen(false);
     setCatIndex(i);
     setIndex(0);
   };
@@ -161,7 +190,7 @@ export function FaqSection() {
         </button>
 
         <div
-          className="relative h-[402px] w-full max-w-[378px]"
+          className="relative h-[400px] w-full max-w-[380px]"
           role="group"
           aria-roledescription="carousel"
           aria-label={`${category.label} questions`}
@@ -181,29 +210,60 @@ export function FaqSection() {
                 aria-hidden={!isFront}
                 style={deckStyle(offset)}
                 className={cn(
-                  "faq-card absolute inset-0 flex flex-col rounded-[24px] border p-7",
-                  isFront
-                    ? "border-white/12 bg-black/55 backdrop-blur-xl"
-                    : "border-transparent bg-accent",
+                  "faq-card absolute inset-0 flex flex-col overflow-hidden rounded-[26px] p-7",
+                  /* Figma draws this card standalone; in the deck its 60% fill lets
+                     the stacked cards behind it show through, so the backdrop
+                     blur has to be heavy enough that their headings read as a
+                     colour wash rather than legible ghost text. */
+                  isFront ? "bg-[#1D1D1D]/60 backdrop-blur-3xl" : "bg-accent",
                 )}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <MessageSquare
-                    className={cn("h-7 w-7", isFront ? "text-accent" : "text-white/70")}
-                    aria-hidden
+                {/* Two hugely diffused circles Figma clips to the card: a white
+                    one sitting just past the bottom edge, knocked back by a
+                    near-black one over it. Net effect is a faint lift at the
+                    foot of the card rather than a flat panel. */}
+                {isFront && (
+                  <>
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute left-1/2 top-[289px] h-[250px] w-[250px] -translate-x-1/2 rounded-full bg-white blur-[250px]"
+                    />
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute left-1/2 top-[225px] h-[250px] w-[250px] -translate-x-1/2 rounded-full bg-[#1A1A1A] blur-[200px]"
+                    />
+                  </>
+                )}
+                {isFront && !item.isPrompt && (
+                  <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    aria-expanded={open}
+                    aria-controls={`faq-answer-${category.key}-${i}`}
+                    className="absolute inset-0 z-10 cursor-pointer rounded-[26px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <span className="sr-only">
+                      {open ? `Hide the answer to: ${item.q}` : `Show the answer to: ${item.q}`}
+                    </span>
+                  </button>
+                )}
+
+                <div className="relative flex items-center justify-between gap-4">
+                  <ChatIcon
+                    className={cn("h-10 w-10", isFront ? "text-accent" : "text-white/70")}
                   />
-                  {/* Position within the category */}
-                  <div className="flex items-center gap-1.5 pt-1.5" aria-hidden>
+                  {/* Position within the category — 24x6 pills on a 4px gutter. */}
+                  <div className="flex items-center gap-1" aria-hidden>
                     {items.map((c, ci) => (
                       <span
                         key={c.q}
                         className={cn(
-                          "h-[3px] w-[18px] rounded-full",
+                          "h-1.5 w-6 rounded-full",
                           ci === index && isFront
                             ? "bg-accent"
                             : isFront
-                              ? "bg-white/25"
-                              : "bg-white/30",
+                              ? "bg-white/50"
+                              : "bg-white/40",
                         )}
                       />
                     ))}
@@ -212,36 +272,51 @@ export function FaqSection() {
 
                 <h3
                   className={cn(
-                    "mt-6 text-[20px] font-bold leading-[1.3]",
+                    "mt-7 text-xl font-bold leading-[30px] sm:text-2xl sm:leading-[34px]",
                     isFront ? "text-white" : "text-white/90",
                   )}
                 >
                   {item.q}
                 </h3>
 
-                <p
+                {/* The answer keeps its original spot at the foot of the card;
+                    it is simply collapsed until the card is clicked. */}
+                <div
+                  id={`faq-answer-${category.key}-${i}`}
                   className={cn(
-                    "mt-auto text-[17px] leading-[1.5]",
-                    isFront ? "text-white/90" : "text-white/80",
+                    "mt-auto grid transition-[grid-template-rows] duration-500 ease-out",
+                    isFront && (open || item.isPrompt)
+                      ? "grid-rows-[1fr]"
+                      : "grid-rows-[0fr]",
                   )}
                 >
-                  {item.a}
-                </p>
+                  <div className="min-h-0 overflow-hidden">
+                    <p
+                      className={cn(
+                        "text-[17px] leading-[27px] sm:text-xl sm:leading-[32px]",
+                        isFront ? "text-white" : "text-white/80",
+                      )}
+                    >
+                      {item.a}
+                    </p>
 
-                {item.cta && (
-                  <Link
-                    href={item.cta.href}
-                    tabIndex={isFront ? undefined : -1}
-                    className={cn(
-                      "mt-5 inline-flex w-fit items-center rounded-[10px] px-6 py-3 text-sm font-semibold transition",
-                      isFront
-                        ? "bg-accent text-white hover:bg-accent-deep"
-                        : "bg-white/15 text-white",
+                    {item.cta && (
+                      <Link
+                        href={item.cta.href}
+                        tabIndex={isFront && (open || item.isPrompt) ? undefined : -1}
+                        /* Above the card-wide toggle, so it stays a link. */
+                        className={cn(
+                          "relative z-20 mt-5 inline-flex w-fit items-center rounded-[10px] px-6 py-3 text-sm font-semibold transition",
+                          isFront
+                            ? "bg-accent text-white hover:bg-accent-deep"
+                            : "bg-white/15 text-white",
+                        )}
+                      >
+                        {item.cta.label}
+                      </Link>
                     )}
-                  >
-                    {item.cta.label}
-                  </Link>
-                )}
+                  </div>
+                </div>
               </article>
             );
           })}
