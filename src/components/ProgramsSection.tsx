@@ -190,9 +190,11 @@ export function ProgramsSection({
         })}
       </div>
 
-      {/* Mentor rail. The inner track breaks out to the viewport's right edge so
-          cards run off-canvas instead of stopping at the section padding; body
-          has overflow-x: clip so this never adds a horizontal page scrollbar. */}
+      {/* Mentor rail. .rail-bleed breaks the track out to both viewport edges so
+          cards run off-canvas instead of stopping at the section padding —
+          scrolled-past cards slide off the left exactly the way upcoming ones
+          bleed off the right — while keeping the first card on the content
+          column. Body has overflow-x: clip, so it adds no page scrollbar. */}
       <div className="relative mt-14">
         <div className="absolute right-0 top-0 z-10 hidden -translate-y-14 items-center gap-2.5 sm:flex">
           <button
@@ -222,7 +224,7 @@ export function ProgramsSection({
           onFocusCapture={() => setIsPaused(true)}
           onBlurCapture={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}
-          className="no-scrollbar mr-[calc(50%-50vw)] flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-10"
+          className="no-scrollbar rail-bleed flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-10"
         >
           {data.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">

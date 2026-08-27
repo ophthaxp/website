@@ -531,3 +531,131 @@ body {
 .roi-map .leaflet-tooltip-top::before {
   border-top-color: rgba(255, 255, 255, 0.12);
 }
+
+/* ---------- Edge-to-edge horizontal rail ----------
+   The mentor rail bleeds past the section padding to both viewport edges, so
+   cards slide off the left exactly the way upcoming ones bleed off the right,
+   then pads itself back by --rail-inset so the first card still lines up with
+   the heading above it.
+
+   --rail-inset is the distance from the viewport edge to the section's content
+   column: the centring gutter of the 1440 container plus that breakpoint's
+   section padding. It is spelled out in viewport units rather than as a
+   percentage because scroll-padding resolves percentages against the scrollport
+   itself, not the parent — `calc(50vw - 50%)` reads as 0 there, and scroll
+   snapping then yanks the first card flush against the viewport edge, hiding
+   the padding entirely. */
+.rail-bleed {
+  --rail-inset: calc(max(0px, (100vw - 1440px) / 2) + 1.25rem);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: var(--rail-inset);
+  scroll-padding-left: var(--rail-inset);
+}
+@media (min-width: 640px) {
+  .rail-bleed {
+    --rail-inset: calc(max(0px, (100vw - 1440px) / 2) + 2.5rem);
+  }
+}
+@media (min-width: 1024px) {
+  .rail-bleed {
+    --rail-inset: calc(max(0px, (100vw - 1440px) / 2) + 120px);
+  }
+}
+
+/* ---------- How It Works: specialty marquee, wave badges, glowing orb ----------
+   Geometry is lifted from the Figma card export (292x521): the pill rail sits
+   in a strip clipped to the card, the step badge is a hollow terracotta ring
+   with liquid sloshing inside it, and the "Visualize your Future" chip carries
+   a lit orb. */
+
+/* The rail holds two identical copies of the specialty list. Running the track
+   from 0 to -50% sweeps the pills right -> left; because copy two starts where
+   copy one ends, the seam never shows. */
+@keyframes how-rail {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.how-rail-track {
+  animation: how-rail 34s linear infinite;
+  will-change: transform;
+}
+.how-rail:hover .how-rail-track {
+  animation-play-state: paused;
+}
+
+/* One wavelength of the badge wave is 20 user units, so sliding the crest row
+   exactly -20 loops seamlessly. The second, slower wave rides on top at a
+   different phase, which is what stops it reading as a rigid sawtooth. */
+@keyframes how-wave-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-20px);
+  }
+}
+/* The whole body of water also rises and falls a little, like the badge is
+   being carried. */
+@keyframes how-wave-swell {
+  0%,
+  100% {
+    transform: translateY(0.6px);
+  }
+  50% {
+    transform: translateY(-1.1px);
+  }
+}
+.how-wave-front {
+  animation: how-wave-drift 3.2s linear infinite;
+}
+.how-wave-back {
+  animation: how-wave-drift 5.1s linear infinite reverse;
+}
+.how-wave-body {
+  animation: how-wave-swell 4.4s ease-in-out infinite;
+}
+
+/* Orb glow on the "Visualize your Future" chip: the halo behind it breathes
+   while the orb itself brightens on the same beat. */
+@keyframes how-orb-halo {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.35);
+  }
+}
+@keyframes how-orb-core {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(0, 192, 232, 0.55)) brightness(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 9px rgba(0, 192, 232, 0.9)) brightness(1.25);
+  }
+}
+.how-orb-halo {
+  animation: how-orb-halo 2.8s ease-in-out infinite;
+}
+.how-orb-core {
+  animation: how-orb-core 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-rail-track,
+  .how-wave-front,
+  .how-wave-back,
+  .how-wave-body,
+  .how-orb-halo,
+  .how-orb-core {
+    animation: none;
+  }
+}
