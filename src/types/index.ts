@@ -54,6 +54,17 @@ export interface CourseFormatPhase {
   description: string;
 }
 
+/**
+ * One roadmap module. `outcomes` backs the "By the end of this module, you'll
+ * be able to" checklist that the expanded accordion row reveals; a module with
+ * none simply renders its description and nothing else.
+ */
+export interface CourseModule {
+  title: string;
+  description: string;
+  outcomes: string[];
+}
+
 export interface CourseFaq {
   question: string;
   answer: string;
@@ -106,6 +117,7 @@ export interface Program {
   whatYouWillLearn?: string[];
   curriculumHighlights?: string[];
   courseFormat?: CourseFormatPhase[];
+  modules?: CourseModule[];
   faqs?: CourseFaq[];
   certificateNote?: string;
   sampleCertificateImage?: string;

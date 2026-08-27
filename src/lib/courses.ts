@@ -1,6 +1,7 @@
 import type {
   CourseFaq,
   CourseFormatPhase,
+  CourseModule,
   Doctor,
   Faculty,
   Program,
@@ -181,6 +182,64 @@ function pickObjectArray<T>(rec: RawRecord, ...keys: string[]): T[] {
 }
 
 /**
+ * Coerce one arbitrary value into a list of display strings. Same tolerance as
+ * `pickStringArray`, but reads a value directly rather than a record key — the
+ * roadmap's per-module `outcomes` arrive nested inside a jsonb object, where
+ * the admin may have typed them as a real array, a JSON string, a Postgres
+ * array literal, or one bullet per line.
+ */
+function toStringList(v: unknown): string[] {
+  if (Array.isArray(v)) {
+    return v.map(coerceArrayItem).map((x) => x.trim()).filter(Boolean);
+  }
+  if (typeof v === "string" && v.trim()) {
+    try {
+      const parsed = JSON.parse(v);
+      if (Array.isArray(parsed)) {
+        return parsed.map(coerceArrayItem).map((x) => x.trim()).filter(Boolean);
+      }
+    } catch {
+      // not JSON — fall through
+    }
+    const pg = parsePgArrayLiteral(v);
+    if (pg) return pg.map((x) => x.trim()).filter(Boolean);
+    return v.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * Read the roadmap modules. Optional: courses that predate the field fall back
+ * to `courseFormat` on the page, so an empty list here is not an error.
+ */
+function pickModules(rec: RawRecord): CourseModule[] {
+  const raw = pickObjectArray<RawRecord>(
+    rec,
+    "modules",
+    "courseModules",
+    "course_modules",
+    "roadmap",
+    "Roadmap",
+  );
+  return raw
+    .filter((m): m is RawRecord => Boolean(m) && typeof m === "object")
+    .map((m) => ({
+      title: pickString(m, "title", "name", "module", "phase", "heading") ?? "",
+      description:
+        pickString(m, "description", "summary", "detail", "text", "body") ?? "",
+      outcomes: toStringList(
+        m.outcomes ??
+          m.learningOutcomes ??
+          m.learning_outcomes ??
+          m.points ??
+          m.bullets ??
+          m.items,
+      ),
+    }))
+    .filter((m) => m.title);
+}
+
+/**
  * Recover a doctor reference from the course row's `doctorSlug` field. The
  * nocode backend sometimes stores this reference cleanly (a slug string or a
  * numeric row id) but often stores a corrupted, multiply-nested JSON blob:
@@ -336,6 +395,7 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
       "courseFormat",
       "course_format",
     ),
+    modules: pickModules(rec),
     faqs: pickObjectArray<CourseFaq>(rec, "faqs", "faq"),
     certificateNote: pickString(rec, "certificateNote", "certificate_note"),
     sampleCertificateImage: absoluteUrl(
