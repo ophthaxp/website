@@ -50,6 +50,10 @@ export interface RoiCatchmentContribution {
   exposurePct: number;
   totalPop: number;
   inCirclePop: number;
+  /** Pincode centroid — the same point distanceKm is measured to. Absent on
+      older backends, so anything drawing it has to cope with undefined. */
+  lat?: number;
+  lon?: number;
 }
 
 export interface RoiCalculateResult {
@@ -66,6 +70,9 @@ export interface RoiCalculateResult {
   pincodesInRadius?: number;
   /** Per-pincode split, nearest first. Absent when the catchment falls back to density. */
   breakdown?: RoiCatchmentContribution[];
+  /** Where the circle was centred: the population-weighted centroid, which for a
+      large or scattered pincode is nowhere near its geometric centre. */
+  center?: { lat: number; lon: number };
   prevalencePct: number;
   prevalenceCount: number;
   avgSellingPriceInr: number;

@@ -25,7 +25,7 @@ export function HomeRoiSection() {
       </p>
 
       <div className="mt-10 sm:mt-12">
-        <PracticeGrowthCalculator defaultPincode="560102" defaultRadiusKm={25} />
+        <PracticeGrowthCalculator defaultRadiusKm={25} />
       </div>
 
       {/* Closing CTA */}

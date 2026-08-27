@@ -456,3 +456,58 @@ body {
     margin-top: 4.5rem;
   }
 }
+
+/* Leaflet ships a light theme — white controls, white attribution bar, a pale
+   grey backdrop behind the tiles. All of it reads as a bug on the near-black ROI
+   panel, so the chrome is restyled here. Only colours: nothing below changes
+   Leaflet's geometry or hit areas. */
+.roi-map.leaflet-container {
+  background: #0f0f10;
+  font: inherit;
+  outline: none;
+}
+
+/* Esri's "dark" canvas is really a mid grey, and against a near-black panel it
+   reads as a lighter rectangle pasted on. Brightness alone settles it — no
+   inversion, which is what made the previous basemap muddy. Filtering the TILE
+   pane only leaves the circle, the dots and the place names at full strength. */
+.roi-map .leaflet-tile-pane {
+  filter: brightness(0.58) contrast(1.08);
+}
+
+.roi-map .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(4px);
+  font-size: 10px;
+  padding: 2px 8px;
+}
+.roi-map .leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.roi-map .leaflet-control-zoom {
+  border: 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.roi-map .leaflet-control-zoom a {
+  background: rgba(20, 20, 20, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.roi-map .leaflet-control-zoom a:hover {
+  background: rgba(40, 40, 40, 0.95);
+  color: #ffffff;
+}
+
+.roi-map .leaflet-tooltip {
+  background: rgba(10, 10, 10, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.roi-map .leaflet-tooltip-top::before {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}

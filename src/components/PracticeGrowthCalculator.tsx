@@ -10,6 +10,7 @@ import {
   Plus,
   Sparkles,
 } from "lucide-react";
+import { CatchmentMap, type CatchmentPoint } from "./CatchmentMap";
 
 interface Specialization {
   slug: string;
@@ -55,6 +56,10 @@ interface CatchmentContribution {
   exposurePct: number;
   totalPop: number;
   inCirclePop: number;
+  /** Pincode centroid — the point distanceKm is measured to, and where the map
+      plots it. Absent on an older backend, so the map filters for it. */
+  lat?: number;
+  lon?: number;
 }
 
 interface RoiResult {
@@ -68,6 +73,9 @@ interface RoiResult {
   serviceablePopulationSource?: "catchment" | "density";
   pincodesInRadius?: number;
   breakdown?: CatchmentContribution[];
+  /** Where the circle was centred: the population-weighted centroid, not the
+      pincode's geometric centre. */
+  center?: { lat: number; lon: number };
   prevalencePct: number;
   prevalenceCount: number;
   avgSellingPriceInr: number;
@@ -474,21 +482,25 @@ function pickBestSpecMatch(
 }
 
 export function PracticeGrowthCalculator({
-  defaultSpecialty = "cataract",
+  defaultSpecialty,
   courseSlug,
   courseName,
   ctaHref = "#get-started",
   onCtaClick,
   lockSpecialty = false,
   compact = false,
-  defaultPincode = "600037",
+  defaultPincode,
   defaultRadiusKm = 5,
   defaultExpectedPatients = 300,
   ctaLabel,
 }: Props) {
   const [specs, setSpecs] = useState<Specialization[]>([]);
-  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty);
-  const [pincode, setPincode] = useState<string>(defaultPincode);
+  // Empty unless the caller pre-fills. A course page passes its own specialty,
+  // which is that page's subject rather than a guess; nothing pre-fills a
+  // location, because a catchment for a pincode the reader never chose is a
+  // number they have no reason to trust.
+  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty ?? "");
+  const [pincode, setPincode] = useState<string>(defaultPincode ?? "");
   const [radiusKm, setRadiusKm] = useState<number>(Math.max(1, defaultRadiusKm));
 
   // Practice profile. The backend ROI model has no fee inputs, so revenue is
@@ -514,7 +526,7 @@ export function PracticeGrowthCalculator({
   // Digits keep the original behaviour (typed straight into `pincode`); letters
   // run the place typeahead, and picking a row fills `pincode` for us — so
   // everything downstream still keys off a 6-digit pincode exactly as before.
-  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode);
+  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode ?? "");
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [placesLoading, setPlacesLoading] = useState(false);
@@ -523,10 +535,16 @@ export function PracticeGrowthCalculator({
   // written after a pick — neither of which should open a dropdown. Held as a
   // value to compare against rather than a flag to consume, because Strict Mode
   // double-invokes the mount effect and a one-shot flag leaks the second run.
-  const selfSetQuery = useRef<string>(defaultPincode);
+  const selfSetQuery = useRef<string>(defaultPincode ?? "");
   const locationBoxRef = useRef<HTMLDivElement | null>(null);
 
   const [result, setResult] = useState<RoiResult | null>(null);
+  /**
+   * Whether the reader has asked for an outlook yet. Before that the panel shows
+   * nothing at all; after it, every control is live and recalculates on its own,
+   * so the button is a starting gun rather than a submit.
+   */
+  const [hasGenerated, setHasGenerated] = useState(false);
   const [calcError, setCalcError] = useState<string | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
   const [coverageSort, setCoverageSort] = useState<CoverageSortKey>("distance-asc");
@@ -548,7 +566,11 @@ export function PracticeGrowthCalculator({
         // otherwise fuzzy-match the broader course context (slug + name) so
         // course pages prefill the closest specialization instead of always
         // falling back to the first item in the list.
-        if (!list.some((s) => s.slug === specSlug)) {
+        // Only when the caller gave something to match on. With no hint the
+        // select stays on its placeholder rather than quietly defaulting to
+        // whichever specialization happens to sort first.
+        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
+        if (hasHint && !list.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(list, {
             specialty: defaultSpecialty,
             courseSlug,
@@ -559,7 +581,8 @@ export function PracticeGrowthCalculator({
       } catch {
         if (cancelled) return;
         setSpecs(FALLBACK_SPECIALIZATIONS);
-        if (!FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
+        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
+        if (hasHint && !FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(FALLBACK_SPECIALIZATIONS, {
             specialty: defaultSpecialty,
             courseSlug,
@@ -746,12 +769,19 @@ export function PracticeGrowthCalculator({
 
   const calcTimer = useRef<number | null>(null);
   useEffect(() => {
+    if (!hasGenerated) return;
     if (calcTimer.current) window.clearTimeout(calcTimer.current);
     calcTimer.current = window.setTimeout(computeRoi, 250);
     return () => {
       if (calcTimer.current) window.clearTimeout(calcTimer.current);
     };
-  }, [computeRoi]);
+  }, [computeRoi, hasGenerated]);
+
+  /** Enough to compute with. The pincode lookup can still be in flight — the
+      effect above re-runs when it lands, so the first result arrives either way. */
+  const canGenerate = Boolean(specSlug) && /^\d{6}$/.test(pincode);
+  /** The map only exists once there is a real catchment behind it. */
+  const showMap = hasGenerated && result !== null;
 
   const activeSpec = useMemo(
     () => specs.find((s) => s.slug === specSlug) ?? null,
@@ -823,6 +853,38 @@ export function PracticeGrowthCalculator({
     return [...coverage].sort(chosen.compare);
   }, [coverage, coverageSort]);
 
+  /**
+   * Where the map draws the circle. The backend's own centre when it sends one —
+   * the population-weighted centroid it actually measured from, which for a big
+   * or scattered pincode is nowhere near the geometric middle. The home row's
+   * coordinate is the same point, and stands in on an older backend.
+   */
+  const mapCenter = useMemo(() => {
+    if (result?.center) return result.center;
+    const home = coverage.find((c) => c.pincode === result?.pincode);
+    return home?.lat != null && home?.lon != null ? { lat: home.lat, lon: home.lon } : null;
+  }, [result, coverage]);
+
+  /** The pincodes the map can plot: whichever rows came back with coordinates. */
+  const mapPoints = useMemo<CatchmentPoint[]>(
+    () =>
+      coverage
+        .filter((c): c is CatchmentContribution & { lat: number; lon: number } =>
+          c.lat != null && c.lon != null,
+        )
+        .map((c) => ({
+          pincode: c.pincode,
+          label: c.office ? cleanAreaName(c.office) : c.pincode,
+          lat: c.lat,
+          lon: c.lon,
+          exposurePct: c.exposurePct,
+          people: formatPeopleShort(c.inCirclePop),
+          peopleCount: c.inCirclePop,
+          isHome: c.pincode === result?.pincode,
+        })),
+    [coverage, result?.pincode],
+  );
+
   const regionLabel =
     pinLookup?.city ||
     pinLookup?.district ||
@@ -871,6 +933,11 @@ export function PracticeGrowthCalculator({
                   lockSpecialty ? "cursor-not-allowed opacity-80" : "cursor-pointer"
                 }`}
               >
+                {/* Disabled so it shows while nothing is chosen but cannot be
+                    chosen back into — there is no such thing as "no specialty". */}
+                <option value="" disabled className="bg-ink-800">
+                  Select a specialization
+                </option>
                 {specs.map((s) => (
                   <option key={s.slug} value={s.slug} className="bg-ink-800">
                     {s.label}
@@ -1095,11 +1162,21 @@ export function PracticeGrowthCalculator({
             />
           </div>
 
+          {/* Opens the panel up the first time. Afterwards every control is live,
+              so this becomes a way to re-run rather than the only way to see
+              anything — which is why it stays enabled and does not change label. */}
           <button
             type="button"
-            onClick={() => computeRoi()}
-            disabled={calcLoading}
-            className="mt-1 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-accent px-6 text-[15px] font-semibold text-white transition hover:bg-accent-deep disabled:opacity-70"
+            onClick={() => {
+              // The first click only arms the effect above, which then runs the
+              // calculation — calling it here as well would fire two identical
+              // requests. Once armed the effect no longer reacts to this button,
+              // so later clicks re-run it directly.
+              if (!hasGenerated) setHasGenerated(true);
+              else void computeRoi();
+            }}
+            disabled={calcLoading || !canGenerate}
+            className="mt-1 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-accent px-6 text-[15px] font-semibold text-white transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-40"
           >
             {calcLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
@@ -1108,67 +1185,94 @@ export function PracticeGrowthCalculator({
             )}
             Generate The Outlook
           </button>
+          {!canGenerate && (
+            <p className="text-center text-[12px] text-white/35">
+              Pick a specialization and a location to begin.
+            </p>
+          )}
         </div>
 
         {/* ─────────── RIGHT: catchment + results ─────────── */}
         <div className="flex min-w-0 flex-col">
-          {/* Catchment view. A real basemap is not wired up yet, so this draws
-              the radius to scale over a graticule rather than faking a map. */}
+          {/* Catchment view. Empty until the reader asks for an outlook — no map,
+              no rings, no numbers, because a catchment nobody chose is a figure
+              nobody should read. Once there is a result the map takes over and
+              every overlay comes with it. The overlays need z-index: Leaflet's
+              own control layers sit at 1000 in this same stacking context. */}
           <div className="relative min-h-[280px] flex-1 overflow-hidden bg-[#0f0f10] lg:min-h-[440px]">
+            {/* Faint texture under both states, so the empty panel is not a
+                flat void. It is a grid, not a pretend map. */}
             <div
               aria-hidden
               className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,#6b7280_1px,transparent_1px),linear-gradient(to_bottom,#6b7280_1px,transparent_1px)] [background-size:56px_56px]"
             />
-            {/* Population glow at the centre of the catchment. */}
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-1/2 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.45)_0%,rgba(37,99,235,0.12)_45%,rgba(37,99,235,0)_70%)]"
-            />
-            {/* Radius rings — the outer ring is the serviceable circle. */}
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/20"
-              style={{
-                width: `${Math.min(88, 26 + radiusKm * 0.62)}%`,
-                aspectRatio: "1",
-              }}
-            />
-            <div
-              aria-hidden
-              className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#2563eb] ring-4 ring-[#2563eb]/25"
-            />
 
-            <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
-              <span
-                aria-hidden
-                className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
-              />
-              Your Future is here...
-            </span>
+            {showMap && mapCenter ? (
+              <>
+                <CatchmentMap center={mapCenter} radiusKm={radiusKm} points={mapPoints} />
 
-            <div className="absolute right-5 top-5 flex flex-col overflow-hidden rounded-md">
-              <button
-                type="button"
-                onClick={() => setRadiusKm((r) => Math.min(100, r + 5))}
-                aria-label="Widen the service radius by 5 kilometres"
-                className="inline-flex h-9 w-9 items-center justify-center bg-white/90 text-black transition hover:bg-white"
-              >
-                <Plus className="h-4 w-4" aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={() => setRadiusKm((r) => Math.max(1, r - 5))}
-                aria-label="Narrow the service radius by 5 kilometres"
-                className="inline-flex h-9 w-9 items-center justify-center border-t border-black/10 bg-white/90 text-black transition hover:bg-white"
-              >
-                <Minus className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
+                <span className="pointer-events-none absolute left-5 top-5 z-[1100] inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
+                  <span
+                    aria-hidden
+                    className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
+                  />
+                  Your Future is here...
+                </span>
 
-            <p className="absolute bottom-4 left-5 max-w-xs text-[12px] leading-relaxed text-white/35">
-              {placeLabel || regionLabel || "Pick a location"} · {radiusKm} km radius ·{" "}
-              {areaLabel} km&sup2;
-            </p>
+                {/* Labelled, because the map has its own +/- in the opposite
+                    corner and two identical white stacks read as two zooms. */}
+                <div className="absolute right-5 top-5 z-[1100] flex flex-col items-center gap-1.5">
+                  <span className="rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
+                    Radius
+                  </span>
+                  <div className="flex flex-col overflow-hidden rounded-md">
+                    <button
+                      type="button"
+                      onClick={() => setRadiusKm((r) => Math.min(100, r + 5))}
+                      aria-label="Widen the service radius by 5 kilometres"
+                      className="inline-flex h-9 w-9 items-center justify-center bg-white/90 text-black transition hover:bg-white"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRadiusKm((r) => Math.max(1, r - 5))}
+                      aria-label="Narrow the service radius by 5 kilometres"
+                      className="inline-flex h-9 w-9 items-center justify-center border-t border-black/10 bg-white/90 text-black transition hover:bg-white"
+                    >
+                      <Minus className="h-4 w-4" aria-hidden />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sits a line above the bottom edge to clear the map's
+                    attribution, which is required and cannot leave the corner. */}
+                <p className="pointer-events-none absolute bottom-8 left-5 z-[1100] max-w-[46%] text-[12px] leading-relaxed text-white/45 sm:max-w-xs">
+                  {placeLabel || regionLabel || "Pick a location"} · {radiusKm} km radius ·{" "}
+                  {areaLabel} km&sup2;
+                </p>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
+                  {hasGenerated && calcLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
+                    />
+                  )}
+                  Your Future is here...
+                </span>
+                {!hasGenerated && (
+                  <p className="max-w-[16rem] text-[12px] leading-relaxed text-white/30">
+                    Choose a specialization and a location, then generate the
+                    outlook to see your catchment.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Results */}
@@ -1204,7 +1308,7 @@ export function PracticeGrowthCalculator({
                       People within {radiusKm}km radius
                     </span>
                   </p>
-                  <FigureRow filled={10} tone="accent" />
+                  <FigureRow filled={serviceablePopulation ? 10 : 0} tone="accent" />
                 </div>
 
                 <div className="flex-1 rounded-xl bg-accent p-4">
@@ -1233,7 +1337,7 @@ export function PracticeGrowthCalculator({
                   <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
                 </p>
                 <p className="relative mt-3 text-[clamp(1.75rem,3vw,2.5rem)] font-bold leading-none tabular-nums text-white">
-                  {formatINRShort(projectedRevenue)}
+                  {hasGenerated ? formatINRShort(projectedRevenue) : "—"}
                 </p>
                 <p className="relative mt-4 text-[12px] leading-relaxed text-[#A5A5A5]">
                   Estimated opportunity based on your location and practice profile.
