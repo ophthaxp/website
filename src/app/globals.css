@@ -394,6 +394,16 @@ body {
    the one before it, so the cards already passed stay pinned as thin edges
    behind the incoming card instead of scrolling away. --i is the card's index,
    set by the component; --stack-top clears the sticky navbar. */
+/* Registered, not merely declared: an unregistered custom property computes to
+   its own token stream, so script reading --stack-step back would get the
+   literal "clamp(...)" text rather than a pixel length. JourneySection needs the
+   resolved value to place the docked headline. */
+@property --stack-step {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 .journey-stack {
   --stack-top: 96px;
   /* Mirrors the lg:min-h-[516px] the cards carry. */
@@ -441,6 +451,16 @@ body {
 
   .journey-card + .journey-card {
     margin-top: 0;
+  }
+
+  /* The headline docks into the sliver as the next card closes over it — the
+     transform itself is scroll-linked from JourneySection, which needs the
+     top-left corner pinned so that scaling does not drag the word rightwards
+     off its own left margin. No transition: the value is already continuous,
+     and easing it a second time only makes it lag the scroll. */
+  .journey-word {
+    transform-origin: left top;
+    will-change: transform;
   }
 }
 

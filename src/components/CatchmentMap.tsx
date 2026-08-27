@@ -47,7 +47,7 @@ async function loadLeaflet(): Promise<LeafletApi> {
 }
 
 const CIRCLE_COLOR = "#297DEA";
-const PIN_COLOR = "#B75A44";
+const PIN_COLOR = "#6B7280";
 
 export interface CatchmentPoint {
   pincode: string;
