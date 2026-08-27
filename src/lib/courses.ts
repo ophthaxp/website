@@ -701,6 +701,28 @@ export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
 }
 
 /**
+ * The doctors the homepage rail should show, driven by the module's own
+ * switches rather than by the page:
+ *
+ *   - `isActive` off  -> the row drops out entirely.
+ *   - `isFeatured` on -> the row leads the list.
+ *
+ * A row that carries neither value is treated as active and unfeatured, so a
+ * column the admin has never filled in still renders instead of blanking the
+ * section. Ordering is otherwise left as the backend returned it.
+ *
+ * This sorts rather than filters on `isFeatured`: with one flagged row out of
+ * ten, a hard filter would leave a single card and empty every specialty tab
+ * but its own.
+ */
+export function selectDisplayDoctors(doctors: Doctor[]): Doctor[] {
+  return doctors
+    .filter((d) => d.isActive !== false)
+    .slice()
+    .sort((a, b) => Number(Boolean(b.isFeatured)) - Number(Boolean(a.isFeatured)));
+}
+
+/**
  * Build the list of images shown in the homepage Hero marquee.
  * Only includes doctors whose `showInHeroSection` switch is ON.
  * Each such doctor contributes their `heroImages[]` if set, otherwise their

@@ -14,6 +14,7 @@ import {
   fetchCoursesFromBackend,
   fetchDoctorsFromBackend,
   fetchHeroImagesFromBackend,
+  selectDisplayDoctors,
 } from "@/lib/courses";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export default async function HomePage() {
         <Hero images={heroImages} />
         <JourneySection />
         <LegendsVideo />
-        <ProgramsSection doctors={doctors} programs={programs} />
+        <ProgramsSection doctors={selectDisplayDoctors(doctors)} programs={programs} />
         <HowItWorks />
         <HomeRoiSection />
         <CertificatesPromo />
