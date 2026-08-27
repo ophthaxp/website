@@ -12,7 +12,7 @@ export function HomeRoiSection() {
     <section
       id="roi"
       aria-labelledby="roi-title"
-      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-24 lg:px-[120px]"
+      className="mx-auto max-w-[1440px] px-5 py-12 sm:px-10 sm:py-14 lg:px-[120px]"
     >
       <h2
         id="roi-title"
@@ -25,11 +25,11 @@ export function HomeRoiSection() {
       </p>
 
       <div className="mt-10 sm:mt-12">
-        <PracticeGrowthCalculator defaultRadiusKm={25} />
+        <PracticeGrowthCalculator />
       </div>
 
       {/* Closing CTA */}
-      <div className="mt-20 text-center sm:mt-28">
+      <div className="mt-14 text-center sm:mt-16">
         <h3 className="text-[clamp(1.5rem,2.6vw,2.25rem)] font-extrabold leading-tight tracking-[-0.015em] text-white">
           Ready to redefine your clinical future?
         </h3>

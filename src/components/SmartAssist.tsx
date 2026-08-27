@@ -134,7 +134,7 @@ export function SmartAssist() {
     <section
       id="smart-assist"
       aria-labelledby="smart-title"
-      className="mx-auto max-w-[1440px] px-5 py-16 sm:px-10 sm:py-24 lg:px-[120px]"
+      className="mx-auto max-w-[1440px] px-5 py-12 sm:px-10 sm:py-14 lg:px-[120px]"
     >
       <h2
         id="smart-title"

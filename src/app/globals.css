@@ -267,8 +267,8 @@ body {
    not covered yet. --frac is the value as 0..1, set by the component. */
 .roi-slider {
   position: relative;
-  height: 42px;
-  margin-top: 10px;
+  height: 30px;
+  margin-top: 4px;
 }
 
 /* Behind the bar, so the filled part covers the ticks it has passed and only
@@ -284,7 +284,7 @@ body {
 
 .roi-ticks > span {
   width: 1.5px;
-  height: 12px;
+  height: 10px;
   border-radius: 0.75px;
   background: #a5a5a5;
 }
@@ -292,16 +292,16 @@ body {
 /* The bar and the knob are elements rather than the input's own track and thumb
    pseudo-elements, because the cap has to end exactly one radius past the
    thumb's centre — and a background sized to the value's percentage lands short
-   of that, since a thumb travels the track minus its own width. 17px is half
+   of that, since a thumb travels the track minus its own width. 15px is half
    the thumb, which is also how far its centre sits from either end. */
 .roi-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  width: calc(38px + var(--frac, 0) * (100% - 34px));
+  width: calc(28px + var(--frac, 0) * (100% - 24px));
   /* At the top of the range the cap would reach 4px past the track; that
      sliver sits entirely under the knob, so clipping it changes nothing. */
   max-width: 100%;
-  border-radius: 0 21px 21px 0;
+  border-radius: 0 15px 15px 0;
   background: linear-gradient(
     to right,
     rgba(29, 29, 29, 0.2),
@@ -310,13 +310,23 @@ body {
   pointer-events: none;
 }
 
+/* Nothing in the panel is pre-filled, so a slider has a third state: set to its
+   minimum, versus never answered. The bar fades back and the knob greys off, so
+   an untouched control does not read as a deliberate zero. */
+.roi-slider[data-unset] .roi-fill {
+  opacity: 0.3;
+}
+.roi-slider[data-unset] .roi-thumb {
+  background: #d4d4d4;
+}
+
 .roi-thumb {
   position: absolute;
-  top: 4px;
-  left: calc(var(--frac, 0) * (100% - 34px));
+  top: 3px;
+  left: calc(var(--frac, 0) * (100% - 24px));
   display: flex;
-  height: 34px;
-  width: 34px;
+  height: 24px;
+  width: 24px;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
@@ -332,32 +342,32 @@ body {
   position: absolute;
   inset: 0;
   width: 100%;
-  height: 42px;
+  height: 30px;
   margin: 0;
   background: transparent;
   cursor: pointer;
 }
 .roi-range::-webkit-slider-runnable-track {
-  height: 42px;
+  height: 30px;
   background: transparent;
 }
 .roi-range::-moz-range-track {
-  height: 42px;
+  height: 30px;
   background: transparent;
 }
 .roi-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  height: 34px;
-  width: 34px;
-  margin-top: 4px;
+  height: 24px;
+  width: 24px;
+  margin-top: 3px;
   border: 0;
   border-radius: 9999px;
   background: transparent;
 }
 .roi-range::-moz-range-thumb {
-  height: 34px;
-  width: 34px;
+  height: 24px;
+  width: 24px;
   border: 0;
   border-radius: 9999px;
   background: transparent;
@@ -365,7 +375,7 @@ body {
 .roi-range:focus-visible {
   outline: 2px solid #b75a44;
   outline-offset: 3px;
-  border-radius: 21px;
+  border-radius: 15px;
 }
 
 /* FAQ deck — the fanned cards behind the active one. Transform is set inline

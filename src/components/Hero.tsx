@@ -34,7 +34,7 @@ export function Hero({ images }: { images?: HeroImg[] }) {
           into a sliver. */}
       <HeroBand strip={strip} />
 
-      <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-8 text-center sm:px-10 sm:pb-24 sm:pt-10">
+      <div className="mx-auto max-w-[1440px] px-5 pb-14 pt-8 text-center sm:px-10 sm:pb-16 sm:pt-10">
         {/* The headline lands just behind the last portrait, so the band and
             the words read as one arrival rather than two. */}
         <h1

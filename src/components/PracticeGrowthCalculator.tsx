@@ -215,18 +215,21 @@ function Field({
     <div className="flex items-center justify-between gap-3">
       <label
         htmlFor={htmlFor}
-        className="inline-flex items-center gap-2 text-[15px] text-white"
+        className="inline-flex items-center gap-2 text-[14px] text-white"
       >
         {label}
         <Info className="h-3.5 w-3.5 text-white" aria-hidden />
         <span className="sr-only">{hint}</span>
       </label>
-      <span className="inline-flex h-7 items-center rounded-md bg-ink-600 px-3 text-[14px] font-semibold tabular-nums text-white">
+      <span className="inline-flex h-6 items-center rounded-md bg-ink-600 px-2.5 text-[13px] font-semibold tabular-nums text-white">
         {value}
       </span>
     </div>
   );
 }
+
+/** Stands in a value chip for a control the reader has not set yet. */
+const UNSET = <span className="font-normal text-[#6E6E6E]">—</span>;
 
 /** The unit beside a value chip's number — "Km", "₹" — greyed as in the Figma. */
 function Unit({ children, side }: { children: React.ReactNode; side: "left" | "right" }) {
@@ -261,21 +264,27 @@ function Slider({
   min: number;
   max: number;
   step: number;
-  value: number;
+  value: number | null;
   onChange: (n: number) => void;
   fill: string;
   valueText: string;
 }) {
+  // Nothing is pre-set, so the track has to be able to show "no value yet":
+  // the knob rests at the low end and the bar is faded back, which reads as
+  // untouched rather than as a deliberate minimum.
+  const unset = value === null;
+  const shown = value ?? min;
   // Rounded before it reaches an attribute: the raw double differs in its last
   // bit between the server and the browser, which React reports as a hydration
   // mismatch. Four places is finer than a pixel on any width this renders at.
   const frac = Math.round(
-    Math.min(1, Math.max(0, (value - min) / (max - min))) * 10000,
+    Math.min(1, Math.max(0, (shown - min) / (max - min))) * 10000,
   ) / 10000;
 
   return (
     <div
       className="roi-slider"
+      data-unset={unset || undefined}
       style={{ "--frac": frac, "--roi-fill": fill } as React.CSSProperties}
     >
       <div className="roi-ticks" aria-hidden>
@@ -297,9 +306,18 @@ function Slider({
         min={min}
         max={max}
         step={step}
-        value={value}
-        aria-valuetext={valueText}
+        value={shown}
+        aria-valuetext={unset ? "not set" : valueText}
         onChange={(e) => onChange(Number(e.target.value))}
+        // A press that lands exactly where the knob already is fires no change
+        // event, so an untouched slider would stay unanswered even though the
+        // reader just chose its minimum. Commit the shown value as well — on
+        // release, and on the keys the slider itself acts on. Tab is not one of
+        // them: moving through a control is not answering it.
+        onPointerUp={() => onChange(shown)}
+        onKeyDown={(e) => {
+          if (/^(Arrow|Page|Home|End)/.test(e.key)) onChange(shown);
+        }}
         className="roi-range"
       />
     </div>
@@ -319,12 +337,12 @@ const FIGURE_BODY =
 /** Ten figures, the first `filled` of them solid and the rest faded back. */
 function FigureRow({ filled, tone }: { filled: number; tone: "accent" | "white" }) {
   return (
-    <div className="mt-3.5 flex gap-1.5" aria-hidden>
+    <div className="mt-2.5 flex gap-1.5" aria-hidden>
       {Array.from({ length: 10 }).map((_, i) => (
         <svg
           key={i}
           viewBox="0 0 15 24"
-          className={`h-6 w-[15px] shrink-0 ${
+          className={`h-5 w-[13px] shrink-0 ${
             tone === "accent" ? "text-accent" : "text-white"
           } ${i < filled ? "" : "opacity-30"}`}
           fill="currentColor"
@@ -490,7 +508,7 @@ export function PracticeGrowthCalculator({
   lockSpecialty = false,
   compact = false,
   defaultPincode,
-  defaultRadiusKm = 5,
+  defaultRadiusKm,
   defaultExpectedPatients = 300,
   ctaLabel,
 }: Props) {
@@ -501,20 +519,27 @@ export function PracticeGrowthCalculator({
   // number they have no reason to trust.
   const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty ?? "");
   const [pincode, setPincode] = useState<string>(defaultPincode ?? "");
-  const [radiusKm, setRadiusKm] = useState<number>(Math.max(1, defaultRadiusKm));
+  const [radiusKm, setRadiusKm] = useState<number | null>(
+    defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : null,
+  );
 
   // Practice profile. The backend ROI model has no fee inputs, so revenue is
   // derived here from what the reader actually sets (see `projectedRevenue`
   // below); the backend still owns population and disease burden.
-  const [annualOutpatients, setAnnualOutpatients] = useState<number>(8000);
-  const [opFeeInr, setOpFeeInr] = useState<number>(600);
-  const [annualInpatients, setAnnualInpatients] = useState<number>(2500);
-  const [ipFeeInr, setIpFeeInr] = useState<number>(15000);
+  //
+  // Every one of these starts unset, for the same reason the location does: a
+  // pre-filled 8,000 outpatients at 600 rupees is a practice nobody described,
+  // and a projection built on it is a number the reader has no reason to trust.
+  // Null is "not answered yet" — the outlook button stays shut until it isn't.
+  const [annualOutpatients, setAnnualOutpatients] = useState<number | null>(null);
+  const [opFeeInr, setOpFeeInr] = useState<number | null>(null);
+  const [annualInpatients, setAnnualInpatients] = useState<number | null>(null);
+  const [ipFeeInr, setIpFeeInr] = useState<number | null>(null);
 
   // What we send the backend as "patients treated". Its contract caps this at
   // 2000, so clamp rather than pass the raw annual volume and risk a 400.
   const expectedPatients = useMemo(
-    () => Math.max(10, Math.min(2000, Math.round(annualInpatients))),
+    () => Math.max(10, Math.min(2000, Math.round(annualInpatients ?? 0))),
     [annualInpatients],
   );
 
@@ -735,7 +760,7 @@ export function PracticeGrowthCalculator({
 
   // ─── ROI calculation (debounced; depends on all inputs) ───────────────────
   const computeRoi = useCallback(async () => {
-    if (!specSlug || !/^\d{6}$/.test(pincode) || !pinLookup) {
+    if (!specSlug || !/^\d{6}$/.test(pincode) || !pinLookup || radiusKm === null) {
       setResult(null);
       return;
     }
@@ -777,9 +802,24 @@ export function PracticeGrowthCalculator({
     };
   }, [computeRoi, hasGenerated]);
 
+  /** Everything the outlook is built from, in the order the panel asks for it.
+      Nothing is pre-filled, so the button waits for all of it — a projection
+      from half a practice profile would be a number the reader never gave. */
+  const missing: string[] = [];
+  if (!specSlug) missing.push("a specialization");
+  if (!/^\d{6}$/.test(pincode)) missing.push("a location");
+  if (radiusKm === null) missing.push("a radius");
+  if (
+    annualOutpatients === null ||
+    opFeeInr === null ||
+    annualInpatients === null ||
+    ipFeeInr === null
+  ) {
+    missing.push("your volume and fees");
+  }
   /** Enough to compute with. The pincode lookup can still be in flight — the
       effect above re-runs when it lands, so the first result arrives either way. */
-  const canGenerate = Boolean(specSlug) && /^\d{6}$/.test(pincode);
+  const canGenerate = missing.length === 0;
   /** The map only exists once there is a real catchment behind it. */
   const showMap = hasGenerated && result !== null;
 
@@ -789,8 +829,14 @@ export function PracticeGrowthCalculator({
   );
 
   // Area of the serviceable circle (pi * r^2), shown live while dragging.
-  const areaSqKm = useMemo(() => Math.PI * radiusKm * radiusKm, [radiusKm]);
-  const areaLabel = useMemo(() => formatSqKm(areaSqKm), [areaSqKm]);
+  const areaSqKm = useMemo(
+    () => (radiusKm === null ? 0 : Math.PI * radiusKm * radiusKm),
+    [radiusKm],
+  );
+  const areaLabel = useMemo(
+    () => (radiusKm === null ? null : formatSqKm(areaSqKm)),
+    [radiusKm, areaSqKm],
+  );
 
   // The pincode's own footprint, which the radius circle may be smaller or
   // larger than. Null when the backend has no boundary polygon for it.
@@ -807,14 +853,16 @@ export function PracticeGrowthCalculator({
   // treated" figure at one average selling price and has no notion of an
   // OP/IP split, so it cannot answer what the reader is being asked here.
   const projectedRevenue = useMemo(
-    () => annualOutpatients * opFeeInr + annualInpatients * ipFeeInr,
+    () =>
+      (annualOutpatients ?? 0) * (opFeeInr ?? 0) +
+      (annualInpatients ?? 0) * (ipFeeInr ?? 0),
     [annualOutpatients, opFeeInr, annualInpatients, ipFeeInr],
   );
 
   /** Share of the local disease burden this practice volume could reach. */
   const impactPct = useMemo(() => {
     if (!prevalenceCount) return 0;
-    const treated = annualOutpatients + annualInpatients;
+    const treated = (annualOutpatients ?? 0) + (annualInpatients ?? 0);
     return Math.min(100, (treated / prevalenceCount) * 100);
   }, [prevalenceCount, annualOutpatients, annualInpatients]);
 
@@ -910,26 +958,26 @@ export function PracticeGrowthCalculator({
         Estimate your practice growth
       </h2>
 
-      <div className="grid lg:grid-cols-[412px_minmax(0,1fr)]">
+      <div className="grid lg:grid-cols-[372px_minmax(0,1fr)]">
         {/* ─────────── LEFT: practice profile ─────────── */}
-        <div className="space-y-6 border-b border-white/[0.07] p-6 lg:border-b-0 lg:border-r">
+        <div className="space-y-2.5 border-b border-white/[0.07] px-5 py-3.5 lg:border-b-0 lg:border-r">
           {/* Specialization */}
           <div>
             <label
               htmlFor="growth-specialty"
-              className="inline-flex items-center gap-2 text-[15px] text-white"
+              className="inline-flex items-center gap-2 text-[14px] text-white"
             >
               Specialization
               <Info className="h-3.5 w-3.5 text-white" aria-hidden />
             </label>
-            <div className="relative mt-3">
+            <div className="relative mt-2">
               <select
                 id="growth-specialty"
                 value={specSlug}
                 onChange={(e) => setSpecSlug(e.target.value)}
                 disabled={lockSpecialty || specs.length === 0}
                 aria-readonly={lockSpecialty}
-                className={`h-[43px] w-full appearance-none rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-10 text-[15px] font-medium text-white outline-none transition focus:ring-2 focus:ring-accent ${
+                className={`h-[40px] w-full appearance-none rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-10 text-[14px] font-medium text-white outline-none transition focus:ring-2 focus:ring-accent ${
                   lockSpecialty ? "cursor-not-allowed opacity-80" : "cursor-pointer"
                 }`}
               >
@@ -957,12 +1005,12 @@ export function PracticeGrowthCalculator({
           <div>
             <label
               htmlFor="growth-location"
-              className="inline-flex items-center gap-2 text-[15px] text-white"
+              className="inline-flex items-center gap-2 text-[14px] text-white"
             >
               Practice Location
               <Info className="h-3.5 w-3.5 text-white" aria-hidden />
             </label>
-            <div ref={locationBoxRef} className="relative mt-3">
+            <div ref={locationBoxRef} className="relative mt-2">
               <input
                 id="growth-location"
                 type="text"
@@ -986,7 +1034,7 @@ export function PracticeGrowthCalculator({
                   if (places.length > 0) setPlacesOpen(true);
                 }}
                 placeholder="e.g. 560102 or Whitefield"
-                className="h-[43px] w-full rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-11 text-[15px] font-medium text-white outline-none transition placeholder:text-white/40 focus:ring-2 focus:ring-accent"
+                className="h-[40px] w-full rounded-[8.5px] border border-[#4A4A4A] bg-ink-600 px-4 pr-11 text-[14px] font-medium text-white outline-none transition placeholder:text-white/40 focus:ring-2 focus:ring-accent"
               />
               <LocateFixed
                 aria-hidden
@@ -1037,7 +1085,7 @@ export function PracticeGrowthCalculator({
                 </ul>
               )}
             </div>
-            <p className="mt-2 min-h-[1.25rem] text-[13px]">
+            <p className="mt-1.5 min-h-[1.125rem] text-[13px]">
               {placesLoading ? (
                 <span className="text-white/45">Searching places…</span>
               ) : pinLoading ? (
@@ -1055,12 +1103,20 @@ export function PracticeGrowthCalculator({
             <Field
               htmlFor="growth-radius"
               label="Service Radius"
-              hint={`Covers about ${areaLabel} square kilometres`}
+              hint={
+                areaLabel
+                  ? `Covers about ${areaLabel} square kilometres`
+                  : "How far from your practice you expect to draw patients"
+              }
               value={
-                <>
-                  {radiusKm}
-                  <Unit side="right">Km</Unit>
-                </>
+                radiusKm === null ? (
+                  UNSET
+                ) : (
+                  <>
+                    {radiusKm}
+                    <Unit side="right">Km</Unit>
+                  </>
+                )
               }
             />
             <Slider
@@ -1071,7 +1127,7 @@ export function PracticeGrowthCalculator({
               value={radiusKm}
               onChange={setRadiusKm}
               fill="#297DEA"
-              valueText={`${radiusKm} kilometres, ${areaLabel} square kilometres`}
+              valueText={`${radiusKm} kilometres, ${areaLabel ?? "—"} square kilometres`}
             />
           </div>
 
@@ -1081,7 +1137,9 @@ export function PracticeGrowthCalculator({
               htmlFor="growth-op"
               label="Annual Outpatients"
               hint="Consultations you expect to see in a year"
-              value={formatNumber(annualOutpatients)}
+              value={
+                annualOutpatients === null ? UNSET : formatNumber(annualOutpatients)
+              }
             />
             <Slider
               id="growth-op"
@@ -1091,7 +1149,7 @@ export function PracticeGrowthCalculator({
               value={annualOutpatients}
               onChange={setAnnualOutpatients}
               fill="rgba(183,90,68,0.8)"
-              valueText={`${formatNumber(annualOutpatients)} outpatients a year`}
+              valueText={`${formatNumber(annualOutpatients ?? 0)} outpatients a year`}
             />
           </div>
 
@@ -1101,10 +1159,14 @@ export function PracticeGrowthCalculator({
               label="Op Average Fee"
               hint="Average consultation fee"
               value={
-                <>
-                  <Unit side="left">₹</Unit>
-                  {formatNumber(opFeeInr)}
-                </>
+                opFeeInr === null ? (
+                  UNSET
+                ) : (
+                  <>
+                    <Unit side="left">₹</Unit>
+                    {formatNumber(opFeeInr)}
+                  </>
+                )
               }
             />
             <Slider
@@ -1115,7 +1177,7 @@ export function PracticeGrowthCalculator({
               value={opFeeInr}
               onChange={setOpFeeInr}
               fill="rgba(183,90,68,0.8)"
-              valueText={`${formatNumber(opFeeInr)} rupees per consultation`}
+              valueText={`${formatNumber(opFeeInr ?? 0)} rupees per consultation`}
             />
           </div>
 
@@ -1124,7 +1186,9 @@ export function PracticeGrowthCalculator({
               htmlFor="growth-ip"
               label="Annual Inpatients"
               hint="Admissions or procedures you expect in a year"
-              value={formatNumber(annualInpatients)}
+              value={
+                annualInpatients === null ? UNSET : formatNumber(annualInpatients)
+              }
             />
             <Slider
               id="growth-ip"
@@ -1134,7 +1198,7 @@ export function PracticeGrowthCalculator({
               value={annualInpatients}
               onChange={setAnnualInpatients}
               fill="rgba(183,90,68,0.8)"
-              valueText={`${formatNumber(annualInpatients)} inpatients a year`}
+              valueText={`${formatNumber(annualInpatients ?? 0)} inpatients a year`}
             />
           </div>
 
@@ -1144,10 +1208,14 @@ export function PracticeGrowthCalculator({
               label="Ip Average Fee"
               hint="Average realisation per admission or procedure"
               value={
-                <>
-                  <Unit side="left">₹</Unit>
-                  {formatNumber(ipFeeInr)}
-                </>
+                ipFeeInr === null ? (
+                  UNSET
+                ) : (
+                  <>
+                    <Unit side="left">₹</Unit>
+                    {formatNumber(ipFeeInr)}
+                  </>
+                )
               }
             />
             <Slider
@@ -1158,7 +1226,7 @@ export function PracticeGrowthCalculator({
               value={ipFeeInr}
               onChange={setIpFeeInr}
               fill="rgba(183,90,68,0.8)"
-              valueText={`${formatNumber(ipFeeInr)} rupees per admission`}
+              valueText={`${formatNumber(ipFeeInr ?? 0)} rupees per admission`}
             />
           </div>
 
@@ -1176,7 +1244,7 @@ export function PracticeGrowthCalculator({
               else void computeRoi();
             }}
             disabled={calcLoading || !canGenerate}
-            className="mt-1 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-accent px-6 text-[15px] font-semibold text-white transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-0.5 inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-xl bg-accent px-6 text-[14px] font-semibold text-white transition hover:bg-accent-deep disabled:cursor-not-allowed disabled:opacity-40"
           >
             {calcLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
@@ -1187,7 +1255,8 @@ export function PracticeGrowthCalculator({
           </button>
           {!canGenerate && (
             <p className="text-center text-[12px] text-white/35">
-              Pick a specialization and a location to begin.
+              Set {missing.length > 1 ? missing.slice(0, -1).join(", ") + " and " : ""}
+              {missing[missing.length - 1]} to begin.
             </p>
           )}
         </div>
@@ -1199,15 +1268,22 @@ export function PracticeGrowthCalculator({
               nobody should read. Once there is a result the map takes over and
               every overlay comes with it. The overlays need z-index: Leaflet's
               own control layers sit at 1000 in this same stacking context. */}
-          <div className="relative min-h-[280px] flex-1 overflow-hidden bg-[#0f0f10] lg:min-h-[440px]">
-            {/* Faint texture under both states, so the empty panel is not a
+          <div className="relative z-0 min-h-[240px] flex-1 overflow-hidden bg-[#0f0f10] lg:min-h-[300px]">
+            {/* z-0 above is load-bearing: Leaflet numbers its own panes up to
+                1000 and its controls above that, and with no stacking context
+                of its own the map would compare those against the whole page —
+                painting over the sticky header and over the ROI Analysis tab
+                that overlaps its bottom edge. A stacking context at z-0 keeps
+                all of that arithmetic inside this box.
+
+                Faint texture under both states, so the empty panel is not a
                 flat void. It is a grid, not a pretend map. */}
             <div
               aria-hidden
               className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(to_right,#6b7280_1px,transparent_1px),linear-gradient(to_bottom,#6b7280_1px,transparent_1px)] [background-size:56px_56px]"
             />
 
-            {showMap && mapCenter ? (
+            {showMap && mapCenter && radiusKm !== null ? (
               <>
                 <CatchmentMap center={mapCenter} radiusKm={radiusKm} points={mapPoints} />
 
@@ -1228,7 +1304,7 @@ export function PracticeGrowthCalculator({
                   <div className="flex flex-col overflow-hidden rounded-md">
                     <button
                       type="button"
-                      onClick={() => setRadiusKm((r) => Math.min(100, r + 5))}
+                      onClick={() => setRadiusKm((r) => Math.min(100, (r ?? 0) + 5))}
                       aria-label="Widen the service radius by 5 kilometres"
                       className="inline-flex h-9 w-9 items-center justify-center bg-white/90 text-black transition hover:bg-white"
                     >
@@ -1236,7 +1312,7 @@ export function PracticeGrowthCalculator({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setRadiusKm((r) => Math.max(1, r - 5))}
+                      onClick={() => setRadiusKm((r) => Math.max(1, (r ?? 6) - 5))}
                       aria-label="Narrow the service radius by 5 kilometres"
                       className="inline-flex h-9 w-9 items-center justify-center border-t border-black/10 bg-white/90 text-black transition hover:bg-white"
                     >
@@ -1275,106 +1351,115 @@ export function PracticeGrowthCalculator({
             )}
           </div>
 
-          {/* Results */}
-          <div className="relative border-t border-white/[0.07] p-4 sm:p-5">
-            <span className="absolute -top-[17px] left-5 inline-flex items-center gap-2 rounded-t-lg bg-ink-800 px-4 py-2 text-[13px] text-white/85">
-              ROI Analysis
-              <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
-            </span>
+          {/* ROI Analysis — the cards exist only once the reader has asked for
+              an outlook. Before that they would be five headings over five
+              dashes, which reads as a panel that failed to load rather than
+              one waiting for an answer. */}
+          {hasGenerated && (
+            <div className="relative border-t border-white/[0.07] p-3.5 sm:p-4">
+              <span className="absolute -top-[17px] left-5 inline-flex items-center gap-2 rounded-t-lg bg-ink-800 px-4 py-2 text-[13px] text-white/85">
+                ROI Analysis
+                <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
+              </span>
 
-            {/* Column widths and the 10px gutter are the Figma's: the catchment
-                column is a little narrower than the two beside it. */}
-            <div className="grid gap-2.5 lg:grid-cols-[229fr_257fr_257fr]">
-              {/* Column 1 — catchment and burden */}
-              <div className="flex flex-col gap-2.5">
-                <div className="relative flex-1 overflow-hidden rounded-xl bg-ink-600 p-4">
-                  {/* The Figma puts a heavily blurred shape behind this corner;
-                      at that blur radius it reads as a wash, so it is one. */}
+              {/* Column widths and the 10px gutter are the Figma's: the catchment
+                  column is a little narrower than the two beside it. */}
+              <div className="grid gap-2.5 lg:grid-cols-[229fr_257fr_257fr]">
+                {/* Column 1 — catchment and burden */}
+                <div className="flex flex-col gap-2.5">
+                  <div className="relative flex-1 overflow-hidden rounded-xl bg-ink-600 p-3.5">
+                    {/* The Figma puts a heavily blurred shape behind this corner;
+                        at that blur radius it reads as a wash, so it is one. */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -left-20 -top-10 h-40 w-52 rounded-full bg-white/[0.07] blur-3xl"
+                    />
+                    <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
+                      Catchment Population
+                      <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+                    </p>
+                    <p className="relative mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-xl font-bold tabular-nums text-white">
+                        {serviceablePopulation
+                          ? `${formatPeopleShort(serviceablePopulation)}+`
+                          : "—"}
+                      </span>
+                      <span className="text-[11px] text-[#A5A5A5]">
+                        People within {radiusKm}km radius
+                      </span>
+                    </p>
+                    <FigureRow filled={serviceablePopulation ? 10 : 0} tone="accent" />
+                  </div>
+
+                  <div className="flex-1 rounded-xl bg-accent p-3.5">
+                    <p className="inline-flex items-center gap-1.5 text-[13px] text-white">
+                      Disease Burden
+                      <Info className="h-3 w-3 text-white" aria-hidden />
+                    </p>
+                    <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-xl font-bold tabular-nums text-white">
+                        {prevalenceCount ? `${formatPeopleShort(prevalenceCount)}+` : "—"}
+                      </span>
+                      <span className="text-[11px] text-white">People needing Care</span>
+                    </p>
+                    <FigureRow filled={burdenFigures} tone="white" />
+                  </div>
+                </div>
+
+                {/* Column 2 — revenue */}
+                <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-ink-600 p-3.5">
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute -left-20 -top-10 h-40 w-52 rounded-full bg-white/[0.07] blur-3xl"
+                    className="pointer-events-none absolute -top-28 left-0 right-0 h-56 rounded-[50%] bg-white/[0.06] blur-3xl"
                   />
                   <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
-                    Catchment Population
+                    Projected Revenue (Annual)
                     <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
                   </p>
-                  <p className="relative mt-1.5 flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-2xl font-bold tabular-nums text-white">
-                      {serviceablePopulation
-                        ? `${formatPeopleShort(serviceablePopulation)}+`
-                        : "—"}
-                    </span>
-                    <span className="text-[11px] text-[#A5A5A5]">
-                      People within {radiusKm}km radius
-                    </span>
+                  <p className="relative mt-2.5 text-[clamp(1.5rem,2.5vw,2.125rem)] font-bold leading-none tabular-nums text-white">
+                    {hasGenerated ? formatINRShort(projectedRevenue) : "—"}
                   </p>
-                  <FigureRow filled={serviceablePopulation ? 10 : 0} tone="accent" />
+                  <p className="relative mt-3 text-[12px] leading-relaxed text-[#A5A5A5]">
+                    Estimated opportunity based on your location and practice profile.
+                  </p>
                 </div>
 
-                <div className="flex-1 rounded-xl bg-accent p-4">
-                  <p className="inline-flex items-center gap-1.5 text-[13px] text-white">
-                    Disease Burden
-                    <Info className="h-3 w-3 text-white" aria-hidden />
+                {/* Column 3 — impact */}
+                <div className="flex flex-col rounded-xl bg-white p-3.5">
+                  <p className="inline-flex items-center gap-2 text-[13px] text-black">
+                    Impact
+                    <Info className="h-3.5 w-3.5 text-[#6B7280]" aria-hidden />
                   </p>
-                  <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-2xl font-bold tabular-nums text-white">
-                      {prevalenceCount ? `${formatPeopleShort(prevalenceCount)}+` : "—"}
-                    </span>
-                    <span className="text-[11px] text-white">People needing Care</span>
+                  {/* The reading sits inside the arc, as on a real dial face — so it
+                      is positioned against the gauge itself rather than this card,
+                      whose height the two neighbouring columns decide. */}
+                  <div className="flex flex-1 items-center">
+                    <ImpactGauge pct={impactPct} />
+                  </div>
+                  <p className="mt-3 text-center text-[12px] text-[#A5A5A5]">
+                    Local Burden Addressed
                   </p>
-                  <FigureRow filled={burdenFigures} tone="white" />
                 </div>
               </div>
 
-              {/* Column 2 — revenue */}
-              <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-ink-600 p-4">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -top-28 left-0 right-0 h-56 rounded-[50%] bg-white/[0.06] blur-3xl"
-                />
-                <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
-                  Projected Revenue (Annual)
-                  <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+              {calcError && (
+                <p className="mt-3 text-center text-xs text-red-300" role="alert">
+                  {calcError}
                 </p>
-                <p className="relative mt-3 text-[clamp(1.75rem,3vw,2.5rem)] font-bold leading-none tabular-nums text-white">
-                  {hasGenerated ? formatINRShort(projectedRevenue) : "—"}
-                </p>
-                <p className="relative mt-4 text-[12px] leading-relaxed text-[#A5A5A5]">
-                  Estimated opportunity based on your location and practice profile.
-                </p>
-              </div>
+              )}
 
-              {/* Column 3 — impact */}
-              <div className="flex flex-col rounded-xl bg-white p-4">
-                <p className="inline-flex items-center gap-2 text-[14px] text-black">
-                  Impact
-                  <Info className="h-3.5 w-3.5 text-[#6B7280]" aria-hidden />
-                </p>
-                {/* The reading sits inside the arc, as on a real dial face — so it
-                    is positioned against the gauge itself rather than this card,
-                    whose height the two neighbouring columns decide. */}
-                <div className="flex flex-1 items-center">
-                  <ImpactGauge pct={impactPct} />
-                </div>
-                <p className="mt-5 text-center text-[12px] text-[#A5A5A5]">
-                  Local Burden Addressed
-                </p>
-              </div>
-            </div>
-
-            {calcError && (
-              <p className="mt-3 text-center text-xs text-red-300" role="alert">
-                {calcError}
+              <p className="mt-3 flex items-center justify-center gap-2 text-center text-[12px] text-white/35">
+                <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                Estimates are based on aggregated healthcare data &amp; Industry Benchmarks
               </p>
-            )}
+            </div>
+          )}
 
-            <p className="mt-4 flex items-center justify-center gap-2 text-center text-[12px] text-white/35">
-              <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Estimates are based on aggregated healthcare data &amp; Industry Benchmarks
-            </p>
-
-            {onCtaClick && (
-              <div className="mt-4 flex justify-center">
+          {/* The CTA is not part of the outlook, so it stays put whether or not
+              there is one to read. */}
+          {(onCtaClick || ctaLabel) && (
+            <div className="flex justify-center border-t border-white/[0.07] p-4 sm:p-5">
+              {onCtaClick ? (
                 <button
                   type="button"
                   onClick={onCtaClick}
@@ -1382,31 +1467,37 @@ export function PracticeGrowthCalculator({
                 >
                   {ctaLabel ?? "Speak to Legends of Medicine Concierge"}
                 </button>
-              </div>
-            )}
-            {!onCtaClick && ctaLabel && (
-              <div className="mt-4 flex justify-center">
+              ) : (
                 <a
                   href={ctaHref}
                   className="rounded-[10px] bg-accent px-7 py-3 text-sm font-semibold text-white transition hover:bg-accent-deep"
                 >
                   {ctaLabel}
                 </a>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ─────────── Method + per-pincode breakdown ─────────── */}
-      {!compact && (
-        <div className="border-t border-white/[0.07] p-5 sm:p-6">
+      {/* Both notes explain a population count, so they wait for one to exist —
+          otherwise the resting panel carries a footer about numbers it is not
+          showing, and pushes its own controls off the bottom of the screen. */}
+      {!compact && hasGenerated && (
+        <div className="border-t border-white/[0.07] p-4 sm:p-5">
           {/* Collapsed by default: reassurance-on-demand, not something the
               reader needs before the numbers above. Native <details> so it
               works without JS, on keyboard, and on touch. */}
           <details className="group rounded-lg bg-ink-850">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white/60 transition hover:text-white/85 [&::-webkit-details-marker]:hidden">
-              <span>How we count the population</span>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-2.5 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
+              {/* Same treatment as the breakdown row below it: two sibling
+                  accordions that sit one above the other have to read as a
+                  pair, and one of them dimmed looks disabled rather than
+                  secondary. */}
+              <span className="text-sm font-semibold text-white">
+                How we count the population
+              </span>
               <ChevronDown
                 aria-hidden
                 className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
@@ -1432,8 +1523,8 @@ export function PracticeGrowthCalculator({
                of detail nobody has asked for yet; the summary line keeps the one
                fact worth reading at a glance. Native <details> for the same
                reason as above: it works without JS, on keyboard, and on touch. */
-            <details className="group mt-4 rounded-lg bg-ink-850">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
+            <details className="group mt-3 rounded-lg bg-ink-850">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-2.5 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
                 <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                   <span className="text-sm font-semibold text-white">
                     Additional Geographical Info
