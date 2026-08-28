@@ -431,6 +431,19 @@ function mapRecordToProgram(rec: RawRecord): Program | null {
         "facultyName",
         "faculty_name",
       ),
+    // Who a Star books a call with. Read off the course row first because in
+    // the merged setup a course and its doctor are the same record; when they
+    // are not, attachFaculty fills it from the linked doctor instead.
+    mentorEmail: pickString(
+      rec,
+      "mentorEmail",
+      "mentor_email",
+      "legendEmail",
+      "legend_email",
+      "doctorEmail",
+      "doctor_email",
+      "email",
+    ),
   };
 }
 
@@ -613,6 +626,7 @@ function doctorToFaculty(d: Doctor): Faculty {
     qualification: d.qualification,
     bio: d.bio || undefined,
     experienceYears: d.experienceYears || undefined,
+    email: d.email || undefined,
   };
 }
 
@@ -642,6 +656,7 @@ async function attachFaculty(program: Program): Promise<Program> {
   return {
     ...program,
     faculty: doctorToFaculty(doctor),
+    mentorEmail: program.mentorEmail || doctor.email || undefined,
     // Use doctor's portrait as the course hero when the course didn't supply one
     heroImage: program.heroImage || doctor.imageUrl,
     doctorImage: program.doctorImage || doctor.imageUrl,

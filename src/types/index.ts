@@ -75,6 +75,13 @@ export interface Faculty {
   slug: string;
   name: string;
   title: string;
+  /**
+   * The Legend's login address. Not shown to anyone - it is the join between
+   * three otherwise unrelated things: this doctor record, their account in the
+   * console, and the Google Calendar they connected. Booking looks them up by
+   * it, so a blank one means no slots.
+   */
+  email?: string;
   city?: string;
   imageUrl?: string;
   qualification?: string;
@@ -134,6 +141,8 @@ export interface Program {
   // the hero credit line ("with Dr. …") in merged-module rows where the linked
   // doctor record can't be resolved (doctor-side slug/name left blank).
   mentorName?: string;
+  /** The Legend's login address, for booking. See Faculty.email. */
+  mentorEmail?: string;
 }
 
 export interface ChatMessage {

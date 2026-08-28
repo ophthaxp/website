@@ -10,6 +10,7 @@ import {
   isConfigured,
   isJourneyComplete,
 } from "@/lib/applyApi";
+import { findAppointmentForApplication, isBookingConfigured } from "@/lib/bookingApi";
 import { getSessionUser } from "@/lib/session";
 import { buildMetadata } from "@/lib/seo";
 
@@ -64,6 +65,14 @@ export default async function ApplyPage({
       ? await findApplicantProfile(user.email)
       : null;
 
+  // The call already booked for this application, if any. Read on the server so
+  // a Star who comes back to step 3 sees what they booked instead of being
+  // asked to pick a time all over again.
+  const appointment =
+    application?.id && isBookingConfigured()
+      ? await findAppointmentForApplication(application.id)
+      : null;
+
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12 sm:py-16">
       <Link
@@ -81,6 +90,7 @@ export default async function ApplyPage({
         courseSlug={params.slug}
         courseName={course.name}
         mentorName={course.mentorName ?? undefined}
+        mentorEmail={course.mentorEmail ?? course.faculty?.email ?? undefined}
         feeInr={process.env.APPLY_EXPLORATORY_FEE_INR || undefined}
         user={
           user
@@ -94,6 +104,7 @@ export default async function ApplyPage({
         }
         application={application}
         profile={profile}
+        appointment={appointment}
         requestedStep={Number(searchParams?.step) || undefined}
       />
       )}

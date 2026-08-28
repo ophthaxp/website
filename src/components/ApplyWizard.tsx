@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -60,6 +60,26 @@ interface WizardUser {
   lastName: string;
 }
 
+/** One bookable time, as the platform works it out. */
+interface Slot {
+  start: string;
+  end: string;
+  label: string;
+  timeZone: string;
+  durationMinutes: number;
+}
+
+export interface BookedAppointment {
+  id: number;
+  /** 'pending_payment' while the slot is only held; 'confirmed' once paid. */
+  status?: string;
+  startsAt: string;
+  label: string;
+  timeZone: string;
+  meetingUrl?: string;
+  legendName?: string;
+}
+
 interface ApplicationLike {
   id?: number;
   status?: string;
@@ -79,21 +99,27 @@ export function ApplyWizard({
   courseSlug,
   courseName,
   mentorName,
+  mentorEmail,
   feeInr,
   user: initialUser,
   application,
   profile,
+  appointment: initialAppointment,
   requestedStep,
 }: {
   courseId: string;
   courseSlug: string;
   courseName: string;
   mentorName?: string;
+  /** Which Legend's calendar to book. Blank means the course has none set up. */
+  mentorEmail?: string;
   /** The booking fee, in rupees, from the server's configuration. */
   feeInr?: string;
   user: WizardUser | null;
   application: ApplicationLike | null;
   profile: ApplicationLike | null;
+  /** The call already booked for this application, if there is one. */
+  appointment: BookedAppointment | null;
   requestedStep?: number;
 }) {
   const router = useRouter();
@@ -128,7 +154,14 @@ export function ApplyWizard({
   const [stateValue, setStateValue] = useState(known.state ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [slot, setSlot] = useState<string>("");
+
+  // Booking. `booked` is the call that exists; `slot` is the one being chosen.
+  const [booked, setBooked] = useState<BookedAppointment | null>(initialAppointment);
+  const [slots, setSlots] = useState<Slot[] | null>(null);
+  const [slot, setSlot] = useState<Slot | null>(null);
+  const [slotsNotice, setSlotsNotice] = useState<string | null>(null);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   /** Move to a step and leave a trace of it in the URL. */
   const goTo = (next: number) => {
@@ -246,21 +279,151 @@ export function ApplyWizard({
     }
   };
 
-  // ─── steps 3 and 4 — stubs ─────────────────────────────────────────────────
+  // ─── step 3 — the Legend's real availability ───────────────────────────────
+
+  /**
+   * Load the times this Legend can actually take.
+   *
+   * Worked out on the server: their published hours minus whatever is already
+   * in their Google Calendar. The list is therefore only true for as long as
+   * it is on screen, which is why booking re-checks the chosen time rather
+   * than trusting what was clicked.
+   */
+  const loadSlots = useCallback(async () => {
+    if (!mentorEmail) {
+      setSlotsError(
+        "This programme has no Legend calendar set up yet. Our team will be in touch to " +
+          "arrange your call.",
+      );
+      return;
+    }
+
+    setLoadingSlots(true);
+    setSlotsError(null);
+
+    try {
+      const res = await fetch(
+        `/api/booking/slots?legendEmail=${encodeURIComponent(mentorEmail)}`,
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSlotsError(data?.error || "Times could not be loaded just now.");
+        setSlots([]);
+        return;
+      }
+
+      setSlots(data.slots ?? []);
+      setSlotsNotice(data.notice ?? null);
+    } catch {
+      setSlotsError("Times could not be loaded just now. Please try again.");
+      setSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [mentorEmail]);
+
+  // Only when the Star is actually looking at step 3, and only while nothing
+  // is booked — a Legend's diary is a live thing and there is no sense reading
+  // it for somebody sitting on step 1.
+  useEffect(() => {
+    if (step === 3 && !booked && slots === null && !loadingSlots) {
+      void loadSlots();
+    }
+  }, [step, booked, slots, loadingSlots, loadSlots]);
 
   const confirmSlot = async () => {
     if (!slot) return setErrorMsg("Pick a time to continue.");
+    if (!applicationId) return setErrorMsg("Your application could not be found.");
+
     setBusy(true);
-    await saveStep(4);
-    setBusy(false);
-    goTo(4);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/booking/appointments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          applicationId,
+          legendEmail: mentorEmail,
+          legendName: mentorName,
+          start: slot.start,
+          end: slot.end,
+          timeZone: slot.timeZone,
+        }),
+      });
+
+      const data = await res.json();
+
+      // 409: somebody took it while this Star was deciding. Reloading the list
+      // is the useful response — an error they cannot act on is not.
+      if (res.status === 409) {
+        setErrorMsg(data?.error || "That time has just been taken. Here are the times still open.");
+        setSlot(null);
+        setSlots(null);
+        return;
+      }
+
+      if (!res.ok) {
+        setErrorMsg(data?.error || "The booking could not be made. Please try again.");
+        return;
+      }
+
+      setBooked(data.appointment ?? null);
+      goTo(4);
+    } catch {
+      setErrorMsg("The booking could not be made. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
+  // ─── step 4 — a stub ───────────────────────────────────────────────────────
+
+  /**
+   * Checkout — still a stub, but the booking now hangs off it.
+   *
+   * Picking a slot only held it; this is where it becomes a real appointment
+   * in the Legend's diary. When the gateway lands, the payment happens first
+   * and its webhook calls the same confirm endpoint.
+   */
   const payFee = async () => {
+    if (!applicationId) return setErrorMsg("Your application could not be found.");
+
     setBusy(true);
-    await saveStep(5);
-    setBusy(false);
-    goTo(5);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/booking/confirm", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ applicationId }),
+      });
+
+      const data = await res.json();
+
+      // The hold lapsed, or the Legend's diary moved under it. Sending them
+      // back to step 3 is the only useful thing to offer.
+      if (res.status === 409) {
+        setErrorMsg(data?.error || "That time is no longer available. Please pick another.");
+        setBooked(null);
+        setSlots(null);
+        goTo(3);
+        return;
+      }
+
+      if (!res.ok) {
+        setErrorMsg(data?.error || "The booking could not be completed. Please try again.");
+        return;
+      }
+
+      setBooked(data.appointment ?? booked);
+      goTo(5);
+    } catch {
+      setErrorMsg("The booking could not be completed. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   // ─── render ────────────────────────────────────────────────────────────────
@@ -431,36 +594,103 @@ export function ApplyWizard({
 
       {step === 3 ? (
         <Panel>
-          <h2 className="font-serif text-xl text-white">
-            Pick a time with {mentorName || "your Legend"}
-          </h2>
-          <p className="mt-2 text-sm text-white/65">
-            These are the slots {mentorName || "your Legend"} has open. Choose the one that
-            suits you.
-          </p>
+          {booked ? (
+            <div>
+              <h2 className="font-serif text-xl text-white">
+                {booked.status === "confirmed" ? "Your call is booked" : "This time is held for you"}
+              </h2>
+              <p className="mt-2 text-sm text-white/75">
+                <span className="text-white">{booked.label}</span> with{" "}
+                {booked.legendName || mentorName || "your Legend"}.
+              </p>
+              <p className="mt-2 text-xs text-white/45">
+                {booked.status === "confirmed"
+                  ? `Times shown in ${booked.timeZone}. The invitation is in your inbox.`
+                  : `Times shown in ${booked.timeZone}. It is yours to confirm at checkout — ` +
+                    "we hold it for a short while, so finish up to keep it."}
+              </p>
+              <div className="mt-6">
+                <PrimaryButton busy={false} busyLabel="" onClick={() => goTo(4)} type="button">
+                  Continue
+                </PrimaryButton>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h2 className="font-serif text-xl text-white">
+                Pick a time with {mentorName || "your Legend"}
+              </h2>
+              <p className="mt-2 text-sm text-white/65">
+                These are the times {mentorName || "your Legend"} is free. Choosing one puts it in
+                both your calendars.
+              </p>
 
-          <div className="mt-5 grid gap-2">
-            {["Tomorrow, 6:00 pm", "Thursday, 7:30 pm", "Saturday, 11:00 am"].map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setSlot(option)}
-                className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
-                  slot === option
-                    ? "bg-[#ab834d]/15 text-white ring-[#ab834d]/50"
-                    : "bg-white/[0.03] text-white/75 ring-white/10 hover:ring-white/20"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+              {slotsError ? (
+                <div className="mt-5 rounded-md bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+                  {slotsError}
+                </div>
+              ) : null}
 
-          <div className="mt-6">
-            <PrimaryButton busy={busy} busyLabel="Saving…" onClick={confirmSlot} type="button">
-              Confirm this time
-            </PrimaryButton>
-          </div>
+              {loadingSlots ? (
+                <p className="mt-5 text-sm text-white/50">Checking their calendar…</p>
+              ) : null}
+
+              {!loadingSlots && slots && slots.length === 0 && !slotsError ? (
+                <div className="mt-5 rounded-md bg-white/[0.03] px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
+                  No times are open in the next few weeks. Our team will be in touch to arrange
+                  one with you directly.
+                </div>
+              ) : null}
+
+              {slots && slots.length > 0 ? (
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {slots.map((option) => (
+                    <button
+                      key={option.start}
+                      type="button"
+                      onClick={() => setSlot(option)}
+                      className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
+                        slot?.start === option.start
+                          ? "bg-[#ab834d]/15 text-white ring-[#ab834d]/50"
+                          : "bg-white/[0.03] text-white/75 ring-white/10 hover:ring-white/20"
+                      }`}
+                    >
+                      <span className="block">{option.label}</span>
+                      <span className="mt-0.5 block text-xs text-white/40">
+                        {option.durationMinutes} minutes
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {slotsNotice ? (
+                <p className="mt-4 text-xs leading-relaxed text-white/40">{slotsNotice}</p>
+              ) : null}
+
+              {slots && slots.length > 0 ? (
+                <p className="mt-4 text-xs text-white/40">
+                  Times shown in {slots[0].timeZone}.
+                </p>
+              ) : null}
+
+              <div className="mt-6 flex items-center gap-3">
+                <PrimaryButton
+                  busy={busy}
+                  busyLabel="Booking…"
+                  onClick={confirmSlot}
+                  type="button"
+                >
+                  Confirm this time
+                </PrimaryButton>
+                {slots && !loadingSlots ? (
+                  <SecondaryButton onClick={() => setSlots(null)} disabled={busy}>
+                    Refresh times
+                  </SecondaryButton>
+                ) : null}
+              </div>
+            </div>
+          )}
         </Panel>
       ) : null}
 
@@ -470,16 +700,21 @@ export function ApplyWizard({
           <dl className="mt-5 grid gap-2 rounded-xl bg-white/[0.03] px-4 py-4 text-sm ring-1 ring-white/[0.06]">
             <Row label="Programme" value={courseName} />
             <Row label="Legend" value={mentorName || "—"} />
-            <Row label="Your slot" value={slot || "your selected time"} />
+            <Row label="Your slot" value={booked?.label || slot?.label || "your selected time"} />
             <Row label="Booking fee" value={feeInr ? `₹${feeInr}` : "—"} />
           </dl>
+
+          <p className="mt-3 text-xs text-white/45">
+            This time is held for you. It goes into {mentorName || "your Legend"}&rsquo;s calendar
+            once the fee is paid.
+          </p>
 
           <div className="mt-6 flex items-center gap-3">
             <SecondaryButton onClick={() => { void saveStep(3); goTo(3); }} disabled={busy}>
               <ArrowLeft className="h-4 w-4" aria-hidden /> Back
             </SecondaryButton>
-            <PrimaryButton busy={busy} busyLabel="Processing…" onClick={payFee} type="button">
-              Checkout
+            <PrimaryButton busy={busy} busyLabel="Confirming…" onClick={payFee} type="button">
+              Pay and confirm
             </PrimaryButton>
           </div>
         </Panel>
@@ -493,8 +728,14 @@ export function ApplyWizard({
             </div>
             <h2 className="mt-5 font-serif text-2xl text-white">You&rsquo;re all set</h2>
             <p className="mt-3 text-sm text-white/75">
-              Your slot with {mentorName || "your Legend"} is booked and your application is
-              with the team.
+              Your call with {mentorName || "your Legend"}
+              {booked ? (
+                <>
+                  {" "}
+                  on <span className="text-white">{booked.label}</span>
+                </>
+              ) : null}{" "}
+              is booked and your application is with the team.
             </p>
             <p className="mt-3 text-xs text-white/45">
               A confirmation is on its way to you, and your Legend has the invite.
