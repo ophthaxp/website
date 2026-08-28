@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, User, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { AccountMenu } from "./AccountMenu";
 import { AskLomaButton } from "./AskLomaButton";
 
 /** Centre nav — the three destinations shown in the Figma header. */
@@ -49,13 +50,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-3 sm:gap-5">
           <AskLomaButton />
-          <Link
-            href="https://learn.legendsofmedicine.com/"
-            aria-label="Sign in to your account"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/90 transition hover:text-accent-soft"
-          >
-            <User className="h-[22px] w-[22px]" strokeWidth={1.6} aria-hidden />
-          </Link>
+          <AccountMenu />
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

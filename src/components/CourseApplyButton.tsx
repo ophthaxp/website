@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import Link from "next/link";
 import { ApplyFormModal } from "@/components/ApplyFormModal";
+import { useApplyAutoOpen } from "@/components/useApplyAutoOpen";
 
 export function CourseApplyButton({
   courseId,
+  courseSlug,
   courseName,
   mentorName,
   payUrl,
@@ -14,6 +17,12 @@ export function CourseApplyButton({
   brochureUrl,
 }: {
   courseId: string;
+  /**
+   * The course's URL slug. When given, Apply Now navigates to `/apply/[slug]`
+   * — the ten-step journey does not fit in a popup. Without it the button falls
+   * back to the old modal, so call sites that have no slug keep working.
+   */
+  courseSlug?: string;
   courseName?: string;
   mentorName?: string;
   payUrl?: string;
@@ -30,6 +39,9 @@ export function CourseApplyButton({
 }) {
   const [open, setOpen] = useState(false);
 
+  // Someone arriving from a sign-in link lands here with ?apply=1.
+  useApplyAutoOpen(useCallback(() => setOpen(true), []));
+
   const widthCls = block ? "w-full" : "";
   const focusCls =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950";
@@ -40,6 +52,15 @@ export function CourseApplyButton({
     "accent-outline": `rounded-[12px] border-[1.5px] border-[#4A4A4A] bg-[#1A1A1A] px-7 py-3 text-sm font-medium text-[#A0A0A0] transition hover:border-white/25 hover:text-white focus-visible:ring-white/40`,
   };
   const cls = `${widthCls} ${VARIANTS[variant] ?? VARIANTS.primary} ${focusCls}`;
+
+  // The journey has its own page when we know where to send them.
+  if (courseSlug) {
+    return (
+      <Link href={`/apply/${courseSlug}`} className={cls}>
+        {label}
+      </Link>
+    );
+  }
 
   return (
     <>

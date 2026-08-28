@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 import { LegendTrailer } from "@/components/LegendTrailer";
 import { CourseMastery } from "@/components/CourseMastery";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
-import { CourseRoiBlock } from "@/components/CourseRoiBlock";
+import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
 import { FaqDeck } from "@/components/FaqDeck";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
@@ -355,6 +355,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 <div className="mt-4">
                   <CourseApplyButton
                     courseId={p.id}
+                    courseSlug={p.slug}
                     courseName={p.name}
                     mentorName={faculty?.name}
                     brochureUrl={p.brochureUrl}
@@ -407,13 +408,10 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
 
         {/* § 5 — THE DIFFERENCE IT MAKES   Shared ROI calculator */}
         <div className={SHELL}>
-          <CourseRoiBlock
-            courseId={p.id}
+          <PracticeGrowthCalculator
             courseName={p.name}
             courseSlug={p.slug}
             defaultSpecialty={p.specialty}
-            mentorName={faculty?.name}
-            brochureUrl={p.brochureUrl}
           />
         </div>
 
@@ -470,6 +468,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                 </Link>
                 <CourseApplyButton
                   courseId={p.id}
+                  courseSlug={p.slug}
                   courseName={p.name}
                   mentorName={faculty?.name}
                   brochureUrl={p.brochureUrl}
