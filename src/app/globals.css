@@ -672,14 +672,23 @@ body {
 
 /* ---------- Hero portrait band ----------
    The band is meant to read the way the CRED hero does: one dark machined
-   object, lit rather than animated. Nothing here moves the portraits around —
-   every effect is light falling on them.
+   object, lit rather than animated. The only movement is the band's own slow
+   drift; every other effect is light falling on the portraits.
 
    --near is written per column by HeroBand from a rAF loop: 1 for the column
    the light is on, falling to 0 about two columns out. The same property is
    driven by the cursor and by the idle pass, so both read as the one light.
    The transitions below are what turn those per-frame jumps into a light that
    trails its driver, so their duration is the feel of the whole thing. */
+
+/* The rail holds two identical copies of the strip, and HeroBand's rAF loop
+   walks it from -50% back to 0 before wrapping — so the portraits drift left
+   to right and copy two lands exactly where copy one was. The offset is owned in
+   JS rather than by a keyframe because the same loop places the light, and
+   light has to know where a column is this frame to fall on it. */
+.hero-rail-track {
+  will-change: transform;
+}
 
 .hero-bar {
   position: relative;
@@ -767,3 +776,4 @@ body {
     transition: none;
   }
 }
+
