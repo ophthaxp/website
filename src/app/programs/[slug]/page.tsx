@@ -8,7 +8,7 @@ import { LegendTrailer } from "@/components/LegendTrailer";
 import { CourseMastery } from "@/components/CourseMastery";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
 import { PracticeGrowthCalculator } from "@/components/PracticeGrowthCalculator";
-import { FaqDeck } from "@/components/FaqDeck";
+import { FaqGrid } from "@/components/FaqGrid";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
@@ -489,7 +489,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
               Frequently asked questions
             </h2>
             <div className="mt-10 sm:mt-16">
-              <FaqDeck key={p.slug} items={faqItems} label={p.name} />
+              <FaqGrid key={p.slug} items={faqItems} label={p.name} />
             </div>
           </section>
         )}

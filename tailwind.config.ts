@@ -55,12 +55,40 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        /* The wash that settles over the FAQ grid while an answer is open. */
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        /* The answer card arriving over the grid — it overshoots a little past
+           its resting size so it reads as springing forward, not sliding in. */
+        popIn: {
+          "0%": { opacity: "0", transform: "translateY(24px) scale(0.93)" },
+          "62%": { opacity: "1", transform: "translateY(-5px) scale(1.015)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        /* Each line inside the card following the one above it. */
+        riseIn: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        /* The terracotta bloom behind the card, widening as it lands. The
+           translate is carried through both frames because the glow is also
+           centred with a transform. */
+        glowIn: {
+          "0%": { opacity: "0", transform: "translateX(-50%) scale(0.45)" },
+          "100%": { opacity: "1", transform: "translateX(-50%) scale(1)" },
+        },
       },
       animation: {
         scrollY: "scrollY 120s linear infinite",
         scrollYReverse: "scrollYReverse 140s linear infinite",
         scrollX: "scrollX 40s linear infinite",
         fadeUp: "fadeUp 0.6s ease-out both",
+        fadeIn: "fadeIn 240ms ease-out both",
+        popIn: "popIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        riseIn: "riseIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both",
+        glowIn: "glowIn 900ms ease-out both",
       },
       backgroundImage: {
         "radial-fade":
