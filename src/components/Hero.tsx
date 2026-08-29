@@ -1,27 +1,26 @@
 import Link from "next/link";
 import { HERO_IMAGES as FALLBACK_HERO_IMAGES } from "@/lib/data";
+import type { HeroImage } from "@/lib/courses";
 import { HeroBand } from "./HeroBand";
 
-type HeroImg = { src: string; alt: string };
-
-/** Portraits shown in the strip on the widest breakpoint. */
-const STRIP_COUNT = 7;
+/** Columns needed to span the widest breakpoint. */
+const STRIP_MIN = 7;
 
 /**
  * Hero — an edge-to-edge band of mentor portraits that dissolves into black,
  * with the headline sitting on the black below it.
  *
- * Portraits come from backend doctors flagged `showInHeroSection`; when the
- * admin has flagged fewer than seven the list is repeated so the band always
- * spans the full width rather than ending mid-row.
+ * Portraits come from backend doctors flagged `showInHeroSection`. Every
+ * flagged Legend appears — the band scrolls, so there is no last column to run
+ * out at. When fewer than seven are flagged the list is repeated instead, so a
+ * wide viewport is still covered edge to edge.
  *
  * The band itself is a client component — it lights up under the cursor, which
  * needs pointer events — while the headline below stays server-rendered.
  */
-export function Hero({ images }: { images?: HeroImg[] }) {
-  let list = images && images.length > 0 ? images : FALLBACK_HERO_IMAGES;
-  while (list.length < STRIP_COUNT) list = [...list, ...list];
-  const strip = list.slice(0, STRIP_COUNT);
+export function Hero({ images }: { images?: HeroImage[] }) {
+  let strip = images && images.length > 0 ? images : FALLBACK_HERO_IMAGES;
+  while (strip.length < STRIP_MIN) strip = [...strip, ...strip];
 
   return (
     <section

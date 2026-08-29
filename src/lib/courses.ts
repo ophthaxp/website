@@ -492,6 +492,8 @@ function mapRecordToDoctor(rec: RawRecord): Doctor | null {
     bio: pickString(rec, "bio", "shortBio") ?? "",
     heroImages,
     showInHeroSection: pickBool(rec, "showInHeroSection", "show_in_hero_section"),
+    heroFocusY: pickNumber(rec, "heroFocusY", "hero_focus_y"),
+    heroZoom: pickNumber(rec, "heroZoom", "hero_zoom"),
     trailerVideoUrl: absoluteUrl(
       pickString(rec, "trailerVideoUrl", "trailer_video_url", "trailerVideo", "trailer_video"),
     ),
@@ -738,20 +740,76 @@ export function selectDisplayDoctors(doctors: Doctor[]): Doctor[] {
 }
 
 /**
+ * Recrop a Cloudinary portrait around the detected face.
+ *
+ * The hero band lines seven portraits up side by side, and the photos are
+ * framed differently from one another - some head-and-shoulders, some from the
+ * waist - so cropping them all from the top leaves the heads at different
+ * heights and different sizes. Cloudinary already holds these images and can
+ * find the face itself, so the crop is asked for in the URL rather than tuned
+ * by hand per Legend.
+ *
+ * `g_face` centres the crop on the face and `z_` sets how much of the frame
+ * the face fills, which is what evens out head size: the zoom is relative to
+ * the detected face, not to the photo. The delivered aspect is deliberately
+ * wider than any column the band renders, so `object-fit: cover` only ever
+ * trims the sides - the vertical framing that does the aligning survives at
+ * every breakpoint.
+ *
+ * Anything not on Cloudinary, and anything already carrying transformations,
+ * is left alone.
+ */
+const CLOUDINARY_UPLOAD = "/image/upload/";
+const HERO_FACE_CROP = "c_fill,g_face,z_0.72,ar_2:3,w_640,q_auto,f_auto";
+
+export function heroFaceCrop(src: string): string {
+  if (!/^https:\/\/res\.cloudinary\.com\//i.test(src)) return src;
+  const at = src.indexOf(CLOUDINARY_UPLOAD);
+  if (at < 0) return src;
+  const head = src.slice(0, at + CLOUDINARY_UPLOAD.length);
+  const tail = src.slice(at + CLOUDINARY_UPLOAD.length);
+  // A leading transformation segment means someone has already asked for a
+  // specific crop; stacking ours on top would fight it.
+  if (/^[a-z]{1,2}_[^/]*\//.test(tail)) return src;
+  return `${head}${HERO_FACE_CROP}/${tail}`;
+}
+
+/** One portrait in the homepage hero band, with its crop settings. */
+export type HeroImage = {
+  src: string;
+  alt: string;
+  /** Percentage down the photo to crop from; 0 (or unset) keeps the old top crop. */
+  focusY?: number;
+  /** Percentage to enlarge the photo by; 100 (or unset) leaves it alone. */
+  zoom?: number;
+};
+
+/**
  * Build the list of images shown in the homepage Hero marquee.
  * Only includes doctors whose `showInHeroSection` switch is ON.
  * Each such doctor contributes their `heroImages[]` if set, otherwise their
  * single `imageUrl`. Returns [] when no doctors are flagged — caller can fall
  * back to a static placeholder list.
  */
-export async function fetchHeroImagesFromBackend(): Promise<{ src: string; alt: string }[]> {
+export async function fetchHeroImagesFromBackend(): Promise<HeroImage[]> {
   const doctors = await fetchDoctorsFromBackend();
-  const out: { src: string; alt: string }[] = [];
+  const out: HeroImage[] = [];
   for (const d of doctors) {
     if (!d.showInHeroSection) continue;
     const list = d.heroImages?.length ? d.heroImages : d.imageUrl ? [d.imageUrl] : [];
     list.forEach((src, i) => {
-      if (src) out.push({ src, alt: `${d.name} portrait ${i + 1}` });
+      if (!src) return;
+      // A hand-set focus point means the face crop got this photo wrong, so it
+      // takes over completely: the original image, positioned by hand.
+      const manual = typeof d.heroFocusY === "number";
+      out.push({
+        src: manual ? src : heroFaceCrop(src),
+        alt: `${d.name} portrait ${i + 1}`,
+        // A face-cropped photo already has the face in the middle of the
+        // frame, so the column just centres it.
+        focusY: manual ? d.heroFocusY : 50,
+        zoom: manual ? d.heroZoom : undefined,
+      });
     });
   }
   return out;

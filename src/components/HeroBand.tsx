@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef } from "react";
-
-type HeroImg = { src: string; alt: string };
+import type { HeroImage } from "@/lib/courses";
 
 /** How far the light reaches from its centre, measured in column widths. */
 const REACH = 1.7;
@@ -52,7 +51,7 @@ const DRIFT_SPEED = 32;
  * on `--near`'s consumers do the smoothing, so the light trails its driver
  * rather than snapping to it.
  */
-export function HeroBand({ strip }: { strip: HeroImg[] }) {
+export function HeroBand({ strip }: { strip: HeroImage[] }) {
   const bandRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const barsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -294,8 +293,26 @@ export function HeroBand({ strip }: { strip: HeroImg[] }) {
                 alt={i < count ? img.alt : ""}
                 fill
                 sizes="(max-width: 640px) 34vw, (max-width: 1024px) 25vw, 15vw"
-                className="object-cover object-top"
+                className="object-cover"
                 priority={i < 4}
+                /* The portraits are framed differently from one another, so
+                   cropping them all from the top leaves the heads at different
+                   heights. `focusY` says how far down this photo the face sits
+                   and `zoom` how much to enlarge it, both set per Legend in the
+                   admin panel — nothing in CSS can work that out on its own.
+                   Unset means the old crop-from-the-top, so a Legend nobody has
+                   tuned looks exactly as before. Any zoom grows about the face
+                   rather than the middle of the frame, so raising it pushes the
+                   shoulders out of shot and leaves the eye-line where it was. */
+                style={{
+                  objectPosition: `50% ${img.focusY ?? 0}%`,
+                  ...(img.zoom && img.zoom !== 100
+                    ? {
+                        transform: `scale(${img.zoom / 100})`,
+                        transformOrigin: `50% ${img.focusY ?? 0}%`,
+                      }
+                    : null),
+                }}
               />
             </div>
             {/* Warm rim light down both machined edges, brightest on the column

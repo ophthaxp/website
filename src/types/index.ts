@@ -21,6 +21,13 @@ export interface Doctor {
   // Optional extras populated when sourced from the merged nocode `doctors` module
   heroImages?: string[];
   showInHeroSection?: boolean;
+  /* Where the face sits in this portrait, as a percentage down the photo, and
+     how much to enlarge it. Both exist only so the hero band can line every
+     head up on one eye-line: the photos are framed differently, and nothing in
+     CSS can find a face. Unset means the old behaviour - crop from the top,
+     no zoom. */
+  heroFocusY?: number;
+  heroZoom?: number;
   trailerVideoUrl?: string;
   isFeatured?: boolean;
   isNew?: boolean;
