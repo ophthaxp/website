@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import {
   ChevronDown,
   Info,
@@ -1347,11 +1348,24 @@ export function PracticeGrowthCalculator({
               <>
                 <CatchmentMap center={mapCenter} radiusKm={radiusKm} points={mapPoints} />
 
-                <span className="pointer-events-none absolute left-5 top-5 z-[1100] inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
-                  <span
-                    aria-hidden
-                    className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
-                  />
+                <span className="pointer-events-none absolute left-5 top-5 z-[1100] inline-flex items-center gap-2 rounded-full bg-black/70 py-2 pl-3 pr-4 text-[13px] text-white backdrop-blur-sm">
+                  {/* Same lit orb as the empty state, at chip scale, so the
+                      placeholder and the live map read as one thing. */}
+                  <span className="relative inline-flex h-5 w-5 shrink-0 items-center justify-center">
+                    <span
+                      aria-hidden
+                      className="how-orb-halo absolute inset-0 rounded-full bg-spark/50 blur-[6px]"
+                    />
+                    <Image
+                      src="/visualize-orb.gif"
+                      alt=""
+                      width={150}
+                      height={150}
+                      unoptimized
+                      aria-hidden
+                      className="how-orb-core relative h-5 w-5 object-contain"
+                    />
+                  </span>
                   Your Future is here...
                 </span>
 
@@ -1389,20 +1403,35 @@ export function PracticeGrowthCalculator({
                 </p>
               </>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                <span className="inline-flex items-center gap-2 rounded-full bg-black/70 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
-                  {hasGenerated && calcLoading ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                  ) : (
-                    <span
-                      aria-hidden
-                      className="h-3.5 w-3.5 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#0369a1)]"
-                    />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
+                {/* The empty panel is mostly background, so the placeholder is
+                    sized to hold it: the same lit orb the "Visualize your
+                    Future" chip uses, at panel scale rather than chip scale.
+                    Unoptimized because Next's image pipeline would otherwise
+                    flatten the animation to a single frame. */}
+                <span className="relative inline-flex h-20 w-20 shrink-0 items-center justify-center sm:h-28 sm:w-28">
+                  <span
+                    aria-hidden
+                    className="how-orb-halo absolute inset-0 rounded-full bg-spark/40 blur-[28px]"
+                  />
+                  <Image
+                    src="/visualize-orb.gif"
+                    alt=""
+                    width={300}
+                    height={300}
+                    unoptimized
+                    aria-hidden
+                    className="how-orb-core relative h-20 w-20 object-contain sm:h-28 sm:w-28"
+                  />
+                </span>
+                <span className="inline-flex items-center gap-2.5 text-[18px] font-medium tracking-tight text-white/85 sm:text-[22px]">
+                  {hasGenerated && calcLoading && (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   )}
                   Your Future is here...
                 </span>
                 {!hasGenerated && (
-                  <p className="max-w-[16rem] text-[12px] leading-relaxed text-white/30">
+                  <p className="max-w-[20rem] text-[13px] leading-relaxed text-white/35">
                     Choose a specialization and a location, then generate the
                     outlook to see your catchment.
                   </p>
