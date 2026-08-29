@@ -10,6 +10,7 @@ import {
   Plus,
   Sparkles,
 } from "lucide-react";
+import { RoiSignupGate, type RoiQuota } from "@/components/RoiSignupGate";
 import { CatchmentMap, type CatchmentPoint } from "./CatchmentMap";
 
 interface Specialization {
@@ -574,6 +575,21 @@ export function PracticeGrowthCalculator({
   const [calcLoading, setCalcLoading] = useState(false);
   const [coverageSort, setCoverageSort] = useState<CoverageSortKey>("distance-asc");
 
+  /**
+   * The signup wall. The server owns the decision — these three only remember
+   * what it last said, so the panel can show the wall and stop asking again.
+   *
+   * `lockedPincode` is why the second one exists: while the wall is up for a
+   * location, every slider nudge would otherwise fire another request that is
+   * certain to be refused. Holding the location it applies to lets a control
+   * change be ignored outright while a NEW location still gets asked about.
+   */
+  const [lockedReason, setLockedReason] = useState<
+    "pincodes" | "controlChanges" | null
+  >(null);
+  const [lockedPincode, setLockedPincode] = useState<string | null>(null);
+  const [quota, setQuota] = useState<RoiQuota | null>(null);
+
   // ─── load specializations once ────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -764,6 +780,11 @@ export function PracticeGrowthCalculator({
       setResult(null);
       return;
     }
+    // Already walled on this exact location: the answer will not change, so
+    // spend nothing. Moving to a different location clears this below and asks
+    // again, because the reason may not apply there.
+    if (lockedReason && lockedPincode === pincode) return;
+
     setCalcLoading(true);
     setCalcError(null);
     try {
@@ -778,8 +799,23 @@ export function PracticeGrowthCalculator({
         }),
       });
       const body = await res.json();
+
+      // The free allowance is used up. The last result stays on screen behind
+      // the wall rather than being cleared — what they have already been shown
+      // is theirs, and a blank panel would read as a failure instead of a limit.
+      if (body?.locked) {
+        setLockedReason(body.reason ?? "pincodes");
+        setLockedPincode(pincode);
+        if (body.quota) setQuota(body.quota as RoiQuota);
+        setCalcError(null);
+        return;
+      }
+
       if (body?.success && body.data) {
         setResult(body.data as RoiResult);
+        setLockedReason(null);
+        setLockedPincode(null);
+        if (body.quota) setQuota(body.quota as RoiQuota);
       } else {
         setResult(null);
         setCalcError(friendlyError(body?.error || "Calculation failed"));
@@ -790,7 +826,17 @@ export function PracticeGrowthCalculator({
     } finally {
       setCalcLoading(false);
     }
-  }, [specSlug, pincode, pinLookup, radiusKm, expectedPatients]);
+  }, [specSlug, pincode, pinLookup, radiusKm, expectedPatients, lockedReason, lockedPincode]);
+
+  // A different location is a different question, so let it be asked. Without
+  // this the guard above would keep refusing to call for a location the server
+  // never ruled on.
+  useEffect(() => {
+    if (lockedPincode && lockedPincode !== pincode) {
+      setLockedReason(null);
+      setLockedPincode(null);
+    }
+  }, [pincode, lockedPincode]);
 
   const calcTimer = useRef<number | null>(null);
   useEffect(() => {
@@ -1259,10 +1305,24 @@ export function PracticeGrowthCalculator({
               {missing[missing.length - 1]} to begin.
             </p>
           )}
+
+          {/* Says what is left, and only once there is something to say. Shown
+              on the last free location rather than every time, so it lands as a
+              heads-up instead of a running meter nobody asked for. */}
+          {canGenerate &&
+            !lockedReason &&
+            quota !== null &&
+            quota.freePincodes - quota.pincodesUsed <= 1 && (
+              <p className="text-center text-[12px] text-white/40">
+                {quota.pincodesUsed >= quota.freePincodes
+                  ? "Last free location — an account opens up every pincode."
+                  : "1 free location left — an account opens up every pincode."}
+              </p>
+            )}
         </div>
 
         {/* ─────────── RIGHT: catchment + results ─────────── */}
-        <div className="flex min-w-0 flex-col">
+        <div className="relative flex min-w-0 flex-col">
           {/* Catchment view. Empty until the reader asks for an outlook — no map,
               no rings, no numbers, because a catchment nobody chose is a figure
               nobody should read. Once there is a result the map takes over and
@@ -1476,6 +1536,14 @@ export function PracticeGrowthCalculator({
                 </a>
               )}
             </div>
+          )}
+
+          {/* The wall, over the whole results column: map, cards and all. It is
+              the last child so it paints above them, and it covers the column
+              rather than the page because the inputs on the left stay usable —
+              a reader can see exactly what they were about to ask for. */}
+          {lockedReason && (
+            <RoiSignupGate reason={lockedReason} quota={quota} />
           )}
         </div>
       </div>
