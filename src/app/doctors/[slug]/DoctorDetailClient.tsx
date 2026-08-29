@@ -110,7 +110,7 @@ export function DoctorDetailClient({
   return (
       <>
       <Navbar />
-      <main className="bg-[#06070a] pb-24 text-white">
+      <main className="bg-black pb-20 text-white">
 
         {/* ════════════════════════════════════════════════════════════
             § 1 — HERO   Full-viewport cinematic identity
@@ -138,54 +138,54 @@ export function DoctorDetailClient({
             {/* Tone the photo background into the dark theme */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-[#06070a]/30 mix-blend-multiply"
+              className="absolute inset-0 bg-black/30 mix-blend-multiply"
             />
             {/* Soft left feather — kills the hard vertical edge on desktop */}
             <div
               aria-hidden
-              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-[#06070a] to-transparent lg:block"
+              className="absolute inset-y-0 left-0 hidden w-32 bg-gradient-to-r from-black to-transparent lg:block"
             />
             {/* Subtle bottom fade so the page flows into the next section */}
             <div
               aria-hidden
-              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06070a] to-transparent"
+              className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent"
             />
           </div>
 
           {/* Mobile: full-image dim + bottom-up fade so text at bottom is readable */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06070a] via-[#06070a]/65 to-[#06070a]/35 lg:hidden" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/65 to-black/35 lg:hidden" />
 
           {/* Desktop: long left→right fade carrying the dark over the image edge */}
-          <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06070a] from-35% via-[#06070a]/60 via-55% to-transparent to-85% lg:block" />
+          <div className="absolute inset-0 hidden bg-gradient-to-r from-black from-35% via-black/60 via-55% to-transparent to-85% lg:block" />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(50% 65% at 12% 75%, rgba(171,131,77,0.13) 0%, transparent 65%)",
+                "radial-gradient(50% 65% at 12% 75%, rgba(183,90,68,0.18) 0%, transparent 65%)",
             }}
           />
 
           {/* Content — two-column grid on desktop: text + portrait card */}
-          <div className="relative mx-auto flex min-h-[100svh] max-w-[1500px] flex-col justify-end px-6 pb-20 pt-36 sm:px-16 lg:justify-center lg:pb-0 lg:pt-24 lg:px-24">
+          <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-5 pb-20 pt-36 sm:px-10 lg:justify-center lg:px-[120px] lg:pb-0 lg:pt-24">
             <div className="max-w-2xl">
 
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#ab834d]/40 bg-[#ab834d]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#ab834d]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-accent-soft">
                 <span aria-hidden>★</span> LEGEND. OPHTHALMOLOGY
               </div>
 
               {/* Name */}
               <h1
                 id="legend-name"
-                className="mt-5 font-serif text-5xl leading-[1.04] tracking-tight sm:text-6xl lg:text-[4.5rem]"
+                className="mt-5 font-display text-[clamp(2.5rem,5.5vw,4.5rem)] uppercase leading-[0.98] tracking-[-0.01em]"
               >
                 {doctor.name}
               </h1>
 
               {/* Title */}
               <div className="mt-5 flex items-start gap-3">
-                <span className="mt-[11px] h-px w-10 shrink-0 bg-[#ab834d]/60" aria-hidden />
+                <span className="mt-[11px] h-px w-10 shrink-0 bg-accent" aria-hidden />
                 <p className="text-lg leading-snug text-white/70 sm:text-xl">
                   {doctor.title}
                 </p>
@@ -207,13 +207,24 @@ export function DoctorDetailClient({
               )}
 
               {/* CTAs */}
+              {/* A profile with no way through to what the Legend actually
+                  teaches is a dead end, so the program leads and the trailer
+                  becomes the second choice. */}
               <div className="mt-8 flex flex-wrap items-center gap-3">
+                {doctor.courseSlug && (
+                  <Link
+                    href={`/programs/${doctor.courseSlug}`}
+                    className="inline-flex items-center justify-center rounded-[10px] bg-accent px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  >
+                    View Program
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={scrollToVideo}
-                  className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-[10px] bg-ink-800 px-7 py-3.5 text-[15px] font-medium text-white/85 backdrop-blur-sm transition hover:bg-ink-700 hover:text-white"
                 >
-                  <Play className="h-4 w-4 fill-white" aria-hidden />
+                  <Play className="h-4 w-4 fill-current" aria-hidden />
                   Watch Intro
                 </button>
               </div>
@@ -223,7 +234,7 @@ export function DoctorDetailClient({
                 <div className="mt-14 flex flex-wrap gap-8 border-t border-white/10 pt-8">
                   {doctor.experienceYears > 0 && (
                     <div>
-                      <p className="font-serif text-[2.6rem] font-black leading-none text-white">
+                      <p className="font-display text-[2.6rem] leading-none text-white">
                         {doctor.experienceYears}+
                       </p>
                       <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">
@@ -233,7 +244,7 @@ export function DoctorDetailClient({
                   )}
                   {primarySpecialties.map((s) => (
                     <div key={s}>
-                      <p className="font-serif text-[2.6rem] font-black leading-none text-[#ab834d]">
+                      <p className="font-display text-[2.6rem] leading-none text-accent">
                         ★
                       </p>
                       <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">
@@ -257,17 +268,17 @@ export function DoctorDetailClient({
           className="bg-black py-16 sm:py-20"
         >
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-accent-soft">
               From the Legend
             </p>
             <h2
               id="video-title"
-              className="mt-3 font-serif text-3xl leading-tight sm:text-4xl"
+              className="mt-3 text-[clamp(1.75rem,3.1vw,2.6rem)] font-extrabold leading-[1.25] tracking-[-0.015em] text-white"
             >
               Introduction
             </h2>
 
-            <div className="mt-8 overflow-hidden rounded-2xl border border-white/5">
+            <div className="mt-8 overflow-hidden rounded-xl border border-white/15">
               {doctor.trailerVideoUrl ? (
                 <TrailerPlayer
                   src={doctor.trailerVideoUrl}
@@ -276,10 +287,10 @@ export function DoctorDetailClient({
                   className="aspect-video w-full"
                 />
               ) : (
-                <div className="flex aspect-video items-center justify-center bg-[#0a0a0d]">
+                <div className="flex aspect-video items-center justify-center bg-ink-850">
                   <div className="text-center">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#ab834d]/30 bg-[#ab834d]/10">
-                      <Play className="h-6 w-6 text-[#ab834d]" aria-hidden />
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-accent/30 bg-accent/10">
+                      <Play className="h-6 w-6 text-accent" aria-hidden />
                     </div>
                     <p className="mt-3 text-sm text-white/40">Intro video coming soon</p>
                   </div>
@@ -294,13 +305,13 @@ export function DoctorDetailClient({
         ════════════════════════════════════════════════════════════ */}
         <section
           aria-labelledby="about-heading"
-          className="bg-[#0a0a0d] py-20 sm:py-28"
+          className="bg-ink-900 py-16 sm:py-20"
         >
-          <div className="mx-auto max-w-[1500px] px-6 sm:px-16 lg:px-24">
+          <div className="mx-auto max-w-[1440px] px-5 sm:px-10 lg:px-[120px]">
 
             {/* Section headline */}
             <div className="max-w-4xl">
-              <h2 className="mt-4 font-serif text-4xl leading-tight tracking-tight text-white sm:text-5xl">
+              <h2 className="text-[clamp(1.75rem,3.1vw,2.6rem)] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">
                 Making of the Legend
               </h2>
             </div>
@@ -310,8 +321,8 @@ export function DoctorDetailClient({
 
               {/* Bio */}
               <div className="lg:col-span-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
-                Bio
+                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-accent-soft">
+                  Bio
                 </p>
                 <div
                   id="about-heading"
@@ -327,7 +338,7 @@ export function DoctorDetailClient({
                   <button
                     type="button"
                     onClick={() => setBioExpanded((v) => !v)}
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#ab834d] transition hover:text-[#c9a06a]"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-accent-soft transition hover:text-accent-tint"
                   >
                     {bioExpanded ? "Show less" : "Read full biography"}
                     <span
@@ -341,17 +352,17 @@ export function DoctorDetailClient({
               </div>
 
               {/* At-a-glance card */}
-              <div className="rounded-2xl border border-white/8 bg-[#141417] p-7">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+              <div className="rounded-xl border border-white/15 bg-ink-850 p-7">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-accent-soft">
                   At a Glance
                 </p>
                 <dl className="mt-5 space-y-5">
                   {doctor.experienceYears > 0 && (
-                    <div className="border-b border-white/8 pb-5">
+                    <div className="border-b border-white/10 pb-5">
                       <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
                         Experience
                       </dt>
-                      <dd className="mt-1.5 font-serif text-3xl leading-none text-white">
+                      <dd className="mt-1.5 font-display text-3xl leading-none text-white">
                         {doctor.experienceYears}+{" "}
                         <span className="font-sans text-base font-normal text-white/55">
                           years
@@ -362,7 +373,7 @@ export function DoctorDetailClient({
                   {primarySpecialties.map((s, i) => (
                     <div
                       key={s}
-                      className={`pb-5 ${i < primarySpecialties.length - 1 ? "border-b border-white/8" : ""}`}
+                      className={`pb-5 ${i < primarySpecialties.length - 1 ? "border-b border-white/10" : ""}`}
                     >
                       <dt className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
                         Specialty
@@ -378,7 +389,7 @@ export function DoctorDetailClient({
                         Based in
                       </dt>
                       <dd className="mt-1.5 flex items-center gap-1.5 text-base font-medium text-white">
-                        <MapPin className="h-4 w-4 shrink-0 text-[#ab834d]" aria-hidden />
+                        <MapPin className="h-4 w-4 shrink-0 text-accent" aria-hidden />
                         {doctor.city}
                       </dd>
                     </div>
@@ -394,24 +405,24 @@ export function DoctorDetailClient({
         ════════════════════════════════════════════════════════════ */}
         <section
           aria-labelledby="share-title"
-          className="relative overflow-hidden border-y border-[#ab834d]/15 bg-[#0a0a0d] py-16 sm:py-20"
+          className="relative overflow-hidden border-y border-white/10 bg-black py-16 sm:py-20"
         >
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(55% 65% at 50% 55%, rgba(171,131,77,0.07) 0%, transparent 70%)",
+                "radial-gradient(55% 65% at 50% 55%, rgba(183,90,68,0.12) 0%, transparent 70%)",
             }}
           />
 
           <div className="relative mx-auto max-w-2xl px-5 text-center sm:px-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-accent-soft">
               Spread the Word
             </p>
             <h2
               id="share-title"
-              className="mt-3 font-serif text-3xl leading-tight sm:text-4xl"
+              className="mt-3 text-[clamp(1.5rem,2.6vw,2.25rem)] font-extrabold leading-[1.25] tracking-[-0.015em] text-white"
             >
               Know someone who should learn from{" "}
               {doctor.name.split(" ").at(-1)}?
@@ -422,7 +433,7 @@ export function DoctorDetailClient({
             </p>
 
             {/* Share preview card */}
-            <div className="mx-auto mt-8 max-w-sm rounded-2xl border border-white/10 bg-[#141417] p-5 text-left shadow-xl">
+            <div className="mx-auto mt-8 max-w-sm rounded-xl border border-white/15 bg-ink-850 p-5 text-left shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/15">
                   <Image
@@ -445,7 +456,7 @@ export function DoctorDetailClient({
                   {doctor.bio}
                 </p>
               )}
-              <p className="mt-3 text-xs text-[#ab834d]">legendsofmedicine.com</p>
+              <p className="mt-3 text-xs text-accent-soft">legendsofmedicine.com</p>
             </div>
 
             {/* Share buttons */}
@@ -453,14 +464,14 @@ export function DoctorDetailClient({
               <button
                 type="button"
                 onClick={handleShare}
-                className="inline-flex items-center gap-2 rounded-full bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+                className="inline-flex items-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-deep"
               >
                 <Share2 className="h-4 w-4" aria-hidden /> Share
               </button>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-[10px] bg-ink-800 px-6 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-green-400" aria-hidden />
@@ -473,7 +484,7 @@ export function DoctorDetailClient({
                 href={whatsappHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex items-center rounded-[10px] bg-ink-800 px-6 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
               >
                 WhatsApp
               </a>
@@ -481,7 +492,7 @@ export function DoctorDetailClient({
                 href={linkedinHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex items-center rounded-[10px] bg-ink-800 px-6 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
               >
                 LinkedIn
               </a>
@@ -492,21 +503,21 @@ export function DoctorDetailClient({
         {/* ════════════════════════════════════════════════════════════
             § 5 — OTHER LEGENDS RAIL
         ════════════════════════════════════════════════════════════ */}
-        {false && otherDoctors.length > 0 && (
+        {otherDoctors.length > 0 && (
           <section
             aria-labelledby="other-legends-title"
-            className="mx-auto max-w-[1500px] px-6 py-14 sm:px-16 sm:py-16 lg:px-24"
+            className="mx-auto max-w-[1440px] px-5 py-12 sm:px-10 sm:py-14 lg:px-[120px]"
           >
             <div className="flex items-end justify-between">
               <div>
                 <h2
                   id="other-legends-title"
-                  className="font-serif text-2xl leading-tight sm:text-3xl"
+                  className="text-[clamp(1.5rem,2.6vw,2.25rem)] font-extrabold leading-[1.25] tracking-[-0.015em] text-white"
                 >
                   More Legends
                 </h2>
-                <p className="mt-1 text-sm text-white/50">
-                  {otherDoctors.length}+ mentors across all specialties
+                <p className="mt-2 text-sm text-white/45">
+                  {otherDoctors.length} mentors across every specialty
                 </p>
               </div>
               <div className="hidden gap-2 sm:flex">
@@ -519,9 +530,9 @@ export function DoctorDetailClient({
                       behavior: "smooth",
                     })
                   }
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/80 transition hover:bg-white/10"
+                  className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-ink-800 text-white transition hover:bg-ink-700"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   type="button"
@@ -532,45 +543,45 @@ export function DoctorDetailClient({
                       behavior: "smooth",
                     })
                   }
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/80 transition hover:bg-white/10"
+                  className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-white text-black transition hover:bg-white/85"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
             <div
               ref={railRef}
-              className="no-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
+              className="no-scrollbar mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
             >
               {otherDoctors.map((d) => (
                 <Link
                   key={d.id}
                   href={`/doctors/${d.slug}`}
-                  className="group relative aspect-[3/4] w-[170px] shrink-0 snap-start overflow-hidden rounded-2xl border border-white/10 bg-ink-800 sm:w-[210px]"
+                  className="group relative aspect-[306/482] w-[200px] shrink-0 snap-start overflow-hidden rounded-xl border border-white/15 bg-ink-850 transition duration-300 hover:border-accent/60 sm:w-[248px]"
                 >
                   <Image
                     src={d.imageUrl}
                     alt={d.name}
                     fill
-                    sizes="(max-width: 640px) 170px, 210px"
-                    className="object-cover object-top transition duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 200px, 248px"
+                    className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
                   />
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.6)_50%,rgba(0,0,0,0)_100%)]"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.72)_38%,rgba(0,0,0,0)_100%)]"
                   />
-                  <div className="absolute inset-x-0 bottom-0 px-3 pb-4 pt-8 text-center">
-                    <p className="font-serif text-lg leading-tight text-white sm:text-xl">
+                  <div className="absolute inset-x-0 bottom-0 px-5 pb-6 pt-12 text-center">
+                    <p className="line-clamp-2 font-serif text-[22px] font-medium leading-[1.12] text-white">
                       {d.name}
                     </p>
                     {d.title && (
                       <>
                         <span
-                          className="mx-auto mt-1.5 block h-px w-6 bg-[#ab834d]/70"
+                          className="mx-auto mt-3 block h-px w-5 bg-white/70 transition-all duration-300 group-hover:w-10"
                           aria-hidden
                         />
-                        <p className="mt-1.5 text-[11px] font-semibold text-white/80 sm:text-xs">
+                        <p className="mt-3 line-clamp-1 text-[13px] text-white/70">
                           {d.title}
                         </p>
                       </>

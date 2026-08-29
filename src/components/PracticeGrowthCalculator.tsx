@@ -390,7 +390,8 @@ function ImpactGauge({ pct }: { pct: number }) {
         <path
           d={GAUGE_ARC}
           fill="none"
-          stroke="#C2C2C2"
+          stroke="#FFFFFF"
+          strokeOpacity={0.22}
           strokeWidth={20}
           strokeDasharray="2 2"
         />
@@ -429,7 +430,7 @@ function ImpactGauge({ pct }: { pct: number }) {
           />
         </g>
       </svg>
-      <p className="pointer-events-none absolute inset-x-0 top-[55%] -translate-y-1/2 text-center text-[clamp(1.5rem,2.4vw,1.875rem)] font-semibold tabular-nums text-black">
+      <p className="pointer-events-none absolute inset-x-0 top-[55%] -translate-y-1/2 text-center text-[clamp(1.5rem,2.4vw,1.875rem)] font-semibold tabular-nums text-white">
         {pct ? `${pct.toFixed(2)}%` : "—"}
       </p>
     </div>
@@ -1514,10 +1515,10 @@ export function PracticeGrowthCalculator({
                 </div>
 
                 {/* Column 3 — impact */}
-                <div className="flex flex-col rounded-xl bg-white p-3.5">
-                  <p className="inline-flex items-center gap-2 text-[13px] text-black">
+                <div className="flex flex-col rounded-xl bg-ink-600 p-3.5">
+                  <p className="inline-flex items-center gap-2 text-[13px] text-[#A5A5A5]">
                     Impact
-                    <Info className="h-3.5 w-3.5 text-[#6B7280]" aria-hidden />
+                    <Info className="h-3.5 w-3.5 text-[#A5A5A5]" aria-hidden />
                   </p>
                   {/* The reading sits inside the arc, as on a real dial face — so it
                       is positioned against the gauge itself rather than this card,

@@ -1,12 +1,17 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { MapPin, Search } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { ThemedSelect } from "@/components/ThemedSelect";
+import {
+  CatalogCard,
+  CatalogEmpty,
+  CatalogGrid,
+  CatalogHero,
+  FilterChip,
+  ResultCount,
+  SearchField,
+} from "@/components/CatalogUI";
 import { SPECIALTY_TABS } from "@/lib/data";
 import type { Doctor, Specialty } from "@/types";
 
@@ -20,6 +25,17 @@ const SPECIALTY_LABELS: Record<string, string> = {
   "ophthalmology-practice-mastery": "Practice Mastery",
 };
 
+/* The chip row has to hold eight filters on one or two lines, so the pills use
+   the short clinical name the home rail uses rather than the full title. */
+const SHORT_LABELS: Partial<Record<Specialty, string>> = {
+  all: "All",
+  "cornea-ocular-surface": "Cornea",
+  "phaco-refractive-surgery": "Refractive Surgery",
+  "retina-vitreo-retinal-surgery": "Retina",
+  "pediatric-ophthalmology": "Paediatric",
+  "ophthalmology-practice-mastery": "Practice Management",
+};
+
 export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   const [specialty, setSpecialty] = useState<Specialty>("all");
   const [nameQuery, setNameQuery] = useState("");
@@ -28,25 +44,49 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
     const q = nameQuery.trim().toLowerCase();
     return DOCTORS.filter((d) => {
       if (specialty !== "all" && !d.specialty.includes(specialty)) return false;
-      if (q && !d.name.toLowerCase().includes(q)) return false;
-      return true;
+      if (!q) return true;
+      /* Search the whole card, not just the name — a reader who types "cornea"
+         or "Chennai" means it as a search, not as a failed name lookup. */
+      return [d.name, d.title, d.city, d.qualification]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q));
     });
   }, [DOCTORS, specialty, nameQuery]);
+
+  const isFiltered = specialty !== "all" || nameQuery.trim() !== "";
 
   const resetFilters = () => {
     setSpecialty("all");
     setNameQuery("");
   };
 
+  /* Only offer a specialty the roster can actually answer for. An empty filter
+     is worse than a missing one. */
+  const availableTabs = useMemo(() => {
+    const present = new Set<string>();
+    for (const d of DOCTORS) for (const s of d.specialty) present.add(s);
+    return SPECIALTY_TABS.filter((t) => t.key === "all" || present.has(t.key));
+  }, [DOCTORS]);
+
+  const cityCount = useMemo(
+    () => new Set(DOCTORS.map((d) => d.city).filter(Boolean)).size,
+    [DOCTORS],
+  );
+
   if (DOCTORS.length === 0) {
     return (
       <>
         <Navbar />
-        <main className="mx-auto max-w-3xl px-5 py-24 text-center text-white">
-          <h1 className="font-serif text-3xl">No legends yet</h1>
-          <p className="mt-4 text-white/60">
-            Add doctor records in the admin panel to see them here.
-          </p>
+        <CatalogHero
+          titleLead="All"
+          titleAccent="Legends"
+          subtitle="The senior ophthalmologists who lead every cohort."
+        />
+        <main className="mx-auto max-w-[1440px] px-5 py-12 sm:px-10 sm:py-14 lg:px-[120px]">
+          <CatalogEmpty
+            title="No legends yet"
+            body="Add doctor records in the admin panel and they will appear here."
+          />
         </main>
         <Footer />
       </>
@@ -56,132 +96,92 @@ export function DoctorsPageClient({ doctors: DOCTORS }: { doctors: Doctor[] }) {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24">
-        <h1 className="font-serif text-4xl text-white sm:text-5xl">All Legends</h1>
-        <p className="mt-3 max-w-2xl text-white/75">
-          Meet the senior ophthalmologists shaping practice across India.
-        </p>
 
-        {/* Filter bar — Specialisation / Legend Name */}
+      <CatalogHero
+        titleLead="All"
+        titleAccent="Legends"
+        subtitle="Senior ophthalmologists shaping practice across India — each one teaching the judgement behind the technique, not just the technique."
+        stats={[
+          { value: DOCTORS.length, label: "Legends" },
+          { value: availableTabs.length - 1, label: "Specialisations" },
+          ...(cityCount > 0 ? [{ value: cityCount, label: "Cities" }] : []),
+        ]}
+      />
+
+      <main className="mx-auto max-w-[1440px] px-5 pb-14 pt-4 sm:px-10 sm:pb-16 lg:px-[120px]">
+        {/* Filter row. Specialisation reads as a band of pills rather than a
+            dropdown, because on this page the specialisations are the map of
+            the roster — hiding them inside a select hides what is on offer. */}
         <div
-          role="search"
-          aria-label="Filter legends"
-          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.2fr_1fr_auto]"
+          role="tablist"
+          aria-label="Filter by specialisation"
+          className="mx-auto flex max-w-5xl flex-wrap justify-center gap-3"
         >
-          <div>
-            <label
-              htmlFor="legend-specialty"
-              className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
+          {availableTabs.map((t) => (
+            <FilterChip
+              key={t.key}
+              selected={specialty === t.key}
+              onClick={() => setSpecialty(t.key)}
             >
-              Specialisation
-            </label>
-            <ThemedSelect
-              id="legend-specialty"
-              ariaLabel="Filter by specialty"
-              value={specialty}
-              onChange={(v) => setSpecialty(v as Specialty)}
-              options={SPECIALTY_TABS.map((t) => ({ value: t.key, label: t.label }))}
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="legend-name"
-              className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
-            >
-              Legend Name
-            </label>
-            <div className="relative mt-2">
-              <Search
-                aria-hidden
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
-              />
-              <input
-                id="legend-name"
-                type="search"
-                value={nameQuery}
-                onChange={(e) => setNameQuery(e.target.value)}
-                placeholder="Search by name…"
-                className="w-full rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] py-2.5 pl-9 pr-3 text-sm text-white placeholder-white/35 transition hover:border-[#ab834d] focus:border-[#ab834d] focus:outline-none focus:ring-2 focus:ring-[#ab834d]/40"
-              />
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="rounded-lg border border-[#ab834d] bg-[#ab834d]/10 px-4 py-2.5 text-sm font-semibold text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white"
-          >
-            Reset
-          </button>
+              {SHORT_LABELS[t.key] ?? t.label}
+            </FilterChip>
+          ))}
         </div>
-        <p className="mt-3 text-xs text-white/55">
-          Showing {filtered.length} of {DOCTORS.length} legends
-        </p>
 
-        {filtered.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center">
-            <p className="text-white/70">No legends match these filters.</p>
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="mt-4 rounded-lg border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/10"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((d) => {
-              const primarySpecialty = d.specialty.find((s) => s !== "all");
-              const specialtyLabel = primarySpecialty
-                ? SPECIALTY_LABELS[primarySpecialty] ?? primarySpecialty
-                : null;
-              return (
-                <Link
-                  key={d.id}
-                  href={`/doctors/${d.slug}`}
-                  className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-0.5 hover:border-accent/40 hover:bg-white/[0.06] hover:shadow-xl hover:shadow-accent/10"
-                >
-                  {d.isNew && (
-                    <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-400/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-950 shadow">
-                      New
-                    </span>
-                  )}
-                  <div className="relative aspect-[4/5] w-full overflow-hidden">
-                    <Image
-                      src={d.imageUrl}
-                      alt={d.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition group-hover:scale-[1.02]"
-                    />
-                  </div>
-                  <div className="p-5">
-                    {specialtyLabel && (
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-accent-soft">
-                        {specialtyLabel}
-                      </p>
-                    )}
-                    <h2 className="mt-2 font-serif text-xl leading-tight text-white">
-                      {d.name}
-                    </h2>
-                    <p className="mt-1 text-sm text-white/70">{d.title}</p>
-                    {d.city && (
-                      <p className="mt-3 flex items-center gap-1.5 text-xs text-white/55">
-                        <MapPin className="h-3.5 w-3.5" aria-hidden />
-                        {d.city}
-                      </p>
-                    )}
-                    <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#ab834d]">
-                      View Profile →
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <SearchField
+            id="legend-search"
+            label="Search legends"
+            value={nameQuery}
+            onChange={setNameQuery}
+            placeholder="Search by name, city or title…"
+            className="w-full sm:max-w-sm"
+          />
+          <ResultCount
+            shown={filtered.length}
+            total={DOCTORS.length}
+            noun="legends"
+            filtered={isFiltered}
+            onReset={resetFilters}
+          />
+        </div>
+
+        <div className="mt-10">
+          {filtered.length === 0 ? (
+            <CatalogEmpty
+              title="Nothing matches that"
+              body="No legend fits this specialisation and search together. Try one or the other."
+              actionLabel="Clear filters"
+              onAction={resetFilters}
+            />
+          ) : (
+            <CatalogGrid>
+              {filtered.map((d, i) => {
+                const primarySpecialty = d.specialty.find((s) => s !== "all");
+                const specialtyLabel = primarySpecialty
+                  ? SPECIALTY_LABELS[primarySpecialty] ?? primarySpecialty
+                  : null;
+                return (
+                  <CatalogCard
+                    key={d.id}
+                    href={`/doctors/${d.slug}`}
+                    imageUrl={d.imageUrl}
+                    imageAlt={d.name}
+                    title={d.name}
+                    credit={d.title}
+                    meta={[specialtyLabel, d.city]}
+                    isNew={d.isNew}
+                    tag={d.experienceYears ? `${d.experienceYears} yrs` : null}
+                    cta="View profile"
+                    priority={i < 4}
+                  />
+                );
+              })}
+            </CatalogGrid>
+          )}
+        </div>
       </main>
+
       <Footer />
     </>
   );

@@ -1,10 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { ThemedSelect } from "@/components/ThemedSelect";
+import {
+  CatalogCard,
+  CatalogEmpty,
+  CatalogGrid,
+  CatalogHero,
+  FilterChip,
+  ResultCount,
+  SearchField,
+} from "@/components/CatalogUI";
 import { formatINR } from "@/lib/utils";
 import type { Doctor, Program } from "@/types";
 
@@ -53,205 +60,164 @@ export function ProgramsPageClient({
     return map;
   }, [programs, doctors]);
 
-  const courseOptions = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const p of programs) {
-      const label = p.headline || p.name;
-      if (!seen.has(p.slug)) seen.set(p.slug, label);
-    }
-    return Array.from(seen.entries())
-      .map(([slug, name]) => ({ slug, name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [programs]);
-
-  const [courseSlug, setCourseSlug] = useState<string>("all");
+  const [query, setQuery] = useState("");
   const [durationKey, setDurationKey] = useState<string>("all");
+
+  /* Only show the duration buckets that have something in them — a filter that
+     can only ever return nothing is a trap, not a choice. */
+  const availableBuckets = useMemo(
+    () =>
+      DURATION_BUCKETS.filter(
+        (b) =>
+          b.key === "all" ||
+          programs.some((p) => b.matches(programDurationInMonths(p))),
+      ),
+    [programs],
+  );
 
   const filtered = useMemo(() => {
     const bucket =
       DURATION_BUCKETS.find((b) => b.key === durationKey) ?? DURATION_BUCKETS[0];
+    const q = query.trim().toLowerCase();
     return programs.filter((p) => {
-      if (courseSlug !== "all" && p.slug !== courseSlug) return false;
       if (!bucket.matches(programDurationInMonths(p))) return false;
-      return true;
+      if (!q) return true;
+      /* One search box across the program and the legend who teaches it. The
+         old page had a course-name dropdown, which was a list of the same
+         cards the reader was already looking at; typing is faster and also
+         finds a mentor by name. */
+      const legend = legendByProgramSlug.get(p.slug);
+      return [p.name, p.headline, p.tagline, p.city, legend?.name, p.mentorName]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q));
     });
-  }, [programs, courseSlug, durationKey]);
+  }, [programs, durationKey, query, legendByProgramSlug]);
+
+  const isFiltered = durationKey !== "all" || query.trim() !== "";
 
   const resetFilters = () => {
-    setCourseSlug("all");
+    setQuery("");
     setDurationKey("all");
   };
+
+  const isLegendsView = view === "legends";
+
+  const mentorCount = useMemo(
+    () => new Set(Array.from(legendByProgramSlug.values()).map((d) => d.id)).size,
+    [legendByProgramSlug],
+  );
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-[1500px] px-6 py-16 sm:px-16 sm:py-24 lg:px-24">
-        <h1 className="font-serif text-4xl text-white sm:text-5xl">
-          {view === "legends" ? "All Legends" : "All Programs"}
-        </h1>
-        <p className="mt-3 max-w-2xl text-white/75">
-          Cohort-based mentorship designed for practising ophthalmologists and recent MBBS graduates.
-        </p>
 
-        {/* Filter bar — Course Name / Course Duration */}
+      <CatalogHero
+        titleLead="All"
+        titleAccent={isLegendsView ? "Legends" : "Programs"}
+        subtitle="Cohort-based mentorship for practising ophthalmologists and recent MBBS graduates — small groups, real cases, one Legend at the front of the room."
+        stats={[
+          { value: programs.length, label: isLegendsView ? "Legends" : "Programs" },
+          ...(mentorCount > 0 ? [{ value: mentorCount, label: "Mentors" }] : []),
+          { value: "Cohort", label: "Format" },
+        ]}
+      />
+
+      <main className="mx-auto max-w-[1440px] px-5 pb-14 pt-4 sm:px-10 sm:pb-16 lg:px-[120px]">
+        {/* Duration as pills rather than a dropdown: there are five of them, and
+            a reader choosing how much of their year to commit should be able to
+            see all five commitments at once. */}
         <div
-          role="search"
-          aria-label="Filter courses"
-          className="mt-8 grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1.5fr_1fr_auto]"
+          role="tablist"
+          aria-label="Filter by duration"
+          className="mx-auto flex max-w-5xl flex-wrap justify-center gap-3"
         >
-          <div>
-            <label
-              htmlFor="course-name"
-              className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
+          {availableBuckets.map((b) => (
+            <FilterChip
+              key={b.key}
+              selected={durationKey === b.key}
+              onClick={() => setDurationKey(b.key)}
             >
-              Course Name
-            </label>
-            <ThemedSelect
-              id="course-name"
-              ariaLabel="Filter by course"
-              value={courseSlug}
-              onChange={setCourseSlug}
-              options={[
-                { value: "all", label: "All courses" },
-                ...courseOptions.map((c) => ({ value: c.slug, label: c.name })),
-              ]}
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="course-duration"
-              className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60"
-            >
-              Course Duration
-            </label>
-            <ThemedSelect
-              id="course-duration"
-              ariaLabel="Filter by duration"
-              value={durationKey}
-              onChange={setDurationKey}
-              options={DURATION_BUCKETS.map((b) => ({ value: b.key, label: b.label }))}
-              className="mt-2"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="rounded-lg border border-[#ab834d] bg-[#ab834d]/10 px-4 py-2.5 text-sm font-semibold text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white"
-          >
-            Reset
-          </button>
+              {b.label}
+            </FilterChip>
+          ))}
         </div>
-        <p className="mt-3 text-xs text-white/55">
-          Showing {filtered.length} of {programs.length} courses
-        </p>
 
-        {programs.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center">
-            <p className="text-white/70">No programs available yet.</p>
-            <p className="mt-2 text-sm text-white/45">
-              Check back soon — new cohorts are added regularly.
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center">
-            <p className="text-white/70">No courses match these filters.</p>
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="mt-4 rounded-lg border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/10"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => {
-              const legend = legendByProgramSlug.get(p.slug);
-              const launchLabel =
-                p.launchMonth && p.launchYear
-                  ? `Launches ${p.launchMonth} ${p.launchYear}`
-                  : p.launchMonth
-                    ? `Launches ${p.launchMonth}`
+        <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <SearchField
+            id="program-search"
+            label="Search programs"
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by program, mentor or city…"
+            className="w-full sm:max-w-sm"
+          />
+          <ResultCount
+            shown={filtered.length}
+            total={programs.length}
+            noun={isLegendsView ? "legends" : "programs"}
+            filtered={isFiltered}
+            onReset={resetFilters}
+          />
+        </div>
+
+        <div className="mt-10">
+          {programs.length === 0 ? (
+            <CatalogEmpty
+              title="No programs available yet"
+              body="Check back soon — new cohorts are added regularly."
+            />
+          ) : filtered.length === 0 ? (
+            <CatalogEmpty
+              title="Nothing matches that"
+              body="No program fits this duration and search together. Try one or the other."
+              actionLabel="Clear filters"
+              onAction={resetFilters}
+            />
+          ) : (
+            <CatalogGrid>
+              {filtered.map((p, i) => {
+                const legend = legendByProgramSlug.get(p.slug);
+                const launchLabel =
+                  p.launchMonth && p.launchYear
+                    ? `${p.launchMonth} ${p.launchYear}`
+                    : p.launchMonth || null;
+                const durationLabel = p.durationMonths
+                  ? `${p.durationMonths} months`
+                  : p.durationWeeks
+                    ? `${p.durationWeeks} weeks`
                     : null;
-              const durationLabel = p.durationMonths
-                ? `${p.durationMonths} months`
-                : p.durationWeeks
-                  ? `${p.durationWeeks} weeks`
-                  : null;
-              const meta = [
-                durationLabel,
-                p.cohortSize ? `cohort of ${p.cohortSize}` : null,
-                legend?.experienceYears
-                  ? `${legend.experienceYears} yrs experience`
-                  : p.experienceYears
-                    ? `${p.experienceYears} yrs experience`
-                    : null,
-                p.city || legend?.city,
-              ].filter(Boolean);
+                const mentorName = legend?.name ?? p.mentorName;
 
-              const cardImage = p.heroImage || p.doctorImage || legend?.imageUrl;
-
-              return (
-                <Link
-                  key={p.id}
-                  href={`/programs/${p.slug}`}
-                  className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition hover:-translate-y-0.5 hover:border-accent/40 hover:bg-white/[0.06] hover:shadow-xl hover:shadow-accent/10"
-                >
-                  {p.isNew && (
-                    <span className="absolute left-3 top-3 z-10 rounded-full bg-emerald-400/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-950 shadow">
-                      New
-                    </span>
-                  )}
-                  {cardImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={cardImage}
-                      alt={p.name}
-                      className="aspect-[4/5] w-full object-cover transition group-hover:scale-[1.02]"
-                    />
-                  ) : (
-                    <div
-                      aria-hidden
-                      className="aspect-[4/5] w-full bg-gradient-to-br from-accent/30 via-accent/10 to-ink-900"
-                    />
-                  )}
-
-                  <div className="p-5">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-accent-soft">
-                      Teaches {legend?.name ?? p.specialistTitle ?? p.specialty}
-                    </p>
-                    <h2 className="mt-2 font-serif text-xl leading-tight text-white">
-                      {p.name}
-                    </h2>
-                    {p.tagline || p.description ? (
-                      <p className="mt-2 line-clamp-3 text-sm text-white/75">
-                        {p.tagline || p.description}
-                      </p>
-                    ) : null}
-
-                    {launchLabel && (
-                      <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-[#d6a76b]">
-                        {launchLabel}
-                      </p>
-                    )}
-
-                    {meta.length > 0 ? (
-                      <p className="mt-2 text-xs text-white/55">{meta.join(" · ")}</p>
-                    ) : null}
-
-                    {p.priceInr ? (
-                      <p className="mt-1 text-sm font-semibold text-white">
-                        {formatINR(p.priceInr)}
-                      </p>
-                    ) : null}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+                return (
+                  <CatalogCard
+                    key={p.id}
+                    href={`/programs/${p.slug}`}
+                    imageUrl={p.heroImage || p.doctorImage || legend?.imageUrl}
+                    imageAlt={p.name}
+                    title={p.name}
+                    credit={
+                      mentorName
+                        ? `with ${mentorName}`
+                        : p.specialistTitle ?? p.specialty
+                    }
+                    meta={[
+                      durationLabel,
+                      p.cohortSize ? `cohort of ${p.cohortSize}` : null,
+                      p.priceInr ? formatINR(p.priceInr) : null,
+                    ]}
+                    isNew={p.isNew}
+                    tag={launchLabel ?? null}
+                    cta="View program"
+                    rawImage
+                    priority={i < 4}
+                  />
+                );
+              })}
+            </CatalogGrid>
+          )}
+        </div>
       </main>
+
       <Footer />
     </>
   );
