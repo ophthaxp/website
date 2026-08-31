@@ -46,10 +46,10 @@ export function CourseApplyButton({
   const focusCls =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950";
   const VARIANTS: Record<string, string> = {
-    primary: `rounded-full bg-[#ab834d] px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] focus-visible:ring-[#ab834d]`,
-    outline: `rounded-full border border-[#ab834d]/50 bg-[#ab834d]/10 px-8 py-3 text-sm font-semibold text-[#ab834d] transition hover:bg-[#ab834d] hover:text-white focus-visible:ring-[#ab834d]`,
+    primary: `rounded-full bg-accent px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent-deep focus-visible:ring-accent`,
+    outline: `rounded-full border border-accent/50 bg-accent/10 px-8 py-3 text-sm font-semibold text-accent transition hover:bg-accent hover:text-white focus-visible:ring-accent`,
     accent: `rounded-[12px] border-[1.5px] border-accent bg-accent px-7 py-3 text-sm font-semibold text-white transition hover:border-accent-deep hover:bg-accent-deep focus-visible:ring-accent`,
-    "accent-outline": `rounded-[12px] border-[1.5px] border-[#4A4A4A] bg-[#1A1A1A] px-7 py-3 text-sm font-medium text-[#A0A0A0] transition hover:border-white/25 hover:text-white focus-visible:ring-white/40`,
+    "accent-outline": `rounded-[12px] border-[1.5px] border-[#4A4A4A] bg-ink-800 px-7 py-3 text-sm font-medium text-[#A0A0A0] transition hover:border-white/25 hover:text-white focus-visible:ring-white/40`,
   };
   const cls = `${widthCls} ${VARIANTS[variant] ?? VARIANTS.primary} ${focusCls}`;
 

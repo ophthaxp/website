@@ -100,10 +100,10 @@ export function ThemedSelect({
         onClick={() => setOpen((v) => !v)}
         onKeyDown={onTriggerKey}
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border bg-[#1A1A1A] px-3 py-2.5 text-left text-sm text-white transition",
+          "flex w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] border bg-ink-800 px-4 py-3 text-left text-[15px] text-white transition",
           open
-            ? "border-[#ab834d] ring-2 ring-[#ab834d]/40"
-            : "border-[#2A2A2A] hover:border-[#ab834d]",
+            ? "border-accent"
+            : "border-transparent hover:bg-ink-700",
         )}
       >
         <span className={cn(selected ? "text-white" : "text-white/40")}>
@@ -112,7 +112,7 @@ export function ThemedSelect({
         <ChevronDown
           aria-hidden
           className={cn(
-            "h-4 w-4 shrink-0 text-[#ab834d] transition-transform",
+            "h-4 w-4 shrink-0 text-white/40 transition-transform",
             open && "rotate-180",
           )}
         />
@@ -127,7 +127,7 @@ export function ThemedSelect({
             activeIndex >= 0 ? `${id ?? "themed-select"}-opt-${activeIndex}` : undefined
           }
           onKeyDown={onListKey}
-          className="no-scrollbar absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-[#ab834d]/40 bg-[#1A1A1A] py-1 shadow-2xl shadow-black/60 ring-1 ring-[#ab834d]/20"
+          className="no-scrollbar absolute left-0 right-0 top-full z-30 mt-1.5 max-h-64 overflow-y-auto rounded-[10px] border border-white/15 bg-ink-800 py-1 shadow-2xl shadow-black/60"
           autoFocus
         >
           {options.map((o, i) => {
@@ -146,12 +146,12 @@ export function ThemedSelect({
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition",
+                  "flex cursor-pointer items-center justify-between gap-2 px-4 py-2.5 text-sm transition",
                   isActive
-                    ? "bg-[#ab834d] text-white"
+                    ? "bg-accent text-white"
                     : isSelected
-                      ? "bg-[#ab834d]/15 text-white"
-                      : "text-white/85 hover:bg-[#ab834d]/10",
+                      ? "bg-white/[0.06] text-white"
+                      : "text-white/80 hover:bg-white/[0.06]",
                 )}
               >
                 <span className="truncate">{o.label}</span>

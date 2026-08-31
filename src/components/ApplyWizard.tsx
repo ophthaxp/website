@@ -431,13 +431,13 @@ export function ApplyWizard({
   if (needsLogin) {
     return (
       <Panel>
-        <h1 className="font-serif text-2xl text-white">You already have an account</h1>
+        <h1 className="text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">You already have an account</h1>
         <p className="mt-3 text-sm text-white/75">
           That email is already registered. Log in and you&rsquo;ll come straight back here.
         </p>
         <Link
           href={`/login?next=${encodeURIComponent(`/apply/${courseSlug}`)}`}
-          className="mt-6 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+          className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
         >
           Log in
         </Link>
@@ -450,20 +450,20 @@ export function ApplyWizard({
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
         Apply
       </p>
-      <h1 className="mt-2 font-serif text-3xl text-white sm:text-4xl">{courseName}</h1>
+      <h1 className="mt-2 font-display text-[clamp(2rem,4.4vw,3rem)] uppercase leading-[1.02] tracking-[-0.01em] text-white">{courseName}</h1>
       {mentorName ? <p className="mt-1 text-sm text-white/60">with {mentorName}</p> : null}
 
       {step <= 4 ? <Stepper current={step} /> : null}
 
       {justSignedUp && step === 2 ? (
-        <p className="mt-6 rounded-md bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+        <p className="mt-6 rounded-[10px] bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
           We&rsquo;ve emailed you a link to verify your address. You can carry on now — but
           you&rsquo;ll need to verify before you can log back in later.
         </p>
       ) : null}
 
       {errorMsg ? (
-        <p className="mt-6 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
+        <p className="mt-6 rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
           {errorMsg}
         </p>
       ) : null}
@@ -471,7 +471,7 @@ export function ApplyWizard({
       {step === 1 ? (
         <Panel>
           {user ? (
-            <div className="mb-5 rounded-xl bg-white/[0.03] px-4 py-3 ring-1 ring-white/[0.06]">
+            <div className="mb-5 rounded-xl bg-ink-800 px-4 py-3 ring-1 ring-white/10">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">
                 Applying as
               </p>
@@ -576,7 +576,7 @@ export function ApplyWizard({
 
       {step === 2 ? (
         <Panel>
-          <h2 className="font-serif text-xl text-white">A few cases you&rsquo;ve seen</h2>
+          <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">A few cases you&rsquo;ve seen</h2>
           <p className="mt-3 text-sm text-white/65">
             We&rsquo;ll go through your cases together on the session. Send your application
             when you&rsquo;re ready.
@@ -596,7 +596,7 @@ export function ApplyWizard({
         <Panel>
           {booked ? (
             <div>
-              <h2 className="font-serif text-xl text-white">
+              <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">
                 {booked.status === "confirmed" ? "Your call is booked" : "This time is held for you"}
               </h2>
               <p className="mt-2 text-sm text-white/75">
@@ -617,7 +617,7 @@ export function ApplyWizard({
             </div>
           ) : (
             <div>
-              <h2 className="font-serif text-xl text-white">
+              <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">
                 Pick a time with {mentorName || "your Legend"}
               </h2>
               <p className="mt-2 text-sm text-white/65">
@@ -626,7 +626,7 @@ export function ApplyWizard({
               </p>
 
               {slotsError ? (
-                <div className="mt-5 rounded-md bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+                <div className="mt-5 rounded-[10px] bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
                   {slotsError}
                 </div>
               ) : null}
@@ -636,7 +636,7 @@ export function ApplyWizard({
               ) : null}
 
               {!loadingSlots && slots && slots.length === 0 && !slotsError ? (
-                <div className="mt-5 rounded-md bg-white/[0.03] px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
+                <div className="mt-5 rounded-[10px] bg-ink-800 px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
                   No times are open in the next few weeks. Our team will be in touch to arrange
                   one with you directly.
                 </div>
@@ -651,8 +651,8 @@ export function ApplyWizard({
                       onClick={() => setSlot(option)}
                       className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
                         slot?.start === option.start
-                          ? "bg-[#ab834d]/15 text-white ring-[#ab834d]/50"
-                          : "bg-white/[0.03] text-white/75 ring-white/10 hover:ring-white/20"
+                          ? "bg-spark/10 text-white ring-spark/60"
+                          : "bg-ink-800 text-white/75 ring-white/10 hover:bg-ink-700 hover:ring-white/20"
                       }`}
                     >
                       <span className="block">{option.label}</span>
@@ -696,8 +696,8 @@ export function ApplyWizard({
 
       {step === 4 ? (
         <Panel>
-          <h2 className="font-serif text-xl text-white">Confirm and pay</h2>
-          <dl className="mt-5 grid gap-2 rounded-xl bg-white/[0.03] px-4 py-4 text-sm ring-1 ring-white/[0.06]">
+          <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">Confirm and pay</h2>
+          <dl className="mt-5 grid gap-2 rounded-xl bg-ink-800 px-4 py-4 text-sm ring-1 ring-white/10">
             <Row label="Programme" value={courseName} />
             <Row label="Legend" value={mentorName || "—"} />
             <Row label="Your slot" value={booked?.label || slot?.label || "your selected time"} />
@@ -726,7 +726,7 @@ export function ApplyWizard({
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
               <CheckCircle2 className="h-7 w-7 text-emerald-400" aria-hidden />
             </div>
-            <h2 className="mt-5 font-serif text-2xl text-white">You&rsquo;re all set</h2>
+            <h2 className="mt-5 text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">You&rsquo;re all set</h2>
             <p className="mt-3 text-sm text-white/75">
               Your call with {mentorName || "your Legend"}
               {booked ? (
@@ -742,7 +742,7 @@ export function ApplyWizard({
             </p>
             <Link
               href="/account"
-              className="mt-6 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
             >
               View your application
             </Link>
@@ -769,7 +769,7 @@ function Stepper({ current }: { current: number }) {
           <span
             key={label}
             className={`h-1 flex-1 rounded-full ${
-              index < current ? "bg-[#ab834d]" : "bg-white/10"
+              index < current ? "bg-accent" : "bg-white/10"
             }`}
           />
         ))}
@@ -780,7 +780,7 @@ function Stepper({ current }: { current: number }) {
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <section className="mt-6 rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 sm:p-8">
+    <section className="mt-6 rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
       {children}
     </section>
   );
@@ -813,7 +813,7 @@ function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={busy}
-      className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-[#ab834d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {busy ? (
         <>
@@ -841,7 +841,7 @@ function SecondaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1.5 rounded-md border border-white/15 px-4 py-3 text-sm font-medium text-white/70 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-[10px] bg-ink-800 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
     >
       {children}
     </button>
@@ -849,7 +849,7 @@ function SecondaryButton({
 }
 
 const inputCls =
-  "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
+  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
 
 function Field({
   label,
@@ -864,7 +864,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-white/70">
         {label}
-        {required ? <span className="ml-1 text-[#ab834d]">*</span> : null}
+        {required ? <span className="ml-1 text-accent">*</span> : null}
       </span>
       {children}
     </label>

@@ -55,13 +55,13 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
         Account
       </p>
-      <h1 className="mt-2 font-serif text-3xl text-white">Log in</h1>
+      <h1 className="mt-2 font-display text-[clamp(1.875rem,4vw,2.5rem)] uppercase leading-[1.02] tracking-[-0.01em] text-white">Log in</h1>
       <p className="mt-3 text-sm text-white/70">
         Use the email and password you set when you applied.
       </p>
 
       {linkError ? (
-        <p className="mt-5 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-200 ring-1 ring-amber-500/30">
+        <p className="mt-5 rounded-[10px] bg-amber-500/10 px-3 py-2 text-sm text-amber-200 ring-1 ring-amber-500/30">
           That link has expired or was already used. Log in below instead.
         </p>
       ) : null}
@@ -69,7 +69,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold text-white/70">
-            Email Address<span className="ml-1 text-[#ab834d]">*</span>
+            Email Address<span className="ml-1 text-accent">*</span>
           </span>
           <input
             name="email"
@@ -86,7 +86,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
 
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold text-white/70">
-            Password<span className="ml-1 text-[#ab834d]">*</span>
+            Password<span className="ml-1 text-accent">*</span>
           </span>
           <input
             name="password"
@@ -101,7 +101,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
 
         {status === "error" && errorMsg ? (
           <div
-            className={`rounded-md px-3 py-2 text-sm ring-1 ${
+            className={`rounded-[10px] px-3 py-2 text-sm ring-1 ${
               needsVerification
                 ? "bg-amber-500/10 text-amber-200 ring-amber-500/30"
                 : "bg-red-500/10 text-red-300 ring-red-500/30"
@@ -119,7 +119,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
         <button
           type="submit"
           disabled={status === "signing-in"}
-          className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-[#ab834d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "signing-in" ? (
             <>
@@ -147,4 +147,4 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
 }
 
 const inputCls =
-  "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
+  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";

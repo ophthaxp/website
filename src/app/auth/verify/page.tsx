@@ -34,7 +34,7 @@ export default async function VerifyPage({
 
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
-      <div className="rounded-2xl bg-[#0f0f12] p-6 text-center ring-1 ring-white/10 sm:p-8">
+      <div className="rounded-xl bg-ink-850 p-6 text-center ring-1 ring-white/15 sm:p-8">
         {result.ok ? (
           <>
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
@@ -51,21 +51,21 @@ export default async function VerifyPage({
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <h1 className="mt-5 font-serif text-2xl text-white">Email verified</h1>
+            <h1 className="mt-5 text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">Email verified</h1>
             <p className="mt-3 text-sm text-white/75">
               Your account is active. Log in and you&rsquo;ll pick up your application where
               you left it.
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+              className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
             >
               Log in
             </Link>
           </>
         ) : (
           <>
-            <h1 className="font-serif text-2xl text-white">That link didn&rsquo;t work</h1>
+            <h1 className="text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">That link didn&rsquo;t work</h1>
             <p className="mt-3 text-sm text-white/75">{result.error}</p>
             <p className="mt-3 text-xs text-white/45">
               Verification links expire. If yours has, applying again with the same email
@@ -73,7 +73,7 @@ export default async function VerifyPage({
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex rounded-md border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
+              className="mt-6 inline-flex rounded-[10px] bg-ink-800 px-6 py-3 text-[15px] font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
             >
               Go to log in
             </Link>

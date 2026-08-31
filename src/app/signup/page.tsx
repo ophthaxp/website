@@ -21,7 +21,7 @@ export default function SignupPage() {
 
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
-      <div className="rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 sm:p-8">
+      <div className="rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
         <SignupForm />
       </div>
     </main>

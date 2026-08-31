@@ -121,7 +121,7 @@ export default async function AccountPage() {
 
 function EmptyState() {
   return (
-    <div className="mt-10 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-12 text-center">
+    <div className="mt-10 rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-12 text-center">
       <h2 className="font-serif text-xl text-white">No applications yet</h2>
       <p className="mx-auto mt-3 max-w-sm text-sm text-white/60">
         When you apply to a programme it shows up here, with everything you&rsquo;ve filled
@@ -129,7 +129,7 @@ function EmptyState() {
       </p>
       <Link
         href="/programs"
-        className="mt-6 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+        className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
       >
         Browse programmes
       </Link>
@@ -139,7 +139,7 @@ function EmptyState() {
 
 const TONE_STYLES: Record<Headline["tone"], string> = {
   draft: "bg-amber-500/10 text-amber-200 ring-amber-500/30",
-  progress: "bg-[#ab834d]/15 text-[#d6b483] ring-[#ab834d]/30",
+  progress: "bg-accent/15 text-accent-tint ring-accent/30",
   done: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/30",
   closed: "bg-white/[0.06] text-white/60 ring-white/15",
 };
@@ -173,7 +173,7 @@ function ApplicationCard({
   currentStep: number;
 }) {
   return (
-    <section className="rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 sm:p-8">
+    <section className="rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-serif text-xl text-white sm:text-2xl">{courseName}</h2>
@@ -198,7 +198,7 @@ function ApplicationCard({
           <StageTrack leadStatus={leadStatus} currentStep={currentStep} />
           <Link
             href={resumeTo}
-            className="mt-6 inline-flex rounded-md border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
+            className="mt-6 inline-flex rounded-[10px] border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
           >
             Open application
           </Link>
@@ -245,10 +245,10 @@ function StageTrack({
                   rejected && isDecision
                     ? "bg-white/15 text-white/70"
                     : done
-                      ? "bg-[#ab834d] text-white"
+                      ? "bg-accent text-white"
                       : current
-                        ? "bg-[#ab834d]/25 text-[#d6b483] ring-1 ring-[#ab834d]/50"
-                        : "bg-white/[0.06] text-white/25 ring-1 ring-white/10"
+                        ? "bg-accent/25 text-accent-tint ring-1 ring-accent/50"
+                        : "bg-white/[0.06] text-white/25 ring-1 ring-white/15"
                 }`}
               >
                 {done ? "✓" : index + 1}
@@ -256,7 +256,7 @@ function StageTrack({
               {index < STAGES.length - 1 ? (
                 <span
                   aria-hidden
-                  className={`w-px flex-1 ${done ? "bg-[#ab834d]/50" : "bg-white/10"}`}
+                  className={`w-px flex-1 ${done ? "bg-accent/50" : "bg-white/10"}`}
                 />
               ) : null}
             </div>
@@ -306,7 +306,7 @@ function DraftProgress({
           <span
             key={label}
             className={`h-1 flex-1 rounded-full ${
-              index < step ? "bg-[#ab834d]" : "bg-white/10"
+              index < step ? "bg-accent" : "bg-white/10"
             }`}
           />
         ))}
@@ -314,7 +314,7 @@ function DraftProgress({
 
       <Link
         href={resumeTo}
-        className="mt-5 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+        className="mt-5 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
       >
         Continue application →
       </Link>

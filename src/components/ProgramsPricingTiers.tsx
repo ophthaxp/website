@@ -126,7 +126,7 @@ export function ProgramsPricingTiers({
       className="mt-12 sm:mt-16"
     >
       <div className="mx-auto max-w-2xl text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#ab834d]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-accent">
           Plans &amp; Pricing
         </p>
         <h2
@@ -147,14 +147,14 @@ export function ProgramsPricingTiers({
           return (
             <div
               key={tier.key}
-              className={`relative flex flex-col rounded-2xl border p-6 transition sm:p-7 ${
+              className={`relative flex flex-col rounded-xl border p-6 transition sm:p-7 ${
                 isHL
-                  ? "border-[#ab834d] bg-gradient-to-b from-[#ab834d]/15 via-ink-900 to-ink-950 shadow-[0_24px_60px_-30px_rgba(171,131,77,0.55)] lg:scale-[1.02]"
+                  ? "border-accent bg-gradient-to-b from-accent/15 via-ink-900 to-ink-950 shadow-[0_24px_60px_-30px_rgba(183,90,68,0.55)] lg:scale-[1.02]"
                   : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
               }`}
             >
               {isHL && (
-                <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-[#ab834d] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+                <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
                   <Sparkles className="h-3 w-3" aria-hidden /> Most popular
                 </span>
               )}
@@ -162,7 +162,7 @@ export function ProgramsPricingTiers({
               <div>
                 <p
                   className={`text-[11px] font-semibold uppercase tracking-[0.28em] ${
-                    isHL ? "text-[#d6a76b]" : "text-white/55"
+                    isHL ? "text-accent-tint" : "text-white/55"
                   }`}
                 >
                   {tier.name}
@@ -192,7 +192,7 @@ export function ProgramsPricingTiers({
                     <span
                       aria-hidden
                       className={`mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                        isHL || isGold ? "bg-[#ab834d]/25 text-[#d6a76b]" : "bg-white/10 text-white/70"
+                        isHL || isGold ? "bg-accent/25 text-accent-tint" : "bg-white/10 text-white/70"
                       }`}
                     >
                       <Check className="h-3 w-3" />
@@ -205,9 +205,9 @@ export function ProgramsPricingTiers({
               <button
                 type="button"
                 onClick={() => setOpenTier(tier)}
-                className={`mt-7 w-full rounded-full px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d] focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 ${
+                className={`mt-7 w-full rounded-full px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950 ${
                   isHL
-                    ? "bg-[#ab834d] text-white shadow-lg shadow-[#ab834d]/30 hover:bg-[#8a6a40]"
+                    ? "bg-accent text-white shadow-lg shadow-accent/30 hover:bg-accent-deep"
                     : "border border-white/15 bg-white/5 text-white hover:border-white/30 hover:bg-white/10"
                 }`}
               >

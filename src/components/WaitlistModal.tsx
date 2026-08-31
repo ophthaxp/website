@@ -85,7 +85,7 @@ export function WaitlistModal({
         className="absolute inset-0 h-full w-full bg-black/70 backdrop-blur-sm"
       />
 
-      <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-[#0f0f12] p-6 ring-1 ring-white/10 modal-pop-in sm:p-8">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 modal-pop-in sm:p-8">
         <button
           type="button"
           aria-label="Close"
@@ -123,7 +123,7 @@ export function WaitlistModal({
             <button
               type="button"
               onClick={onClose}
-              className="mt-6 rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12]"
+              className="mt-6 rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               Close
             </button>
@@ -187,7 +187,7 @@ export function WaitlistModal({
               </Field>
 
               {status === "error" && errorMsg ? (
-                <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
+                <p className="rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
                   {errorMsg}
                 </p>
               ) : null}
@@ -195,7 +195,7 @@ export function WaitlistModal({
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-[#ab834d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-2 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {status === "submitting" ? (
                   <>
@@ -218,7 +218,7 @@ export function WaitlistModal({
 }
 
 const inputCls =
-  "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
+  "w-full rounded-[10px] border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
 
 function Field({
   label,
@@ -233,7 +233,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-white/70">
         {label}
-        {required ? <span className="ml-1 text-[#ab834d]">*</span> : null}
+        {required ? <span className="ml-1 text-accent">*</span> : null}
       </span>
       {children}
     </label>

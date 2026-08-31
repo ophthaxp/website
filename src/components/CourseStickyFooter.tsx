@@ -79,7 +79,7 @@ export function CourseStickyFooter({
             ) : (
               <div
                 aria-hidden
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br from-[#ab834d]/40 to-[#3a2a18]/60 text-[12px] font-semibold uppercase tracking-wider text-white/85 sm:h-11 sm:w-11 sm:text-[13px]"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br from-accent/40 to-accent-deep/60 text-[12px] font-semibold uppercase tracking-wider text-white/85 sm:h-11 sm:w-11 sm:text-[13px]"
               >
                 {(facultyName || courseName || "")
                   .split(/\s+/)
@@ -114,7 +114,7 @@ export function CourseStickyFooter({
             <button
               type="button"
               onClick={() => setApplyOpen(true)}
-              className="rounded-full bg-[#ab834d] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[#ab834d]/30 transition hover:bg-[#8a6a40] sm:px-5 sm:py-2.5 sm:text-sm"
+              className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent-deep sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Apply Now
             </button>

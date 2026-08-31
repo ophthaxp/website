@@ -77,14 +77,14 @@ export function SignupForm() {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
           <Mail className="h-6 w-6 text-emerald-400" aria-hidden />
         </div>
-        <h2 className="mt-5 font-serif text-2xl text-white">Check your inbox</h2>
+        <h2 className="mt-5 text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">Check your inbox</h2>
         <p className="mt-3 text-sm text-white/80">
           We&rsquo;ve emailed <span className="text-white">{email.trim()}</span> a link to
           verify your address. Click it, then log in.
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-flex rounded-md bg-[#ab834d] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8a6a40]"
+          className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
         >
           Go to log in
         </Link>
@@ -97,7 +97,7 @@ export function SignupForm() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-soft">
         Account
       </p>
-      <h1 className="mt-2 font-serif text-3xl text-white">Create your account</h1>
+      <h1 className="mt-2 font-display text-[clamp(1.875rem,4vw,2.5rem)] uppercase leading-[1.02] tracking-[-0.01em] text-white">Create your account</h1>
       <p className="mt-3 text-sm text-white/70">
         You can browse and apply at any time afterwards.
       </p>
@@ -153,7 +153,7 @@ export function SignupForm() {
         </Field>
 
         {status === "error" && errorMsg ? (
-          <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
+          <p className="rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
             {errorMsg}
           </p>
         ) : null}
@@ -161,7 +161,7 @@ export function SignupForm() {
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-[#ab834d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8a6a40] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ab834d]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0f0f12] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "submitting" ? (
             <>
@@ -200,7 +200,7 @@ export function SignupForm() {
 }
 
 const inputCls =
-  "w-full rounded-md border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-accent/40 focus:bg-white/[0.06]";
+  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
 
 function Field({
   label,
@@ -215,7 +215,7 @@ function Field({
     <label className="block">
       <span className="mb-1.5 block text-xs font-semibold text-white/70">
         {label}
-        {required ? <span className="ml-1 text-[#ab834d]">*</span> : null}
+        {required ? <span className="ml-1 text-accent">*</span> : null}
       </span>
       {children}
     </label>

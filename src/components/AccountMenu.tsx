@@ -103,14 +103,14 @@ export function AccountMenu() {
         <User className="h-[22px] w-[22px]" strokeWidth={1.6} aria-hidden />
         <span
           aria-hidden
-          className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#ab834d] ring-2 ring-black"
+          className="absolute right-1 top-1 h-2 w-2 rounded-full bg-accent ring-2 ring-black"
         />
       </button>
 
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-11 z-50 w-60 overflow-hidden rounded-xl bg-[#0f0f12] py-1.5 ring-1 ring-white/10 shadow-xl shadow-black/50"
+          className="absolute right-0 top-11 z-50 w-60 overflow-hidden rounded-xl bg-ink-850 py-1.5 ring-1 ring-white/15 shadow-xl shadow-black/50"
         >
           <p className="truncate px-4 py-2 text-xs text-white/45">
             {account?.user?.email}
