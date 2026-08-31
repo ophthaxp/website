@@ -158,6 +158,18 @@ export function ApplyWizard({
   const [needsLogin, setNeedsLogin] = useState(false);
   const [justSignedUp, setJustSignedUp] = useState(false);
 
+  /**
+   * What step 1 shows when they come back to it.
+   *
+   * Each panel unmounts when the wizard moves on, so step 1's inputs are
+   * uncontrolled and their `defaultValue`s would reset to whatever the server
+   * sent — throwing away everything typed this session the moment somebody
+   * pressed Back. Holding the last entered values here is what makes Back
+   * genuinely a way to change details rather than a way to lose them.
+   */
+  const [entered, setEntered] = useState<Partial<ApplicationLike>>({});
+  const shown: ApplicationLike = { ...known, ...entered };
+
   const [qualification, setQualification] = useState(known.qualification ?? "");
   const [stateValue, setStateValue] = useState(known.state ?? "");
   const [password, setPassword] = useState("");
@@ -236,6 +248,17 @@ export function ApplyWizard({
 
     setBusy(true);
     setErrorMsg(null);
+
+    // Kept before the request rather than after it: whatever happens next,
+    // these are their answers and coming back must show them.
+    setEntered({
+      first_name: user?.firstName ?? String(data.get("firstName") ?? "").trim(),
+      last_name: user?.lastName ?? String(data.get("lastName") ?? "").trim(),
+      email: user?.email ?? String(data.get("email") ?? "").trim(),
+      phone: String(data.get("phone") ?? "").trim(),
+      city: String(data.get("city") ?? "").trim(),
+      pincode: String(data.get("pincode") ?? "").trim(),
+    });
 
     try {
       const res = await fetch("/api/applications", {
@@ -596,14 +619,14 @@ export function ApplyWizard({
               <>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="First Name" required>
-                    <input name="firstName" required autoComplete="given-name" className={inputCls} defaultValue={known.first_name ?? ""} />
+                    <input name="firstName" required autoComplete="given-name" className={inputCls} defaultValue={shown.first_name ?? ""} />
                   </Field>
                   <Field label="Last Name" required>
-                    <input name="lastName" required autoComplete="family-name" className={inputCls} defaultValue={known.last_name ?? ""} />
+                    <input name="lastName" required autoComplete="family-name" className={inputCls} defaultValue={shown.last_name ?? ""} />
                   </Field>
                 </div>
                 <Field label="Email Address" required>
-                  <input name="email" type="email" required autoComplete="email" className={inputCls} defaultValue={known.email ?? ""} />
+                  <input name="email" type="email" required autoComplete="email" className={inputCls} defaultValue={shown.email ?? ""} />
                 </Field>
               </>
             )}
@@ -618,7 +641,7 @@ export function ApplyWizard({
                 placeholder="+91 9XXXXXXXXX"
                 autoComplete="tel"
                 className={inputCls}
-                defaultValue={known.phone ?? ""}
+                defaultValue={shown.phone ?? ""}
               />
             </Field>
 
@@ -646,10 +669,10 @@ export function ApplyWizard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="City">
-                <input name="city" autoComplete="address-level2" className={inputCls} defaultValue={known.city ?? ""} />
+                <input name="city" autoComplete="address-level2" className={inputCls} defaultValue={shown.city ?? ""} />
               </Field>
               <Field label="Pincode">
-                <input name="pincode" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="postal-code" className={inputCls} defaultValue={known.pincode ?? ""} />
+                <input name="pincode" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="postal-code" className={inputCls} defaultValue={shown.pincode ?? ""} />
               </Field>
             </div>
 
@@ -667,9 +690,22 @@ export function ApplyWizard({
               </>
             )}
 
-            <PrimaryButton busy={busy} busyLabel="Saving…">
-              Continue →
-            </PrimaryButton>
+            <div className="flex items-center gap-3">
+              {/*
+                Step 1 has no earlier step, so its Back leaves the wizard for
+                the page they came in from. A link rather than a button: it is
+                a navigation, and nothing here is worth saving unfinished.
+              */}
+              <Link
+                href={`/programs/${courseSlug}`}
+                className="inline-flex items-center gap-1.5 rounded-[10px] bg-ink-800 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+              </Link>
+              <PrimaryButton busy={busy} busyLabel="Saving…">
+                Continue →
+              </PrimaryButton>
+            </div>
 
             {user ? null : (
               <p className="text-center text-xs leading-relaxed text-white/40">
@@ -718,7 +754,11 @@ export function ApplyWizard({
                   : `Times shown in ${booked.timeZone}. It is yours to confirm at checkout — ` +
                     "we hold it for a short while, so finish up to keep it."}
               </p>
-              <div className="mt-6">
+              <div className="mt-6 flex items-center gap-3">
+                {/* The hold is not spent by looking back at the form. */}
+                <SecondaryButton onClick={() => { void saveStep(2); goTo(2); }} disabled={busy}>
+                  <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+                </SecondaryButton>
                 <PrimaryButton busy={false} busyLabel="" onClick={() => goTo(4)} type="button">
                   Continue
                 </PrimaryButton>
@@ -783,7 +823,10 @@ export function ApplyWizard({
                 </p>
               ) : null}
 
-              <div className="mt-6 flex items-center gap-3">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <SecondaryButton onClick={() => { void saveStep(2); goTo(2); }} disabled={busy}>
+                  <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+                </SecondaryButton>
                 <PrimaryButton
                   busy={busy}
                   busyLabel="Booking…"

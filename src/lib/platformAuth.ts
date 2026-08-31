@@ -85,6 +85,17 @@ export interface SignUpResult {
 }
 
 /**
+ * Which of the app's front ends this signup came from.
+ *
+ * One app can have several — this site, and the admin console the team is
+ * invited to — and each has its own verify page. The platform keeps the actual
+ * URL in the app's settings under `verifyLinks.<key>`; this only names the key,
+ * so nothing routable travels in the request. Unset there, the platform falls
+ * back to its own default, which is the console.
+ */
+const VERIFY_CLIENT = "website";
+
+/**
  * Create the account.
  *
  * The platform emails its own verification link and leaves the user inactive
@@ -102,6 +113,7 @@ export async function signUp(input: {
     last_name: input.lastName,
     email: input.email,
     password: input.password,
+    client: VERIFY_CLIENT,
   });
 
   if (!ok) {
