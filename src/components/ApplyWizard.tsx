@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
 import { ThemedSelect } from "@/components/ThemedSelect";
 
 /**
@@ -182,6 +182,7 @@ export function ApplyWizard({
   const [slotsNotice, setSlotsNotice] = useState<string | null>(null);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [movedNotice, setMovedNotice] = useState<string | null>(null);
 
   // Checkout. `paying` is the moment between clicking and the redirect;
   // `confirming` is the wait on the other side of it, while the payment
@@ -376,10 +377,58 @@ export function ApplyWizard({
   // is booked — a Legend's diary is a live thing and there is no sense reading
   // it for somebody sitting on step 1.
   useEffect(() => {
-    if (step === 3 && !booked && slots === null && !loadingSlots) {
+    // A confirmed call is settled and the list is no use to them. A *held*
+    // one still needs it: the hold is changeable right up until it is paid
+    // for, and the times have to be on screen for that to mean anything.
+    if (step === 3 && booked?.status !== "confirmed" && slots === null && !loadingSlots) {
       void loadSlots();
     }
   }, [step, booked, slots, loadingSlots, loadSlots]);
+
+  /** Two ISO stamps naming the same moment, whatever they look like. */
+  const sameInstant = (a: string, b: string) => Date.parse(a) === Date.parse(b);
+
+  /**
+   * The times to show, including the one they are already holding.
+   *
+   * The platform leaves a live hold out of the list, and it is right to: from
+   * the outside a held slot is simply not on offer. But the one person that is
+   * wrong for is its owner, who comes back to change their time and finds a
+   * list with a hole in it exactly where their call is. So it goes back in, in
+   * its proper place in the day, marked as theirs and not selectable — there
+   * is nothing to choose, they already have it.
+   */
+  const heldStartsAt = booked && booked.status !== "confirmed" ? booked.startsAt : null;
+
+  const slotRows: Array<{
+    key: string;
+    start: string;
+    label: string;
+    sub: string;
+    /** Null for the held row: it is shown, never picked. */
+    slot: Slot | null;
+  }> = [
+    ...(slots ?? []).map((option) => ({
+      key: option.start,
+      start: option.start,
+      label: option.label,
+      sub: `${option.durationMinutes} minutes`,
+      slot: option as Slot | null,
+    })),
+    ...(heldStartsAt &&
+    booked &&
+    !(slots ?? []).some((option) => sameInstant(option.start, heldStartsAt))
+      ? [
+          {
+            key: `held-${booked.id}`,
+            start: heldStartsAt,
+            label: booked.label,
+            sub: "Held for you",
+            slot: null as Slot | null,
+          },
+        ]
+      : []),
+  ].sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
 
   const confirmSlot = async () => {
     if (!slot) return setErrorMsg("Pick a time to continue.");
@@ -422,6 +471,58 @@ export function ApplyWizard({
       goTo(4);
     } catch {
       setErrorMsg("The booking could not be made. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /**
+   * Change the time without letting go of the one they have.
+   *
+   * The server books the new slot before releasing the old, so the worst case
+   * is that they keep the time they started with. The list is thrown away
+   * afterwards rather than patched: the slot they left has just gone back on
+   * sale and the one they took has just left it, and the platform is the only
+   * thing that knows that for certain.
+   */
+  const moveSlot = async () => {
+    if (!slot) return setErrorMsg("Pick the time you'd like instead.");
+    if (!applicationId) return setErrorMsg("Your application could not be found.");
+
+    setBusy(true);
+    setErrorMsg(null);
+    setMovedNotice(null);
+
+    try {
+      const res = await fetch("/api/booking/reschedule", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ applicationId, start: slot.start, end: slot.end }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 409) {
+        setErrorMsg(
+          data?.error || "That time has just been taken. Here are the times still open.",
+        );
+        if (data?.appointment) setBooked(data.appointment);
+        setSlot(null);
+        setSlots(null);
+        return;
+      }
+
+      if (!res.ok) {
+        setErrorMsg(data?.error || "Your call could not be moved. Please try again.");
+        return;
+      }
+
+      setBooked(data.appointment ?? booked);
+      setSlot(null);
+      setSlots(null);
+      setMovedNotice("Your call has been moved. The new time is held for you.");
+    } catch {
+      setErrorMsg("Your call could not be moved. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -754,6 +855,13 @@ export function ApplyWizard({
                   : `Times shown in ${booked.timeZone}. It is yours to confirm at checkout — ` +
                     "we hold it for a short while, so finish up to keep it."}
               </p>
+
+              {movedNotice ? (
+                <p className="mt-4 rounded-[10px] bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300 ring-1 ring-emerald-400/30">
+                  {movedNotice}
+                </p>
+              ) : null}
+
               <div className="mt-6 flex items-center gap-3">
                 {/* The hold is not spent by looking back at the form. */}
                 <SecondaryButton onClick={() => { void saveStep(2); goTo(2); }} disabled={busy}>
@@ -773,6 +881,30 @@ export function ApplyWizard({
                 These are the times {mentorName || "your Legend"} is free. Choosing one puts it in
                 both your calendars.
               </p>
+            </div>
+          )}
+
+          {/*
+            The list. Shown while nothing is held, and shown again over a live
+            hold so the time can still be changed — a hold is only a promise to
+            pay, and until they have paid they are allowed to think better of
+            it. Once the call is confirmed it is settled, and showing the list
+            would only invite a change this form is not allowed to make.
+          */}
+          {booked?.status === "confirmed" ? null : (
+            <div className={booked ? "mt-8 border-t border-white/10 pt-6" : ""}>
+              {booked ? (
+                <>
+                  <h3 className="text-[15px] font-semibold text-white">
+                    Prefer a different time?
+                  </h3>
+                  <p className="mt-2 text-sm text-white/60">
+                    Pick another below and we&rsquo;ll move your call to it. Your current time
+                    stays yours until the new one is held, so you can&rsquo;t end up with
+                    neither.
+                  </p>
+                </>
+              ) : null}
 
               {slotsError ? (
                 <div className="mt-5 rounded-[10px] bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
@@ -784,32 +916,50 @@ export function ApplyWizard({
                 <p className="mt-5 text-sm text-white/50">Checking their calendar…</p>
               ) : null}
 
-              {!loadingSlots && slots && slots.length === 0 && !slotsError ? (
+              {!loadingSlots && slots && slotRows.length === 0 && !slotsError ? (
                 <div className="mt-5 rounded-[10px] bg-ink-800 px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
                   No times are open in the next few weeks. Our team will be in touch to arrange
                   one with you directly.
                 </div>
               ) : null}
 
-              {slots && slots.length > 0 ? (
+              {slotRows.length > 0 ? (
                 <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                  {slots.map((option) => (
-                    <button
-                      key={option.start}
-                      type="button"
-                      onClick={() => setSlot(option)}
-                      className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
-                        slot?.start === option.start
-                          ? "bg-spark/10 text-white ring-spark/60"
-                          : "bg-ink-800 text-white/75 ring-white/10 hover:bg-ink-700 hover:ring-white/20"
-                      }`}
-                    >
-                      <span className="block">{option.label}</span>
-                      <span className="mt-0.5 block text-xs text-white/40">
-                        {option.durationMinutes} minutes
-                      </span>
-                    </button>
-                  ))}
+                  {slotRows.map((row) =>
+                    row.slot === null ? (
+                      /*
+                        Their own held time. It is in the list because leaving
+                        it out is what made the list confusing, and it is dead
+                        to the touch because there is nothing to choose: it is
+                        already theirs.
+                      */
+                      <div
+                        key={row.key}
+                        aria-disabled
+                        className="cursor-not-allowed rounded-xl bg-ink-800/60 px-4 py-3 text-left text-sm text-white/45 ring-1 ring-white/15"
+                      >
+                        <span className="block">{row.label}</span>
+                        <span className="mt-0.5 flex items-center gap-1.5 text-xs text-white/40">
+                          <Lock className="h-3 w-3 shrink-0" aria-hidden />
+                          Held for you — already blocked
+                        </span>
+                      </div>
+                    ) : (
+                      <button
+                        key={row.key}
+                        type="button"
+                        onClick={() => setSlot(row.slot)}
+                        className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
+                          slot?.start === row.start
+                            ? "bg-spark/10 text-white ring-spark/60"
+                            : "bg-ink-800 text-white/75 ring-white/10 hover:bg-ink-700 hover:ring-white/20"
+                        }`}
+                      >
+                        <span className="block">{row.label}</span>
+                        <span className="mt-0.5 block text-xs text-white/40">{row.sub}</span>
+                      </button>
+                    ),
+                  )}
                 </div>
               ) : null}
 
@@ -817,24 +967,39 @@ export function ApplyWizard({
                 <p className="mt-4 text-xs leading-relaxed text-white/40">{slotsNotice}</p>
               ) : null}
 
-              {slots && slots.length > 0 ? (
+              {slotRows.length > 0 ? (
                 <p className="mt-4 text-xs text-white/40">
-                  Times shown in {slots[0].timeZone}.
+                  Times shown in {slots?.[0]?.timeZone || booked?.timeZone}.
                 </p>
               ) : null}
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <SecondaryButton onClick={() => { void saveStep(2); goTo(2); }} disabled={busy}>
-                  <ArrowLeft className="h-4 w-4" aria-hidden /> Back
-                </SecondaryButton>
-                <PrimaryButton
-                  busy={busy}
-                  busyLabel="Booking…"
-                  onClick={confirmSlot}
-                  type="button"
-                >
-                  Confirm this time
-                </PrimaryButton>
+                {booked ? (
+                  slot ? (
+                    <PrimaryButton
+                      busy={busy}
+                      busyLabel="Moving…"
+                      onClick={moveSlot}
+                      type="button"
+                    >
+                      Move my call to this time
+                    </PrimaryButton>
+                  ) : null
+                ) : (
+                  <>
+                    <SecondaryButton onClick={() => { void saveStep(2); goTo(2); }} disabled={busy}>
+                      <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+                    </SecondaryButton>
+                    <PrimaryButton
+                      busy={busy}
+                      busyLabel="Booking…"
+                      onClick={confirmSlot}
+                      type="button"
+                    >
+                      Confirm this time
+                    </PrimaryButton>
+                  </>
+                )}
                 {slots && !loadingSlots ? (
                   <SecondaryButton onClick={() => setSlots(null)} disabled={busy}>
                     Refresh times

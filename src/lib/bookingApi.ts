@@ -172,6 +172,30 @@ export async function confirmSlot(input: {
   });
 }
 
+/**
+ * Move a held call to a different time.
+ *
+ * The platform books the new time *before* letting go of the old one, so a
+ * Star who tries to move onto a slot that has just gone still has the time
+ * they started with. The old row is marked `rescheduled`, which puts it back
+ * on sale immediately rather than leaving it held until the hold lapses.
+ */
+export async function rescheduleSlot(input: {
+  appointmentId: number;
+  starEmail: string;
+  start: string;
+  end: string;
+}): Promise<Envelope<{ appointment: Appointment; calendarSynced: boolean }>> {
+  return call(`/appointments/${input.appointmentId}/reschedule`, {
+    method: "POST",
+    body: JSON.stringify({
+      starEmail: input.starEmail,
+      start: input.start,
+      end: input.end,
+    }),
+  });
+}
+
 /** Checkout abandoned — hand the time back rather than waiting for the hold to lapse. */
 export async function releaseSlot(input: {
   appointmentId: number;
