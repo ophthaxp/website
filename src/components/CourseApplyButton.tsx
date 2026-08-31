@@ -10,7 +10,6 @@ export function CourseApplyButton({
   courseSlug,
   courseName,
   mentorName,
-  payUrl,
   label = "Apply Now",
   variant = "primary",
   block = false,
@@ -25,7 +24,6 @@ export function CourseApplyButton({
   courseSlug?: string;
   courseName?: string;
   mentorName?: string;
-  payUrl?: string;
   label?: string;
   /**
    * `primary`/`outline` are the legacy gold pills. `accent`/`accent-outline`
@@ -74,7 +72,6 @@ export function CourseApplyButton({
         courseId={courseId}
         courseName={courseName}
         mentorName={mentorName}
-        payUrl={payUrl}
         brochureUrl={brochureUrl}
       />
     </>

@@ -11,14 +11,19 @@ import { ThemedSelect } from "@/components/ThemedSelect";
  *
  * Steps 1 and 2 are the form. Everything after step 4 happens once the
  * application has been sent — picking a slot from the Legend's availability,
- * confirming it, paying for it here in the flow. Booking and checkout are
- * **stubs**: they move the journey along so the ten steps can be walked end to
- * end, but no availability is read and no money moves. They are laid out as the
- * real ones will be so that replacing them is a matter of filling the panel,
- * not rewiring the flow.
+ * paying for it, and only then the call actually going into the Legend's
+ * diary.
+ *
+ * Checkout leaves the site. The Star goes to the organization's payment
+ * provider and comes back to `?payment=return`, which is a hint and nothing
+ * more: this component then asks the server, over and over for a short while,
+ * whether the money has actually arrived. The server answers from the payment
+ * the provider's webhook wrote, so the call is confirmed on the strength of
+ * the money rather than on the strength of the browser returning.
  *
  * Every transition saves before it moves. Closing the tab anywhere costs
- * nothing.
+ * nothing — including on the gateway, because the payment lands on the lead
+ * whether or not this page is still open.
  */
 
 const QUALIFICATIONS = ["MBBS", "MS", "MD", "DNB", "FELLOW", "OTHER"] as const;
@@ -106,6 +111,7 @@ export function ApplyWizard({
   profile,
   appointment: initialAppointment,
   requestedStep,
+  paymentReturn,
 }: {
   courseId: string;
   courseSlug: string;
@@ -121,6 +127,8 @@ export function ApplyWizard({
   /** The call already booked for this application, if there is one. */
   appointment: BookedAppointment | null;
   requestedStep?: number;
+  /** How they came back from the gateway, if they have just been to one. */
+  paymentReturn?: "return" | "cancelled";
 }) {
   const router = useRouter();
 
@@ -162,6 +170,24 @@ export function ApplyWizard({
   const [slotsNotice, setSlotsNotice] = useState<string | null>(null);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Checkout. `paying` is the moment between clicking and the redirect;
+  // `confirming` is the wait on the other side of it, while the payment
+  // works its way from the gateway to the platform.
+  const [paying, setPaying] = useState(false);
+  // Starts true on a return so the panel opens on the spinner rather than on a
+  // Pay button somebody has just used — but only when there is an application
+  // to poll about, or nothing would ever turn it off again.
+  const [confirming, setConfirming] = useState(
+    paymentReturn === "return" && Boolean(application?.id),
+  );
+  const [paymentStalled, setPaymentStalled] = useState(false);
+  // What to quote if anything needs chasing. Shown on the finished panel so
+  // nobody has to go hunting through email for it.
+  const [paymentRef, setPaymentRef] = useState<string | null>(null);
+  const [paymentCancelled, setPaymentCancelled] = useState(
+    paymentReturn === "cancelled",
+  );
 
   /** Move to a step and leave a trace of it in the URL. */
   const goTo = (next: number) => {
@@ -378,33 +404,35 @@ export function ApplyWizard({
     }
   };
 
-  // ─── step 4 — a stub ───────────────────────────────────────────────────────
+  // ─── step 4 — the fee, and what happens on the way back ────────────────────
 
   /**
-   * Checkout — still a stub, but the booking now hangs off it.
+   * Off to the gateway.
    *
-   * Picking a slot only held it; this is where it becomes a real appointment
-   * in the Legend's diary. When the gateway lands, the payment happens first
-   * and its webhook calls the same confirm endpoint.
+   * The server builds the checkout, because the amount, the provider and the
+   * return address are all its business — the browser is told a URL and
+   * nothing else. `alreadyPaid` covers somebody arriving here on a stale tab
+   * after paying: the answer is to confirm what they already own, not to
+   * charge them twice.
    */
-  const payFee = async () => {
+  const startCheckout = async () => {
     if (!applicationId) return setErrorMsg("Your application could not be found.");
 
-    setBusy(true);
+    setPaying(true);
     setErrorMsg(null);
+    setPaymentCancelled(false);
 
     try {
-      const res = await fetch("/api/booking/confirm", {
+      const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ applicationId }),
+        body: JSON.stringify({ applicationId, courseSlug }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      // The hold lapsed, or the Legend's diary moved under it. Sending them
-      // back to step 3 is the only useful thing to offer.
-      if (res.status === 409) {
+      // The hold lapsed while they sat on this panel. Back to the times.
+      if (res.status === 409 && !data?.alreadyPaid) {
         setErrorMsg(data?.error || "That time is no longer available. Please pick another.");
         setBooked(null);
         setSlots(null);
@@ -412,19 +440,100 @@ export function ApplyWizard({
         return;
       }
 
-      if (!res.ok) {
-        setErrorMsg(data?.error || "The booking could not be completed. Please try again.");
+      if (data?.alreadyPaid) {
+        setPaying(false);
+        void waitForPayment();
         return;
       }
 
-      setBooked(data.appointment ?? booked);
-      goTo(5);
+      if (!res.ok || !data?.url) {
+        setErrorMsg(data?.error || "We could not open the payment page. Please try again.");
+        return;
+      }
+
+      // Leaving the site. Nothing after this line runs.
+      window.location.href = data.url;
     } catch {
-      setErrorMsg("The booking could not be completed. Please try again.");
-    } finally {
-      setBusy(false);
+      setErrorMsg("We could not open the payment page. Please try again.");
+      setPaying(false);
     }
   };
+
+  /**
+   * Back from the gateway — wait for the money to actually show up.
+   *
+   * The confirm endpoint answers 402 until the provider's webhook has reached
+   * the platform, which is usually seconds but is not instant and is not
+   * ours to hurry. So this asks repeatedly for about a minute.
+   *
+   * Running out of attempts is **not** a failure: the payment is recorded
+   * against the lead either way, and the slot stays held. It only means the
+   * confirmation will not be witnessed on this screen, so the panel says so
+   * and offers another look rather than inviting a second payment.
+   */
+  const waitForPayment = useCallback(async () => {
+    if (!applicationId) return;
+
+    setConfirming(true);
+    setPaymentStalled(false);
+    setErrorMsg(null);
+
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      try {
+        const res = await fetch("/api/booking/confirm", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ applicationId }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok) {
+          setBooked(data.appointment ?? booked);
+          if (data.paymentRef) setPaymentRef(String(data.paymentRef));
+          setConfirming(false);
+          goTo(5);
+          return;
+        }
+
+        // The hold went while they were paying. Rare — the hold outlasts a
+        // normal checkout — but the money is theirs and support has to sort
+        // it out, so say that rather than sending them round again.
+        if (res.status === 409) {
+          setConfirming(false);
+          setErrorMsg(
+            data?.error ||
+              "Your payment went through, but that time has since been taken. Our team will " +
+                "be in touch to rebook you.",
+          );
+          return;
+        }
+
+        // 402 is the expected answer while the webhook is in flight.
+        if (res.status !== 402) {
+          setConfirming(false);
+          setErrorMsg(data?.error || "We could not confirm your booking. Please try again.");
+          return;
+        }
+      } catch {
+        // A dropped request is worth another go; the loop is the retry.
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+
+    setConfirming(false);
+    setPaymentStalled(true);
+  }, [applicationId, booked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Coming back from the gateway. Once, on arrival — `paymentReturn` is read
+  // from the URL the provider sent them to, and a re-run would start a second
+  // poll over the top of the first.
+  useEffect(() => {
+    if (paymentReturn === "return" && applicationId) {
+      void waitForPayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentReturn, applicationId]);
 
   // ─── render ────────────────────────────────────────────────────────────────
 
@@ -704,19 +813,76 @@ export function ApplyWizard({
             <Row label="Booking fee" value={feeInr ? `₹${feeInr}` : "—"} />
           </dl>
 
-          <p className="mt-3 text-xs text-white/45">
-            This time is held for you. It goes into {mentorName || "your Legend"}&rsquo;s calendar
-            once the fee is paid.
-          </p>
+          {/* Waiting on the money, having just come back from the gateway. */}
+          {confirming ? (
+            <div className="mt-5 flex items-start gap-3 rounded-[10px] bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/75 ring-1 ring-white/10">
+              <span
+                aria-hidden
+                className="mt-0.5 h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white/80"
+              />
+              <span>
+                Confirming your payment — this takes a few seconds. Please don&rsquo;t close
+                this page.
+              </span>
+            </div>
+          ) : null}
 
-          <div className="mt-6 flex items-center gap-3">
-            <SecondaryButton onClick={() => { void saveStep(3); goTo(3); }} disabled={busy}>
-              <ArrowLeft className="h-4 w-4" aria-hidden /> Back
-            </SecondaryButton>
-            <PrimaryButton busy={busy} busyLabel="Confirming…" onClick={payFee} type="button">
-              Pay and confirm
-            </PrimaryButton>
-          </div>
+          {/* Paid, but the confirmation has not reached us while they watched. */}
+          {paymentStalled ? (
+            <div className="mt-5 rounded-[10px] bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+              Your payment is taking longer than usual to reach us. Nothing is lost — your time
+              is still held and your payment is recorded. Check again in a moment, or leave it
+              with us and we&rsquo;ll email your confirmation.
+            </div>
+          ) : null}
+
+          {/* Came back without paying. The hold has not been spent. */}
+          {paymentCancelled && !confirming && !paymentStalled ? (
+            <div className="mt-5 rounded-[10px] bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
+              No payment was taken. Your time is still held for a short while — you can pay
+              whenever you&rsquo;re ready.
+            </div>
+          ) : null}
+
+          {!confirming && !paymentStalled ? (
+            <p className="mt-3 text-xs text-white/45">
+              This time is held for you. It goes into {mentorName || "your Legend"}&rsquo;s
+              calendar once the fee is paid. You&rsquo;ll pay on our payment provider&rsquo;s
+              own secure page and come straight back here.
+            </p>
+          ) : null}
+
+          {confirming ? null : (
+            <div className="mt-6 flex items-center gap-3">
+              {paymentStalled ? (
+                <PrimaryButton
+                  busy={false}
+                  busyLabel=""
+                  onClick={() => void waitForPayment()}
+                  type="button"
+                >
+                  Check again
+                </PrimaryButton>
+              ) : (
+                <>
+                  <SecondaryButton
+                    onClick={() => { void saveStep(3); goTo(3); }}
+                    disabled={paying}
+                  >
+                    <ArrowLeft className="h-4 w-4" aria-hidden /> Back
+                  </SecondaryButton>
+                  <PrimaryButton
+                    busy={paying}
+                    busyLabel="Opening payment…"
+                    onClick={startCheckout}
+                    type="button"
+                  >
+                    {feeInr ? `Pay ₹${feeInr} and confirm` : "Pay and confirm"}
+                  </PrimaryButton>
+                </>
+              )}
+            </div>
+          )}
         </Panel>
       ) : null}
 
@@ -738,8 +904,13 @@ export function ApplyWizard({
               is booked and your application is with the team.
             </p>
             <p className="mt-3 text-xs text-white/45">
-              A confirmation is on its way to you, and your Legend has the invite.
+              Your fee is paid, the invitation is in your calendar and your Legend has theirs.
             </p>
+            {paymentRef ? (
+              <p className="mt-3 break-all font-mono text-[11px] text-white/35">
+                Payment reference {paymentRef}
+              </p>
+            ) : null}
             <Link
               href="/account"
               className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"

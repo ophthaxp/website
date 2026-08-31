@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server";
 import { confirmSlot, findAppointmentForApplication, isBookingConfigured } from "@/lib/bookingApi";
 import { getApplicationById, STEP, updateApplication } from "@/lib/applyApi";
+import { findPaidPaymentForLead, isPaymentConfigured } from "@/lib/paymentsApi";
 import { getSessionUser } from "@/lib/session";
 
 /**
- * Payment succeeded — book the held slot for real.
+ * Payment landed — book the held slot for real.
  *
  * The Star picked a time at step 3, which only *held* it: nothing went into
  * the Legend's diary for a call nobody had paid for. This is where it becomes
  * a real appointment.
  *
- * **This is a stand-in for the payment gateway.** Today the wizard calls it
- * straight after its stub checkout, which means anyone signed in could reach
- * it and confirm without paying. When Razorpay lands, the caller must become
- * the payment webhook — verifying the signature and passing the real payment
- * reference — and this route should stop trusting the browser.
+ * **The browser cannot talk its way through here.** It used to: the wizard
+ * called this straight after a stub checkout, so anyone signed in could
+ * confirm without paying. Now the only thing that opens this door is a paid
+ * payment recorded against the lead — written by the provider's webhook, read
+ * back from the platform, and never supplied by the caller. A payment
+ * reference sent in the request body is ignored.
+ *
+ * It is safe to call repeatedly, and the wizard does exactly that while it
+ * waits for the webhook: unpaid answers **402** and changes nothing, a paid
+ * one confirms, and a call already confirmed reports itself.
  */
 export async function POST(req: Request) {
   const user = getSessionUser();
@@ -50,10 +56,53 @@ export async function POST(req: Request) {
     );
   }
 
+  // Already done — a second tab, a refreshed receipt page, or the poller
+  // arriving after the first call went through.
+  if (held.status === "confirmed") {
+    return NextResponse.json({
+      ok: true,
+      alreadyConfirmed: true,
+      appointment: held,
+      nextStep: STEP.done,
+    });
+  }
+
+  if (!isPaymentConfigured()) {
+    // No provider connected means no way to tell paid from unpaid, and
+    // confirming on that basis would put unpaid calls in a Legend's diary.
+    console.error("[booking] confirm refused — no payment provider is configured");
+    return NextResponse.json(
+      { error: "Payments are not available right now. Please try again shortly." },
+      { status: 503 },
+    );
+  }
+
+  const leadId = Number(application.lead_id);
+  if (!Number.isInteger(leadId) || leadId <= 0) {
+    return NextResponse.json(
+      { error: "Please finish and submit your application before paying." },
+      { status: 409 },
+    );
+  }
+
+  const payment = await findPaidPaymentForLead(leadId);
+  if (!payment) {
+    // 402 is the wizard's cue to keep waiting rather than to show a failure:
+    // a payment that has been made but whose webhook has not landed yet looks
+    // exactly like this for a few seconds.
+    return NextResponse.json(
+      {
+        error: "We have not seen your payment yet.",
+        awaitingPayment: true,
+      },
+      { status: 402 },
+    );
+  }
+
   const result = await confirmSlot({
     appointmentId: held.id,
     starEmail: application.email || user.email,
-    paymentRef: typeof body?.paymentRef === "string" ? body.paymentRef : undefined,
+    paymentRef: payment.reference,
   });
 
   if (!result.ok) {
@@ -73,6 +122,7 @@ export async function POST(req: Request) {
     ok: true,
     appointment: result.data?.appointment,
     calendarSynced: result.data?.calendarSynced ?? false,
+    paymentRef: payment.reference,
     nextStep: STEP.done,
   });
 }

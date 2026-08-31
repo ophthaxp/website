@@ -9,6 +9,8 @@ import {
   STAGES,
   type Headline,
 } from "@/lib/applicationStatus";
+import { isPaidStatus, listPaymentsForLead, type PaymentRecord } from "@/lib/paymentsApi";
+import { LEGAL } from "@/lib/legal";
 import { getSessionUser } from "@/lib/session";
 import { buildMetadata } from "@/lib/seo";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -54,6 +56,20 @@ function formatDate(value: string | null | undefined): string | null {
   });
 }
 
+/** Money as a doctor reading their bank statement would expect to see it. */
+function formatMoney(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency || "INR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    // An unknown currency code should not take the panel down with it.
+    return `${currency} ${amount.toLocaleString("en-IN")}`;
+  }
+}
+
 export default async function AccountPage() {
   const user = getSessionUser();
   if (!user) redirect("/login?next=%2Faccount");
@@ -67,6 +83,17 @@ export default async function AccountPage() {
       app.status === "submitted" && app.lead_id
         ? getLeadStatus(app.lead_id).catch(() => null)
         : Promise.resolve(null),
+    ),
+  );
+
+  // What they have actually been charged, per application. Read from the
+  // platform's payments record — the same rows the finance side reconciles —
+  // so a doctor and the team are always looking at one set of numbers.
+  const payments = await Promise.all(
+    applications.map((app) =>
+      app.status === "submitted" && app.lead_id
+        ? listPaymentsForLead(app.lead_id).catch(() => [])
+        : Promise.resolve([] as PaymentRecord[]),
     ),
   );
 
@@ -107,6 +134,7 @@ export default async function AccountPage() {
               })}
               resumeTo={resumeHref(app.return_path, Number(app.current_step) || 1)}
               currentStep={Number(app.current_step) || 1}
+              payments={payments[index]}
             />
           ))}
         </div>
@@ -161,6 +189,7 @@ function ApplicationCard({
   headline,
   resumeTo,
   currentStep,
+  payments,
 }: {
   courseName: string;
   mentorName?: string;
@@ -171,6 +200,7 @@ function ApplicationCard({
   headline: Headline;
   resumeTo: string;
   currentStep: number;
+  payments: PaymentRecord[];
 }) {
   return (
     <section className="rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
@@ -196,6 +226,7 @@ function ApplicationCard({
       {submitted ? (
         <>
           <StageTrack leadStatus={leadStatus} currentStep={currentStep} />
+          <Payments payments={payments} />
           <Link
             href={resumeTo}
             className="mt-6 inline-flex rounded-[10px] border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
@@ -277,6 +308,140 @@ function StageTrack({
         );
       })}
     </ol>
+  );
+}
+
+/**
+ * Every status the payments module defines, said plainly.
+ *
+ * `collected` is the platform's word for money taken outside a gateway — cash,
+ * a bank transfer, a cheque — which reads as nothing at all to the person who
+ * handed it over, so it is called what it is.
+ */
+const PAYMENT_STATUS: Record<string, { label: string; className: string }> = {
+  succeeded: { label: "Paid", className: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/30" },
+  collected: { label: "Paid", className: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/30" },
+  pending: { label: "Processing", className: "bg-amber-500/10 text-amber-200 ring-amber-500/30" },
+  failed: { label: "Failed", className: "bg-red-500/10 text-red-300 ring-red-500/30" },
+  canceled: { label: "Cancelled", className: "bg-white/[0.06] text-white/60 ring-white/15" },
+};
+
+const PAYMENT_METHOD: Record<string, string> = {
+  razorpay: "Card / UPI / Netbanking",
+  stripe: "Card",
+  cashfree: "Card / UPI / Netbanking",
+  cash: "Paid directly",
+};
+
+/**
+ * The money, as a doctor needs to see it.
+ *
+ * Three questions, and this answers all three without anybody having to write
+ * in: did it go through, what was I charged, and what do I quote if it did
+ * not. The reference is the thing support and the payment provider both search
+ * on, so it is shown in full rather than truncated prettily.
+ *
+ * Refunds are **shown, not started**. Moving money back is the team's to do —
+ * the fee is refundable in full if the call is cancelled more than 24 hours
+ * ahead, and that is a decision with a rule behind it, not a button. What a
+ * refund already issued looks like here is a line under the payment saying so.
+ *
+ * Nothing renders at all until there is something to show: an application that
+ * has not reached checkout should not sprout an empty "Payments" heading.
+ */
+function Payments({ payments }: { payments: PaymentRecord[] }) {
+  if (payments.length === 0) return null;
+
+  const anyPaid = payments.some((payment) => isPaidStatus(payment.status));
+
+  return (
+    <div className="mt-6">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
+        Payments
+      </h3>
+
+      <ul className="mt-3 grid gap-2">
+        {payments.map((payment) => {
+          const tone = PAYMENT_STATUS[payment.status.toLowerCase()] ?? {
+            label: payment.status || "Unknown",
+            className: "bg-white/[0.06] text-white/60 ring-white/15",
+          };
+          const paidOn = formatDate(payment.paidAt);
+          const method = PAYMENT_METHOD[payment.method.toLowerCase()] || payment.method;
+          const refunded = payment.refundedAmount > 0;
+
+          return (
+            <li
+              key={payment.id}
+              className="rounded-xl bg-ink-800 px-4 py-3.5 ring-1 ring-white/10"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white">
+                    {formatMoney(payment.amountPaid, payment.currency)}
+                    {payment.description ? (
+                      <span className="font-normal text-white/50"> · {payment.description}</span>
+                    ) : null}
+                  </p>
+                  <p className="mt-1 text-xs text-white/45">
+                    {[paidOn, method].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ring-1 ${tone.className}`}
+                >
+                  {tone.label}
+                </span>
+              </div>
+
+              <p className="mt-2.5 break-all font-mono text-[11px] leading-relaxed text-white/40">
+                Ref {payment.reference}
+              </p>
+
+              {refunded ? (
+                <p className="mt-2 rounded-[8px] bg-white/[0.04] px-2.5 py-1.5 text-xs text-white/70">
+                  {formatMoney(payment.refundedAmount, payment.currency)} refunded
+                  {payment.refundedAmount < payment.amountPaid ? " (partial)" : ""} — it can take
+                  5–7 working days to reach your account.
+                </p>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="mt-3 text-xs leading-relaxed text-white/40">
+        {anyPaid ? (
+          <>
+            Need a receipt or a refund? Write to{" "}
+            <a
+              href={`mailto:${LEGAL.supportEmail}`}
+              className="text-white/60 underline underline-offset-2 hover:text-white"
+            >
+              {LEGAL.supportEmail}
+            </a>{" "}
+            quoting the reference above. See our{" "}
+            <Link href="/refunds" className="text-white/60 underline underline-offset-2 hover:text-white">
+              refund policy
+            </Link>
+            .
+          </>
+        ) : (
+          <>
+            A payment shows as processing until your bank confirms it, usually within a few
+            minutes. Money is only ever taken once — if you see a charge that is not listed
+            here, write to{" "}
+            <a
+              href={`mailto:${LEGAL.supportEmail}`}
+              className="text-white/60 underline underline-offset-2 hover:text-white"
+            >
+              {LEGAL.supportEmail}
+            </a>
+            .
+          </>
+        )}
+      </p>
+    </div>
   );
 }
 

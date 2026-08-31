@@ -24,7 +24,6 @@ interface StepOutcome {
   ok?: boolean;
   status?: number;
   provider?: string;
-  paymentLink?: boolean;
   reason?: string;
 }
 
@@ -38,11 +37,7 @@ interface LeadResponse {
 
 function describe(step: StepOutcome | undefined): string {
   if (!step) return "not reported by the server (old build?)";
-  if (step.ok) {
-    return `sent${step.provider ? ` via ${step.provider}` : ""}${
-      step.paymentLink === false ? " — but WITHOUT a payment link" : ""
-    }`;
-  }
+  if (step.ok) return `sent${step.provider ? ` via ${step.provider}` : ""}`;
   if (!step.attempted) return `never attempted — ${step.reason ?? "no reason given"}`;
   return `FAILED${step.status ? ` (status ${step.status})` : ""} — ${step.reason ?? "no reason given"}`;
 }
@@ -52,7 +47,7 @@ function describe(step: StepOutcome | undefined): string {
  *
  * Everything after the lead row is written happens server-side, so the only
  * trace is in the deployment's runtime logs. Echoing it here means anyone
- * testing the form can see, in the console, how far the welcome email got.
+ * testing the form can see, in the console, how far each one got.
  */
 function logLeadOutcome(status: number, body: LeadResponse) {
   const label = "[lead submit]";
@@ -61,7 +56,7 @@ function logLeadOutcome(status: number, body: LeadResponse) {
     return;
   }
   console.groupCollapsed(`${label} saved — lead id ${body.leadId ?? "unknown"}`);
-  console.log("welcome email:", describe(body.welcome));
+  console.log("brochure email:", describe(body.welcome));
   console.log("whatsapp:", describe(body.whatsapp));
   console.log("full response:", body);
   console.groupEnd();
@@ -207,7 +202,7 @@ const COPY: Record<
     submitLabel: "Apply Now",
     submittingLabel: "Submitting…",
     successTitle: "Thanks — we’ve got your application.",
-    successBody: "Our team will reach out shortly to schedule your discovery call.",
+    successBody: "Our team will reach out shortly to arrange your session.",
   },
   brochure: {
     eyebrow: "Brochure",
@@ -225,7 +220,6 @@ export function ApplyFormModal({
   courseId,
   courseName,
   mentorName,
-  payUrl,
   intent = "apply",
   brochureUrl,
 }: {
@@ -233,10 +227,8 @@ export function ApplyFormModal({
   onClose: () => void;
   courseId: string;
   courseName?: string;
-  /** Faculty name shown in the welcome email hero, e.g. "Dr. Srinivas K Rao". */
+  /** Faculty name shown in the brochure email hero, e.g. "Dr. Srinivas K Rao". */
   mentorName?: string;
-  /** Optional payment link for the exploratory call. Falls back to APPLY_PAY_URL on the server. */
-  payUrl?: string;
   intent?: Intent;
   brochureUrl?: string;
 }) {
@@ -577,8 +569,10 @@ export function ApplyFormModal({
   };
 
   /**
-   * Finish. The server writes the lead, which is what sends the welcome email
-   * and puts this person in front of the team.
+   * Finish. The server writes the lead, which is what puts this person in
+   * front of the team. No mail goes out here: the booking fee is collected in
+   * the apply flow at `/apply/[slug]`, and this modal is only the fallback for
+   * call sites that have no course slug to send anyone to.
    */
   const handleSubmitApplication = async () => {
     if (!applicationId) {

@@ -30,20 +30,25 @@ interface IncomingPayload {
   source?: string;
 }
 
-// ─── welcome email ────────────────────────────────────────────────────────────
+// ─── brochure email ───────────────────────────────────────────────────────────
 
 /**
- * Ask the platform to send this lead their welcome email.
+ * Ask the platform to email this lead their brochure.
  *
- * The email used to be built and sent here, over SMTP on a personal Gmail
- * account, with a Pay button pointing at a static URL. Both halves belong to
- * the platform instead: it knows which email provider the organization
- * connected (org_integrations) and which payment provider, so it can create a
- * payment link for this specific lead and send the mail through the org's own
- * sender. This route just says "this lead exists, welcome them".
+ * **Brochure requests only.** This used to run for apply leads too, and the
+ * mail it sent them carried a Pay button: the platform created a payment link
+ * for the lead and put it in the email. That was the whole of the old apply
+ * flow's checkout — pay from your inbox, days later, with nothing booked.
+ *
+ * Payment now happens inside the application, at step 7, against a slot the
+ * Star has already chosen. Two ways to pay for one call is one too many, so
+ * the apply half of this is gone rather than merely unused, and
+ * `skipPaymentLink` says so to the platform as well. The brochure mail stays:
+ * it is how the brochure is actually delivered, and it has never had a
+ * payment link in it.
  */
 /**
- * What happened when we asked the platform to welcome this lead.
+ * What happened when we asked the platform to send this brochure.
  *
  * Returned to the browser so the outcome is visible in the console: this all
  * runs server-side, and on Vercel `console.log` only reaches the runtime logs,
@@ -55,27 +60,26 @@ export interface WelcomeDiagnostic {
   ok: boolean;
   status?: number;
   provider?: string;
-  paymentLink?: boolean;
   reason?: string;
 }
 
-/** Long enough for a payment link plus a provider send, short enough that the
- *  form still returns inside a serverless function's default budget. */
+/** Long enough for a provider send, short enough that the form still returns
+ *  inside a serverless function's default budget. */
 const WELCOME_TIMEOUT_MS = 8000;
 
-async function requestWelcomeEmail(
+async function requestBrochureEmail(
   leadId: number | string,
   payload: IncomingPayload,
 ): Promise<WelcomeDiagnostic> {
   if (!NOCODE_API_KEY) {
     const reason =
       "NOCODE_API_KEY not set on the server — create an API key in the platform and set it in the deployment's environment";
-    console.error(`[leads/welcome] ${reason}`);
+    console.error(`[leads/brochure] ${reason}`);
     return { attempted: false, ok: false, reason };
   }
 
   const url = `${NOCODE_BASE}/api/lom/leads/${leadId}/welcome`;
-  console.log(`[leads/welcome] lead ${leadId}: POST → ${url}`);
+  console.log(`[leads/brochure] lead ${leadId}: POST → ${url}`);
 
   // Without a deadline a slow platform would hold the form open until the
   // function itself is killed, and the caller would learn nothing.
@@ -90,16 +94,20 @@ async function requestWelcomeEmail(
         "x-api-key": NOCODE_API_KEY,
       },
       body: JSON.stringify({
-        moduleTitle: payload.intent === "brochure" ? BROCHURE_MODULE : APPLY_MODULE,
-        intent: payload.intent ?? "apply",
+        moduleTitle: BROCHURE_MODULE,
+        intent: "brochure",
         mentorName: payload.mentorName ?? "",
         courseName: payload.courseName ?? "",
+        // Belt and braces. The platform only builds a link for apply leads,
+        // and this is only called for brochures — but the flag is what makes
+        // "no emailed payment link" true of this route by construction rather
+        // than by coincidence.
+        skipPaymentLink: true,
       }),
       signal: controller.signal,
     });
 
     const body = (await res.json().catch(() => ({}))) as {
-      payUrl?: string | null;
       email?: { sent?: boolean; provider?: string; reason?: string };
       error?: string;
       message?: string;
@@ -108,27 +116,23 @@ async function requestWelcomeEmail(
     if (!res.ok || !body?.email?.sent) {
       const reason =
         body?.email?.reason ?? body?.error ?? body?.message ?? `status ${res.status}`;
-      console.error(`[leads/welcome] lead ${leadId}: email not sent — ${reason}`);
+      console.error(`[leads/brochure] lead ${leadId}: email not sent — ${reason}`);
       return { attempted: true, ok: false, status: res.status, reason };
     }
 
-    console.log(
-      `[leads/welcome] lead ${leadId}: sent via ${body.email.provider}` +
-        (body.payUrl ? " with payment link" : " WITHOUT a payment link"),
-    );
+    console.log(`[leads/brochure] lead ${leadId}: sent via ${body.email.provider}`);
     return {
       attempted: true,
       ok: true,
       status: res.status,
       provider: body.email.provider,
-      paymentLink: Boolean(body.payUrl),
     };
   } catch (err) {
     const reason =
       (err as Error)?.name === "AbortError"
         ? `no response from the platform within ${WELCOME_TIMEOUT_MS}ms`
         : ((err as Error)?.message ?? String(err));
-    console.error(`[leads/welcome] lead ${leadId}: request failed — ${reason}`);
+    console.error(`[leads/brochure] lead ${leadId}: request failed — ${reason}`);
     return { attempted: true, ok: false, reason };
   } finally {
     clearTimeout(deadline);
@@ -325,11 +329,20 @@ export async function POST(req: Request) {
       // before it reaches the platform — which is why this worked in `next dev`
       // and never ran once deployed.
       let welcome: WelcomeDiagnostic;
-      if (leadId) {
-        welcome = await requestWelcomeEmail(leadId, { ...payload, intent });
+      if (!isBrochure) {
+        // An apply lead raised here gets no email at all. The application
+        // flow acknowledges on WhatsApp and collects the fee at checkout;
+        // a second "welcome" would only compete with it.
+        welcome = {
+          attempted: false,
+          ok: false,
+          reason: "apply leads are welcomed by the application flow, not by email",
+        };
+      } else if (leadId) {
+        welcome = await requestBrochureEmail(leadId, { ...payload, intent });
       } else {
-        const reason = "the insert returned no lead id, and the welcome is addressed by lead id";
-        console.error(`[leads] ${reason} — no welcome email requested`);
+        const reason = "the insert returned no lead id, and the brochure is addressed by lead id";
+        console.error(`[leads] ${reason} — no brochure email requested`);
         welcome = { attempted: false, ok: false, reason };
       }
 
@@ -367,9 +380,9 @@ export async function POST(req: Request) {
     }
   }
 
-  // No lead row means no lead id, and the welcome email is addressed by lead id
-  // — so this path can only do WhatsApp.
-  const echoReason = "echo path — the lead was never stored, so there is no lead id to welcome";
+  // No lead row means no lead id, and the brochure email is addressed by lead
+  // id — so this path can only do WhatsApp.
+  const echoReason = "echo path — the lead was never stored, so there is no lead id to email";
   console.warn(`[leads] ${echoReason}`);
   const whatsapp = await sendWhatsApp(
     intent,

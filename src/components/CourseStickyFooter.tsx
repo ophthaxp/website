@@ -12,7 +12,6 @@ interface Props {
   facultyName?: string;
   facultyImageUrl?: string;
   brochureUrl?: string;
-  payUrl?: string;
 }
 
 /**
@@ -27,7 +26,6 @@ export function CourseStickyFooter({
   facultyName,
   facultyImageUrl,
   brochureUrl,
-  payUrl,
 }: Props) {
   const [visible, setVisible] = useState(false);
   const [brochureOpen, setBrochureOpen] = useState(false);
@@ -139,7 +137,6 @@ export function CourseStickyFooter({
         courseName={courseName}
         mentorName={facultyName}
         brochureUrl={brochureUrl}
-        payUrl={payUrl}
       />
     </>
   );

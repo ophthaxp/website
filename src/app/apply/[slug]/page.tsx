@@ -18,10 +18,14 @@ import { buildMetadata } from "@/lib/seo";
  * The application, as a page rather than a popup.
  *
  * It started as a modal, which was fine for one form. The journey is ten steps
- * — details, cases, submit, book a call, confirm, pay — and that does not
+ * — details, cases, submit, book a call, pay, confirm — and that does not
  * belong in a 512px box with no URL. A page gives every step an address, so a
  * link can drop somebody straight back into the step they left, refresh works,
  * and the browser's own Back button behaves.
+ *
+ * Having an address is also what makes checkout possible at all: the payment
+ * provider has to be given somewhere to send the Star back to, and `?payment=`
+ * on this page is it.
  */
 
 export async function generateMetadata({
@@ -46,7 +50,7 @@ export default async function ApplyPage({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { step?: string };
+  searchParams: { step?: string; payment?: string };
 }) {
   const course = await fetchCourseFromBackend(params.slug);
   if (!course) notFound();
@@ -106,6 +110,16 @@ export default async function ApplyPage({
         profile={profile}
         appointment={appointment}
         requestedStep={Number(searchParams?.step) || undefined}
+        paymentReturn={
+          // Set by the payment provider's return URL, which we wrote ourselves
+          // at checkout. It says where they have been, not what they owe: the
+          // wizard asks the server whether the money arrived either way.
+          searchParams?.payment === "return"
+            ? "return"
+            : searchParams?.payment === "cancelled"
+              ? "cancelled"
+              : undefined
+        }
       />
       )}
     </main>
