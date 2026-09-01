@@ -1,10 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MailWarning } from "lucide-react";
 
 type Status = "idle" | "signing-in" | "error";
+type ResendStatus = "idle" | "sending" | "sent" | "failed" | "throttled";
+
+/**
+ * How long the resend button stays disabled after a successful send.
+ *
+ * Long enough that a second click is a considered one rather than impatience
+ * with a slow inbox, short enough not to strand somebody whose mail genuinely
+ * did not arrive. The server allows three sends per address per fifteen
+ * minutes; this only paces the clicks, it is not what enforces the limit.
+ */
+const RESEND_COOLDOWN_SECONDS = 60;
 
 /**
  * Signing in through the platform's own `/auth/signin`.
@@ -21,12 +32,63 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [resend, setResend] = useState<ResendStatus>("idle");
+  const [cooldown, setCooldown] = useState(0);
+
+  // Ticks the countdown down to zero, which re-enables the button.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((left) => left - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  /**
+   * Send a fresh verification link.
+   *
+   * The reply says nothing about the address — it cannot, or the login page
+   * would become a way to find out who has an account — so "sent" here means
+   * the request was accepted, not that an email definitely went out.
+   *
+   * A 429 is not an error to apologise for: it means the server's own limit
+   * caught up, and its `retry-after` is a better countdown than ours because it
+   * knows how many sends this address has already had.
+   */
+  const handleResend = async () => {
+    if (cooldown > 0 || resend === "sending") return;
+    setResend("sending");
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      if (res.status === 429) {
+        const retryAfter = Number(res.headers.get("retry-after"));
+        setCooldown(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 900);
+        setResend("throttled");
+        return;
+      }
+
+      if (!res.ok) {
+        setResend("failed");
+        return;
+      }
+
+      setResend("sent");
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch {
+      setResend("failed");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus("signing-in");
     setErrorMsg(null);
     setNeedsVerification(false);
+    setResend("idle");
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -113,6 +175,47 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
               ) : null}
               <span>{errorMsg}</span>
             </p>
+
+            {/* The link in the original mail expires in twelve minutes, so by
+                the time somebody reaches this message theirs has almost always
+                died. Offering a new one here is the only way out. */}
+            {needsVerification ? (
+              <div className="mt-2 space-y-1 pl-6">
+                {resend === "sent" ? (
+                  <p className="text-[13px] text-amber-100/90">
+                    Link sent. Check your inbox.
+                  </p>
+                ) : null}
+
+                {resend === "throttled" ? (
+                  <p className="text-[13px] text-amber-100/90">
+                    Too many requests. Use the latest link.
+                  </p>
+                ) : null}
+
+                {resend === "failed" ? (
+                  <p className="text-[13px] text-amber-100/80">
+                    Could not send. Try again.
+                  </p>
+                ) : null}
+
+                {/* Stays on screen after a send. The first mail is the one that
+                    usually goes missing, so hiding this would strand exactly the
+                    person it exists for — the countdown paces them instead. */}
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resend === "sending" || cooldown > 0}
+                  className="text-[13px] font-semibold text-amber-100 underline underline-offset-4 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
+                >
+                  {resend === "sending"
+                    ? "Sending…"
+                    : cooldown > 0
+                      ? `Resend in ${cooldown}s`
+                      : "Resend link"}
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

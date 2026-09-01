@@ -160,7 +160,7 @@ export async function signIn(input: {
       return {
         ok: false,
         needsVerification: true,
-        error: "Please verify your email address first — check your inbox for the link.",
+        error: "Verify your email to log in.",
       };
     }
     // Never repeat the platform's distinction between "user not found" and
@@ -179,6 +179,23 @@ export async function signIn(input: {
   if (!user.id) return { ok: false, error: "The platform returned no user" };
 
   return { ok: true, user, jwt: typeof data.jwt === "string" ? data.jwt : undefined };
+}
+
+/**
+ * Ask the platform to send a fresh verification link.
+ *
+ * Returns nothing about the address. The platform answers the same way whether
+ * or not it has an account, and this keeps that property: a caller who could
+ * tell the two apart could use the login page to find out who has registered.
+ * Failures are swallowed for the same reason — the page says "check your inbox"
+ * either way, and a real outage shows up in the platform's own logs.
+ */
+export async function resendVerification(email: string): Promise<void> {
+  try {
+    await authApi("resend-verification", { email, client: VERIFY_CLIENT });
+  } catch (err) {
+    console.error("[auth] resend verification failed", err);
+  }
 }
 
 /** Redeem the token from the platform's verification email. */
