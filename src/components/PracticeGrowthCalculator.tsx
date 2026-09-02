@@ -502,6 +502,24 @@ function pickBestSpecMatch(
   return best?.slug ?? null;
 }
 
+/**
+ * What the panel opens on when the caller pre-fills nothing. A worked example
+ * beats five blank controls: the reader can generate an outlook on the first
+ * click and then move the sliders to their own practice, instead of having to
+ * describe it before seeing anything at all.
+ */
+const DEFAULTS = {
+  specSlug: "cataract",
+  pincode: "400021",
+  /** The em-dash form the place picker itself writes, so the box reads alike. */
+  locationLabel: "Nariman Point — 400021",
+  radiusKm: 7,
+  annualOutpatients: 3_000,
+  opFeeInr: 500,
+  annualInpatients: 300,
+  ipFeeInr: 75_000,
+} as const;
+
 export function PracticeGrowthCalculator({
   defaultSpecialty,
   courseSlug,
@@ -516,28 +534,32 @@ export function PracticeGrowthCalculator({
   ctaLabel,
 }: Props) {
   const [specs, setSpecs] = useState<Specialization[]>([]);
-  // Empty unless the caller pre-fills. A course page passes its own specialty,
-  // which is that page's subject rather than a guess; nothing pre-fills a
-  // location, because a catchment for a pincode the reader never chose is a
-  // number they have no reason to trust.
-  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty ?? "");
-  const [pincode, setPincode] = useState<string>(defaultPincode ?? "");
+  // The caller wins where it has an opinion — a course page passes its own
+  // specialty, which is that page's subject rather than a guess. Everything it
+  // leaves out falls back to DEFAULTS, so the panel is never blank.
+  const [specSlug, setSpecSlug] = useState<string>(
+    defaultSpecialty ?? DEFAULTS.specSlug,
+  );
+  const [pincode, setPincode] = useState<string>(defaultPincode ?? DEFAULTS.pincode);
   const [radiusKm, setRadiusKm] = useState<number | null>(
-    defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : null,
+    defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : DEFAULTS.radiusKm,
   );
 
   // Practice profile. The backend ROI model has no fee inputs, so revenue is
   // derived here from what the reader actually sets (see `projectedRevenue`
   // below); the backend still owns population and disease burden.
   //
-  // Every one of these starts unset, for the same reason the location does: a
-  // pre-filled 8,000 outpatients at 600 rupees is a practice nobody described,
-  // and a projection built on it is a number the reader has no reason to trust.
-  // Null is "not answered yet" — the outlook button stays shut until it isn't.
-  const [annualOutpatients, setAnnualOutpatients] = useState<number | null>(null);
-  const [opFeeInr, setOpFeeInr] = useState<number | null>(null);
-  const [annualInpatients, setAnnualInpatients] = useState<number | null>(null);
-  const [ipFeeInr, setIpFeeInr] = useState<number | null>(null);
+  // These open on DEFAULTS rather than empty, so the outlook button is live on
+  // arrival. Null stays meaningful: a control cleared back to nothing is still
+  // "not answered", and the button shuts again until it is.
+  const [annualOutpatients, setAnnualOutpatients] = useState<number | null>(
+    DEFAULTS.annualOutpatients,
+  );
+  const [opFeeInr, setOpFeeInr] = useState<number | null>(DEFAULTS.opFeeInr);
+  const [annualInpatients, setAnnualInpatients] = useState<number | null>(
+    DEFAULTS.annualInpatients,
+  );
+  const [ipFeeInr, setIpFeeInr] = useState<number | null>(DEFAULTS.ipFeeInr);
 
   // What we send the backend as "patients treated". Its contract caps this at
   // 2000, so clamp rather than pass the raw annual volume and risk a 400.
@@ -554,7 +576,9 @@ export function PracticeGrowthCalculator({
   // Digits keep the original behaviour (typed straight into `pincode`); letters
   // run the place typeahead, and picking a row fills `pincode` for us — so
   // everything downstream still keys off a 6-digit pincode exactly as before.
-  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode ?? "");
+  const [locationQuery, setLocationQuery] = useState<string>(
+    defaultPincode ?? DEFAULTS.locationLabel,
+  );
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [placesLoading, setPlacesLoading] = useState(false);
@@ -563,7 +587,7 @@ export function PracticeGrowthCalculator({
   // written after a pick — neither of which should open a dropdown. Held as a
   // value to compare against rather than a flag to consume, because Strict Mode
   // double-invokes the mount effect and a one-shot flag leaks the second run.
-  const selfSetQuery = useRef<string>(defaultPincode ?? "");
+  const selfSetQuery = useRef<string>(defaultPincode ?? DEFAULTS.locationLabel);
   const locationBoxRef = useRef<HTMLDivElement | null>(null);
 
   const [result, setResult] = useState<RoiResult | null>(null);
@@ -609,11 +633,9 @@ export function PracticeGrowthCalculator({
         // otherwise fuzzy-match the broader course context (slug + name) so
         // course pages prefill the closest specialization instead of always
         // falling back to the first item in the list.
-        // Only when the caller gave something to match on. With no hint the
-        // select stays on its placeholder rather than quietly defaulting to
-        // whichever specialization happens to sort first.
-        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
-        if (hasHint && !list.some((s) => s.slug === specSlug)) {
+        // Only when the seeded slug is not one the server actually offers —
+        // otherwise the default stands.
+        if (!list.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(list, {
             specialty: defaultSpecialty,
             courseSlug,
@@ -624,8 +646,7 @@ export function PracticeGrowthCalculator({
       } catch {
         if (cancelled) return;
         setSpecs(FALLBACK_SPECIALIZATIONS);
-        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
-        if (hasHint && !FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
+        if (!FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(FALLBACK_SPECIALIZATIONS, {
             specialty: defaultSpecialty,
             courseSlug,
