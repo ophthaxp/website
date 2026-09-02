@@ -264,7 +264,8 @@ body {
 /* Range sliders in the ROI panel. The Figma draws the filled part as a bar
    whose right end is a half-circle concentric with the thumb, its colour fading
    out toward the left, over tick marks that show through whatever the bar has
-   not covered yet. --frac is the value as 0..1, set by the component. */
+   not covered yet. --frac is the knob position as 0..1, set by the component --
+   the track is bent, so it is not the value as a fraction of the range. */
 .roi-slider {
   position: relative;
   height: 30px;
