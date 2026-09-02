@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
-import type { Circle, LayerGroup, Map as LeafletMap } from "leaflet";
+import type { Circle, LayerGroup, Map as LeafletMap, Marker } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 /**
@@ -49,6 +49,22 @@ async function loadLeaflet(): Promise<LeafletApi> {
 const CIRCLE_COLOR = "#297DEA";
 const PIN_COLOR = "#6B7280";
 
+/**
+ * The id the catchment circle's fill points at. One gradient serves every map on
+ * the page: `fill: url(#id)` resolves against the document, not the SVG it sits
+ * in, so the defs can live outside Leaflet's own overlay — which Leaflet rebuilds
+ * whenever it feels like it.
+ */
+const GLOW_ID = "roi-catchment-glow";
+
+/**
+ * A pane of the ping's own, sitting between the tiles (200) and the catchment
+ * overlay (400). The ring washes over the map and passes under the circle, the
+ * pincode dots and the place names — it is the quietest thing on the panel and
+ * must not paint over the things that carry the numbers.
+ */
+const PULSE_PANE = "roiPulse";
+
 export interface CatchmentPoint {
   pincode: string;
   /** Already cleaned for display — the map does no formatting of its own. */
@@ -86,6 +102,10 @@ export function CatchmentMap({
   const mapRef = useRef<LeafletMap | null>(null);
   const circleRef = useRef<Circle | null>(null);
   const pinsRef = useRef<LayerGroup | null>(null);
+  const pulseRef = useRef<Marker | null>(null);
+  /** Shown for a moment when a bare wheel goes by, then it gets out of the way. */
+  const [hint, setHint] = useState<string | null>(null);
+  const hintTimer = useRef<number | undefined>(undefined);
   // Read by the async setup below, which may resolve after a prop has changed.
   const latest = useRef({ center, radiusKm, points });
   latest.current = { center, radiusKm, points };
@@ -94,10 +114,12 @@ export function CatchmentMap({
     if (!hostRef.current || mapRef.current) return;
     let cancelled = false;
     let observer: ResizeObserver | undefined;
+    let host: HTMLDivElement | null = null;
+    let onWheel: ((e: WheelEvent) => void) | undefined;
 
     (async () => {
       const L = await loadLeaflet();
-      const host = hostRef.current;
+      host = hostRef.current;
       if (cancelled || !host) return;
 
       const map = L.map(host, {
@@ -128,6 +150,51 @@ export function CatchmentMap({
       // Bottom right, clear of the radius buttons in the opposite corner.
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
+      const pulsePane = map.createPane(PULSE_PANE);
+      pulsePane.style.zIndex = "350";
+      pulsePane.style.pointerEvents = "none";
+      // The ping is sized in pixels, so it has to be re-measured whenever the
+      // scale changes. Leaflet transforms the whole pane during the animation
+      // itself, which carries the ring along at the right size until it lands.
+      map.on("zoomend", sizePulse);
+
+      // Zooming, without stealing the page's scroll.
+      //
+      // A bare wheel keeps scrolling the page: this panel sits mid-page and a
+      // map that swallows the wheel traps the reader inside it. Holding the
+      // modifier zooms the map instead — the convention embedded maps have used
+      // for years, and the same gesture a trackpad pinch sends, which is why a
+      // pinch here used to zoom the whole browser. Leaflet's own handler cannot
+      // be asked for a modifier, so the wheel is read directly.
+      const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+      let travel = 0;
+      let settle: number | undefined;
+      onWheel = (e: WheelEvent) => {
+        if (!(e.ctrlKey || e.metaKey)) {
+          setHint(mac ? "Hold ⌘ and scroll to zoom" : "Hold Ctrl and scroll to zoom");
+          window.clearTimeout(hintTimer.current);
+          hintTimer.current = window.setTimeout(() => setHint(null), 1600);
+          return;
+        }
+        // Without this the browser zooms the document instead.
+        e.preventDefault();
+        setHint(null);
+        // A mouse sends a few big steps and a trackpad a stream of small ones,
+        // so the travel is banked and cashed in once it stops: ~60 units to a
+        // zoom level, which is one notch of a typical wheel.
+        travel += e.deltaY;
+        const at = map.mouseEventToContainerPoint(e);
+        window.clearTimeout(settle);
+        settle = window.setTimeout(() => {
+          const by = Math.round(-travel / 60);
+          travel = 0;
+          if (by !== 0) map.setZoomAround(at, map.getZoom() + by);
+        }, 40);
+      };
+      // Not passive: a passive listener is forbidden from preventing the
+      // browser's own zoom, which is the whole point of the branch above.
+      host.addEventListener("wheel", onWheel, { passive: false });
+
       mapRef.current = map;
       pinsRef.current = L.layerGroup().addTo(map);
       draw(L);
@@ -143,14 +210,35 @@ export function CatchmentMap({
     return () => {
       cancelled = true;
       observer?.disconnect();
+      if (onWheel) host?.removeEventListener("wheel", onWheel);
+      window.clearTimeout(hintTimer.current);
       mapRef.current?.remove();
       mapRef.current = null;
       circleRef.current = null;
       pinsRef.current = null;
+      pulseRef.current = null;
     };
     // Runs once: the map is created here and then updated in place below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * Stretch the ping to the catchment ring, in pixels at the current zoom. The
+   * rings animate from nothing to this width, so the wave dies exactly on the
+   * dashed circle rather than at some fixed size that means nothing at 1km and
+   * nothing at 100km either.
+   */
+  function sizePulse() {
+    const map = mapRef.current;
+    const circle = circleRef.current;
+    const el = pulseRef.current?.getElement();
+    if (!map || !circle || !el) return;
+    const bounds = circle.getBounds();
+    const { lat } = circle.getLatLng();
+    const west = map.latLngToContainerPoint([lat, bounds.getWest()]);
+    const east = map.latLngToContainerPoint([lat, bounds.getEast()]);
+    el.style.setProperty("--roi-pulse", `${Math.abs(east.x - west.x)}px`);
+  }
 
   /** Redraw the circle and the pins from whatever the latest props are. */
   async function draw(preloaded?: LeafletApi) {
@@ -168,11 +256,39 @@ export function CatchmentMap({
         color: CIRCLE_COLOR,
         weight: 2,
         dashArray: "6 5",
+        // The flat wash is the fallback. `.roi-catchment` swaps it for the
+        // gradient below, and a stylesheet rule outranks the fill attribute
+        // Leaflet writes, so the two do not fight. Opacity is left at 1 because
+        // fill-opacity multiplies the gradient's own stops; the fade is carried
+        // by the stops alone.
+        className: "roi-catchment",
         fillColor: CIRCLE_COLOR,
-        fillOpacity: 0.08,
+        fillOpacity: 1,
         interactive: false,
       }).addTo(map);
     }
+
+    // Three rings breaking out of the practice, one behind the other. A marker
+    // rather than a drawn shape: this is CSS animation, and Leaflet keeps the
+    // element pinned to its coordinate through every pan and zoom for free.
+    if (pulseRef.current) {
+      pulseRef.current.setLatLng([c.lat, c.lon]);
+    } else {
+      pulseRef.current = L.marker([c.lat, c.lon], {
+        pane: PULSE_PANE,
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({
+          className: "roi-pulse",
+          html: "<i></i><i></i><i></i>",
+          // Zero-sized and anchored dead on the point; the rings are centred on
+          // it by CSS, which is also what animates them.
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+      }).addTo(map);
+    }
+    sizePulse();
 
     const pins = pinsRef.current;
     if (pins) {
@@ -212,6 +328,9 @@ export function CatchmentMap({
     // follow, even if the reader has panned away.
     const bounds = circleRef.current?.getBounds();
     if (bounds) map.fitBounds(bounds, { padding: [28, 28], animate: false });
+    // Again, now the view has settled: a refit that only panned changes the
+    // pixels under the ring without ever firing a zoom event.
+    sizePulse();
   }
 
   // Redraw whenever the catchment changes. `points` is a fresh array each
@@ -223,15 +342,45 @@ export function CatchmentMap({
   }, [center?.lat, center?.lon, radiusKm, pointsKey]);
 
   return (
-    <div
-      ref={hostRef}
-      className={`roi-map h-full w-full ${className ?? ""}`}
-      role="img"
-      aria-label={
-        center
-          ? `Map of the ${radiusKm} kilometre catchment, showing ${points.length} pincodes`
-          : "Catchment map"
-      }
-    />
+    <>
+      {/* The catchment's glow. Object bounding-box units are the default, so the
+          gradient is measured against the circle itself: it stays centred on the
+          practice and reaches the ring at every zoom, with no redraw. Taken off
+          the Figma marker — the same blue, brightest under the pin and thinned
+          to almost nothing by the time it meets the dashed edge. */}
+      <svg aria-hidden className="pointer-events-none absolute h-0 w-0">
+        <defs>
+          <radialGradient id={GLOW_ID}>
+            <stop offset="0" stopColor={CIRCLE_COLOR} stopOpacity="0.34" />
+            <stop offset="0.35" stopColor={CIRCLE_COLOR} stopOpacity="0.2" />
+            <stop offset="0.7" stopColor={CIRCLE_COLOR} stopOpacity="0.09" />
+            <stop offset="1" stopColor={CIRCLE_COLOR} stopOpacity="0.03" />
+          </radialGradient>
+        </defs>
+      </svg>
+      <div
+        ref={hostRef}
+        className={`roi-map h-full w-full ${className ?? ""}`}
+        role="img"
+        aria-label={
+          center
+            ? `Map of the ${radiusKm} kilometre catchment, showing ${points.length} pincodes`
+            : "Catchment map"
+        }
+      />
+
+      {/* Above the map's own controls, and untouchable — it is a caption, not a
+          thing to dismiss. */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 z-[1200] flex items-center justify-center transition-opacity duration-200 ${
+          hint ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <span className="rounded-full bg-black/75 px-4 py-2 text-[13px] text-white backdrop-blur-sm">
+          {hint}
+        </span>
+      </div>
+    </>
   );
 }

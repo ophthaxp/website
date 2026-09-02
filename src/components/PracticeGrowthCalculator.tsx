@@ -332,6 +332,19 @@ function valueAt(position: number, min: number, max: number) {
   return min + (max - min) * (Math.expm1(CURVE * position) / Math.expm1(CURVE));
 }
 
+/**
+ * The increment to land on at a given value. One fixed step cannot serve a bent
+ * track: 500 outpatients is a sensible jump at 30,000 and a useless one at 300.
+ * Stepping by a tenth of the value's own magnitude keeps about three
+ * significant digits the whole way up — 10 at 300, 100 at 3,000, 1,000 at
+ * 30,000 — and never goes finer than the control's own step, which is a floor
+ * rather than the increment now.
+ */
+function stepAt(value: number, floor: number) {
+  const magnitude = 10 ** Math.floor(Math.log10(Math.abs(value) || 1));
+  return Math.max(floor, magnitude / 10);
+}
+
 /** Value to where its knob sits (0..1). The inverse of `valueAt`. */
 function positionOf(value: number, min: number, max: number) {
   const frac = Math.min(1, Math.max(0, (value - min) / (max - min)));
@@ -377,9 +390,11 @@ function Slider({
   // mismatch. Four places is finer than a pixel on any width this renders at.
   const frac = Math.round(positionOf(shown, min, max) * 10000) / 10000;
 
-  /** Land a value on the control's own grid, inside its own range. */
-  const snap = (n: number) =>
-    Math.min(max, Math.max(min, min + Math.round((n - min) / step) * step));
+  /** Land a value on the grid its own size warrants, inside the range. */
+  const snap = (n: number) => {
+    const grid = stepAt(n, step);
+    return Math.min(max, Math.max(min, min + Math.round((n - min) / grid) * grid));
+  };
 
   return (
     <div
@@ -418,20 +433,21 @@ function Slider({
         // event, so an untouched slider would stay unanswered even though the
         // reader just chose its minimum. Commit the shown value on release too.
         onPointerUp={() => onChange(shown)}
-        // Keys move by the control's own step rather than by one position,
-        // which at the dense end of the curve would round back to where it
-        // started. Tab is not among them: moving through a control is not
-        // answering it.
+        // Keys move by the increment for wherever the knob is, rather than by
+        // one position, which at the dense end of the curve would round back to
+        // where it started. Tab is not among them: moving through a control is
+        // not answering it.
         onKeyDown={(e) => {
+          const unit = stepAt(shown, step);
           const by =
             e.key === "ArrowRight" || e.key === "ArrowUp"
-              ? step
+              ? unit
               : e.key === "ArrowLeft" || e.key === "ArrowDown"
-                ? -step
+                ? -unit
                 : e.key === "PageUp"
-                  ? step * 10
+                  ? unit * 10
                   : e.key === "PageDown"
-                    ? -step * 10
+                    ? -unit * 10
                     : null;
           const next =
             by !== null
@@ -1362,7 +1378,7 @@ export function PracticeGrowthCalculator({
               id="growth-op"
               min={0}
               max={40000}
-              step={500}
+              step={10}
               value={annualOutpatients}
               onChange={setAnnualOutpatients}
               fill="rgba(183,90,68,0.8)"
@@ -1390,7 +1406,7 @@ export function PracticeGrowthCalculator({
               id="growth-op-fee"
               min={0}
               max={5000}
-              step={50}
+              step={10}
               value={opFeeInr}
               onChange={setOpFeeInr}
               fill="rgba(183,90,68,0.8)"
@@ -1422,7 +1438,7 @@ export function PracticeGrowthCalculator({
               id="growth-ip"
               min={0}
               max={20000}
-              step={100}
+              step={10}
               value={annualInpatients}
               onChange={setAnnualInpatients}
               fill="rgba(183,90,68,0.8)"
@@ -1450,7 +1466,7 @@ export function PracticeGrowthCalculator({
               id="growth-ip-fee"
               min={0}
               max={200000}
-              step={1000}
+              step={100}
               value={ipFeeInr}
               onChange={setIpFeeInr}
               fill="rgba(183,90,68,0.8)"
