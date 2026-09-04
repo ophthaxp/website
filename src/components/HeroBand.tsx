@@ -269,7 +269,10 @@ export function HeroBand({ strip }: { strip: HeroImage[] }) {
     >
       <div
         ref={trackRef}
-        className="hero-rail-track flex h-[260px] w-max sm:h-[320px] lg:h-[400px]"
+        /* Height lives in globals.css: it is measured against the height of
+           the screen, not written in fixed pixels, so the headline and the
+           button below it land above the fold on a short laptop. */
+        className="hero-rail-track flex w-max"
         /* Matches the resting offset the loop writes, so the very first paint
            is already covered edge to edge instead of opening a gap on the left
            before the loop's first frame lands. */

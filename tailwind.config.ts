@@ -55,7 +55,8 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        /* The wash that settles over the FAQ grid while an answer is open. */
+        /* The FAQ answer arriving in its card. Opacity only: the card's own
+           grow is a view transition, and a second scale would fight it. */
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },

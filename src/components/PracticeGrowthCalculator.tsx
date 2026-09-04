@@ -223,23 +223,132 @@ function Field({
         <Info className="h-3.5 w-3.5 text-white" aria-hidden />
         <span className="sr-only">{hint}</span>
       </label>
-      <span className="inline-flex h-6 items-center rounded-md bg-ink-600 px-2.5 text-[13px] font-semibold tabular-nums text-white">
+      <span className="inline-flex h-6 items-center rounded-md bg-ink-600 px-2.5 text-[13px] font-semibold tabular-nums text-white focus-within:bg-ink-500">
         {value}
       </span>
     </div>
   );
 }
 
-/** Stands in a value chip for a control the reader has not set yet. */
-const UNSET = <span className="font-normal text-[#6E6E6E]">—</span>;
+/**
+ * The number inside a value chip, typed as well as dragged. Keystrokes are held
+ * in a draft string rather than pushed through the number on every one: parsing
+ * mid-word would fight the reader ("30" is not 3 then 0 to them), and
+ * reformatting under the caret would move it. The draft commits on blur or
+ * Enter, and Escape throws it away.
+ *
+ * Only the range is enforced on what was typed, not the slider's step — someone
+ * who types 3,250 means 3,250.
+ */
+function ValueInput({
+  value,
+  min,
+  max,
+  onChange,
+  ariaLabel,
+  prefix,
+  suffix,
+}: {
+  value: number | null;
+  min: number;
+  max: number;
+  onChange: (n: number | null) => void;
+  ariaLabel: string;
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const text = draft ?? (value === null ? "" : formatNumber(value));
 
-/** The unit beside a value chip's number — "Km", "₹" — greyed as in the Figma. */
+  const commit = (raw: string) => {
+    setDraft(null);
+    const digits = raw.replace(/\D/g, "");
+    onChange(digits === "" ? null : Math.min(max, Math.max(min, Number(digits))));
+  };
+
+  // Sized to its own text, so the chip hugs the number as it did when it was
+  // static. Commas are narrower than the tabular digits they sit between.
+  const ch = Array.from(text).reduce((w, c) => w + (c === "," ? 0.42 : 1), 0);
+
+  return (
+    <>
+      {prefix}
+      <input
+        type="text"
+        inputMode="numeric"
+        aria-label={ariaLabel}
+        value={text}
+        placeholder="—"
+        // The outline is killed inline because globals.css rings every focused
+        // input, and a utility class only ties on specificity with it. The chip
+        // lights up instead — a ring around a number inside a chip reads as a
+        // second control.
+        style={{ width: `${Math.max(1, ch)}ch`, outline: "none" }}
+        onChange={(e) => setDraft(e.target.value.replace(/[^\d,]/g, ""))}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.blur();
+          } else if (e.key === "Escape") {
+            setDraft(null);
+            e.currentTarget.blur();
+          }
+        }}
+        className="bg-transparent text-right font-semibold tabular-nums text-white placeholder:font-normal placeholder:text-[#6E6E6E]"
+      />
+      {suffix}
+    </>
+  );
+}
+
+/**
+ * The unit beside a value chip's number — "Km", "₹" — greyed as in the Figma.
+ * The rupee sign leads, as it does in prose; a measure or a count follows.
+ */
 function Unit({ children, side }: { children: React.ReactNode; side: "left" | "right" }) {
   return (
     <span className={`font-normal text-[#A5A5A5] ${side === "left" ? "mr-1.5" : "ml-1.5"}`}>
       {children}
     </span>
   );
+}
+
+/**
+ * How hard the track's curve bends. The value is not the position: a slider
+ * running to 40,000 outpatients spends most of itself on numbers nobody has,
+ * while every answer a real practice would give is crushed into its first
+ * centimetre. Bending it exponentially hands the low end most of the track and
+ * lets the high end pass quickly — 3 is steep enough to feel, gentle enough
+ * that the top still moves in useful increments.
+ */
+const CURVE = 3;
+/** Positions per track. Fine enough that the knob lands where the pointer did. */
+const STEPS = 1000;
+
+/** Track position (0..1) to the value under it. */
+function valueAt(position: number, min: number, max: number) {
+  return min + (max - min) * (Math.expm1(CURVE * position) / Math.expm1(CURVE));
+}
+
+/**
+ * The increment to land on at a given value. One fixed step cannot serve a bent
+ * track: 500 outpatients is a sensible jump at 30,000 and a useless one at 300.
+ * Stepping by a tenth of the value's own magnitude keeps about three
+ * significant digits the whole way up — 10 at 300, 100 at 3,000, 1,000 at
+ * 30,000 — and never goes finer than the control's own step, which is a floor
+ * rather than the increment now.
+ */
+function stepAt(value: number, floor: number) {
+  const magnitude = 10 ** Math.floor(Math.log10(Math.abs(value) || 1));
+  return Math.max(floor, magnitude / 10);
+}
+
+/** Value to where its knob sits (0..1). The inverse of `valueAt`. */
+function positionOf(value: number, min: number, max: number) {
+  const frac = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  return Math.log1p(frac * Math.expm1(CURVE)) / CURVE;
 }
 
 /**
@@ -271,17 +380,21 @@ function Slider({
   fill: string;
   valueText: string;
 }) {
-  // Nothing is pre-set, so the track has to be able to show "no value yet":
-  // the knob rests at the low end and the bar is faded back, which reads as
-  // untouched rather than as a deliberate minimum.
+  // A control can still be cleared back to nothing: the knob rests at the low
+  // end and the bar is faded back, which reads as untouched rather than as a
+  // deliberate minimum.
   const unset = value === null;
   const shown = value ?? min;
   // Rounded before it reaches an attribute: the raw double differs in its last
   // bit between the server and the browser, which React reports as a hydration
   // mismatch. Four places is finer than a pixel on any width this renders at.
-  const frac = Math.round(
-    Math.min(1, Math.max(0, (shown - min) / (max - min))) * 10000,
-  ) / 10000;
+  const frac = Math.round(positionOf(shown, min, max) * 10000) / 10000;
+
+  /** Land a value on the grid its own size warrants, inside the range. */
+  const snap = (n: number) => {
+    const grid = stepAt(n, step);
+    return Math.min(max, Math.max(min, min + Math.round((n - min) / grid) * grid));
+  };
 
   return (
     <div
@@ -305,20 +418,48 @@ function Slider({
       <input
         id={id}
         type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={shown}
+        // The input measures the track, not the number: 0..STEPS of travel that
+        // `valueAt` bends into a value. Its own value would climb in a straight
+        // line, which is the thing being got rid of.
+        min={0}
+        max={STEPS}
+        step={1}
+        value={Math.round(frac * STEPS)}
         aria-valuetext={unset ? "not set" : valueText}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) =>
+          onChange(snap(valueAt(Number(e.target.value) / STEPS, min, max)))
+        }
         // A press that lands exactly where the knob already is fires no change
         // event, so an untouched slider would stay unanswered even though the
-        // reader just chose its minimum. Commit the shown value as well — on
-        // release, and on the keys the slider itself acts on. Tab is not one of
-        // them: moving through a control is not answering it.
+        // reader just chose its minimum. Commit the shown value on release too.
         onPointerUp={() => onChange(shown)}
+        // Keys move by the increment for wherever the knob is, rather than by
+        // one position, which at the dense end of the curve would round back to
+        // where it started. Tab is not among them: moving through a control is
+        // not answering it.
         onKeyDown={(e) => {
-          if (/^(Arrow|Page|Home|End)/.test(e.key)) onChange(shown);
+          const unit = stepAt(shown, step);
+          const by =
+            e.key === "ArrowRight" || e.key === "ArrowUp"
+              ? unit
+              : e.key === "ArrowLeft" || e.key === "ArrowDown"
+                ? -unit
+                : e.key === "PageUp"
+                  ? unit * 10
+                  : e.key === "PageDown"
+                    ? -unit * 10
+                    : null;
+          const next =
+            by !== null
+              ? shown + by
+              : e.key === "Home"
+                ? min
+                : e.key === "End"
+                  ? max
+                  : null;
+          if (next === null) return;
+          e.preventDefault();
+          onChange(snap(next));
         }}
         className="roi-range"
       />
@@ -335,6 +476,18 @@ const FIGURE_HEAD =
   "M5.2678 2.25C5.2678 1.6532 5.5029 1.0809 5.9216 0.659C6.3402 0.237 6.9079 0 7.4999 0C8.0919 0 8.6597 0.237 9.0783 0.659C9.4969 1.0809 9.7321 1.6532 9.7321 2.25C9.7321 2.8467 9.4969 3.419 9.0783 3.8409C8.6597 4.2629 8.0919 4.5 7.4999 4.5C6.9079 4.5 6.3402 4.2629 5.9216 3.8409C5.5029 3.419 5.2678 2.8467 5.2678 2.25Z";
 const FIGURE_BODY =
   "M7.1279 16.5V22.5C7.1279 23.3296 6.4629 24 5.6398 24C4.8167 24 4.1517 23.3296 4.1517 22.5V12.0421L2.8217 14.2734C2.3985 14.9812 1.4824 15.2109 0.7802 14.7843C0.078 14.3578 -0.1498 13.4343 0.2734 12.7265L2.9845 8.1796C3.7936 6.825 5.2445 5.9953 6.8117 5.9953H8.1928C9.76 5.9953 11.2109 6.825 12.02 8.1796L14.7311 12.7265C15.1543 13.4343 14.9264 14.3578 14.2242 14.7843C13.522 15.2109 12.6059 14.9812 12.1828 14.2734L10.8481 12.0421V22.5C10.8481 23.3296 10.1831 24 9.36 24C8.5369 24 7.8719 23.3296 7.8719 22.5V16.5H7.1279Z";
+
+/** One figure, greyed like the other units, marking a chip as a headcount. */
+function PeopleUnit() {
+  return (
+    <span className="ml-1.5 inline-flex text-[#A5A5A5]" aria-hidden>
+      <svg viewBox="0 0 15 24" className="h-[13px] w-[8.5px]" fill="currentColor">
+        <path d={FIGURE_HEAD} />
+        <path d={FIGURE_BODY} />
+      </svg>
+    </span>
+  );
+}
 
 /** Ten figures, the first `filled` of them solid and the rest faded back. */
 function FigureRow({ filled, tone }: { filled: number; tone: "accent" | "white" }) {
@@ -502,6 +655,24 @@ function pickBestSpecMatch(
   return best?.slug ?? null;
 }
 
+/**
+ * What the panel opens on when the caller pre-fills nothing. A worked example
+ * beats five blank controls: the reader can generate an outlook on the first
+ * click and then move the sliders to their own practice, instead of having to
+ * describe it before seeing anything at all.
+ */
+const DEFAULTS = {
+  specSlug: "cataract",
+  pincode: "400021",
+  /** The em-dash form the place picker itself writes, so the box reads alike. */
+  locationLabel: "Nariman Point — 400021",
+  radiusKm: 7,
+  annualOutpatients: 3_000,
+  opFeeInr: 500,
+  annualInpatients: 300,
+  ipFeeInr: 75_000,
+} as const;
+
 export function PracticeGrowthCalculator({
   defaultSpecialty,
   courseSlug,
@@ -516,28 +687,32 @@ export function PracticeGrowthCalculator({
   ctaLabel,
 }: Props) {
   const [specs, setSpecs] = useState<Specialization[]>([]);
-  // Empty unless the caller pre-fills. A course page passes its own specialty,
-  // which is that page's subject rather than a guess; nothing pre-fills a
-  // location, because a catchment for a pincode the reader never chose is a
-  // number they have no reason to trust.
-  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty ?? "");
-  const [pincode, setPincode] = useState<string>(defaultPincode ?? "");
+  // The caller wins where it has an opinion — a course page passes its own
+  // specialty, which is that page's subject rather than a guess. Everything it
+  // leaves out falls back to DEFAULTS, so the panel is never blank.
+  const [specSlug, setSpecSlug] = useState<string>(
+    defaultSpecialty ?? DEFAULTS.specSlug,
+  );
+  const [pincode, setPincode] = useState<string>(defaultPincode ?? DEFAULTS.pincode);
   const [radiusKm, setRadiusKm] = useState<number | null>(
-    defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : null,
+    defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : DEFAULTS.radiusKm,
   );
 
   // Practice profile. The backend ROI model has no fee inputs, so revenue is
   // derived here from what the reader actually sets (see `projectedRevenue`
   // below); the backend still owns population and disease burden.
   //
-  // Every one of these starts unset, for the same reason the location does: a
-  // pre-filled 8,000 outpatients at 600 rupees is a practice nobody described,
-  // and a projection built on it is a number the reader has no reason to trust.
-  // Null is "not answered yet" — the outlook button stays shut until it isn't.
-  const [annualOutpatients, setAnnualOutpatients] = useState<number | null>(null);
-  const [opFeeInr, setOpFeeInr] = useState<number | null>(null);
-  const [annualInpatients, setAnnualInpatients] = useState<number | null>(null);
-  const [ipFeeInr, setIpFeeInr] = useState<number | null>(null);
+  // These open on DEFAULTS rather than empty, so the outlook button is live on
+  // arrival. Null stays meaningful: a control cleared back to nothing is still
+  // "not answered", and the button shuts again until it is.
+  const [annualOutpatients, setAnnualOutpatients] = useState<number | null>(
+    DEFAULTS.annualOutpatients,
+  );
+  const [opFeeInr, setOpFeeInr] = useState<number | null>(DEFAULTS.opFeeInr);
+  const [annualInpatients, setAnnualInpatients] = useState<number | null>(
+    DEFAULTS.annualInpatients,
+  );
+  const [ipFeeInr, setIpFeeInr] = useState<number | null>(DEFAULTS.ipFeeInr);
 
   // What we send the backend as "patients treated". Its contract caps this at
   // 2000, so clamp rather than pass the raw annual volume and risk a 400.
@@ -554,7 +729,9 @@ export function PracticeGrowthCalculator({
   // Digits keep the original behaviour (typed straight into `pincode`); letters
   // run the place typeahead, and picking a row fills `pincode` for us — so
   // everything downstream still keys off a 6-digit pincode exactly as before.
-  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode ?? "");
+  const [locationQuery, setLocationQuery] = useState<string>(
+    defaultPincode ?? DEFAULTS.locationLabel,
+  );
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [placesLoading, setPlacesLoading] = useState(false);
@@ -563,7 +740,7 @@ export function PracticeGrowthCalculator({
   // written after a pick — neither of which should open a dropdown. Held as a
   // value to compare against rather than a flag to consume, because Strict Mode
   // double-invokes the mount effect and a one-shot flag leaks the second run.
-  const selfSetQuery = useRef<string>(defaultPincode ?? "");
+  const selfSetQuery = useRef<string>(defaultPincode ?? DEFAULTS.locationLabel);
   const locationBoxRef = useRef<HTMLDivElement | null>(null);
 
   const [result, setResult] = useState<RoiResult | null>(null);
@@ -609,11 +786,9 @@ export function PracticeGrowthCalculator({
         // otherwise fuzzy-match the broader course context (slug + name) so
         // course pages prefill the closest specialization instead of always
         // falling back to the first item in the list.
-        // Only when the caller gave something to match on. With no hint the
-        // select stays on its placeholder rather than quietly defaulting to
-        // whichever specialization happens to sort first.
-        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
-        if (hasHint && !list.some((s) => s.slug === specSlug)) {
+        // Only when the seeded slug is not one the server actually offers —
+        // otherwise the default stands.
+        if (!list.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(list, {
             specialty: defaultSpecialty,
             courseSlug,
@@ -624,8 +799,7 @@ export function PracticeGrowthCalculator({
       } catch {
         if (cancelled) return;
         setSpecs(FALLBACK_SPECIALIZATIONS);
-        const hasHint = Boolean(defaultSpecialty || courseSlug || courseName);
-        if (hasHint && !FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
+        if (!FALLBACK_SPECIALIZATIONS.some((s) => s.slug === specSlug)) {
           const match = pickBestSpecMatch(FALLBACK_SPECIALIZATIONS, {
             specialty: defaultSpecialty,
             courseSlug,
@@ -1157,14 +1331,14 @@ export function PracticeGrowthCalculator({
                   : "How far from your practice you expect to draw patients"
               }
               value={
-                radiusKm === null ? (
-                  UNSET
-                ) : (
-                  <>
-                    {radiusKm}
-                    <Unit side="right">Km</Unit>
-                  </>
-                )
+                <ValueInput
+                  value={radiusKm}
+                  min={1}
+                  max={100}
+                  onChange={setRadiusKm}
+                  ariaLabel="Service radius in kilometres"
+                  suffix={<Unit side="right">Km</Unit>}
+                />
               }
             />
             <Slider
@@ -1179,6 +1353,10 @@ export function PracticeGrowthCalculator({
             />
           </div>
 
+          {/* The Figma cuts the column into three: where the practice is, what
+              its outpatients bring, what its inpatients bring. */}
+          <hr className="border-t border-[#4A4A4A]" />
+
           {/* Practice volume + pricing */}
           <div>
             <Field
@@ -1186,14 +1364,21 @@ export function PracticeGrowthCalculator({
               label="Annual Outpatients"
               hint="Consultations you expect to see in a year"
               value={
-                annualOutpatients === null ? UNSET : formatNumber(annualOutpatients)
+                <ValueInput
+                  value={annualOutpatients}
+                  min={0}
+                  max={40000}
+                  onChange={setAnnualOutpatients}
+                  ariaLabel="Annual outpatients"
+                  suffix={<PeopleUnit />}
+                />
               }
             />
             <Slider
               id="growth-op"
               min={0}
               max={40000}
-              step={500}
+              step={10}
               value={annualOutpatients}
               onChange={setAnnualOutpatients}
               fill="rgba(183,90,68,0.8)"
@@ -1207,21 +1392,21 @@ export function PracticeGrowthCalculator({
               label="Op Average Fee"
               hint="Average consultation fee"
               value={
-                opFeeInr === null ? (
-                  UNSET
-                ) : (
-                  <>
-                    <Unit side="left">₹</Unit>
-                    {formatNumber(opFeeInr)}
-                  </>
-                )
+                <ValueInput
+                  value={opFeeInr}
+                  min={0}
+                  max={5000}
+                  onChange={setOpFeeInr}
+                  ariaLabel="Average consultation fee in rupees"
+                  prefix={<Unit side="left">₹</Unit>}
+                />
               }
             />
             <Slider
               id="growth-op-fee"
               min={0}
               max={5000}
-              step={50}
+              step={10}
               value={opFeeInr}
               onChange={setOpFeeInr}
               fill="rgba(183,90,68,0.8)"
@@ -1229,20 +1414,31 @@ export function PracticeGrowthCalculator({
             />
           </div>
 
+          {/* The Figma cuts the column into three: where the practice is, what
+              its outpatients bring, what its inpatients bring. */}
+          <hr className="border-t border-[#4A4A4A]" />
+
           <div>
             <Field
               htmlFor="growth-ip"
               label="Annual Inpatients"
               hint="Admissions or procedures you expect in a year"
               value={
-                annualInpatients === null ? UNSET : formatNumber(annualInpatients)
+                <ValueInput
+                  value={annualInpatients}
+                  min={0}
+                  max={20000}
+                  onChange={setAnnualInpatients}
+                  ariaLabel="Annual inpatients"
+                  suffix={<PeopleUnit />}
+                />
               }
             />
             <Slider
               id="growth-ip"
               min={0}
               max={20000}
-              step={100}
+              step={10}
               value={annualInpatients}
               onChange={setAnnualInpatients}
               fill="rgba(183,90,68,0.8)"
@@ -1256,21 +1452,21 @@ export function PracticeGrowthCalculator({
               label="Ip Average Fee"
               hint="Average realisation per admission or procedure"
               value={
-                ipFeeInr === null ? (
-                  UNSET
-                ) : (
-                  <>
-                    <Unit side="left">₹</Unit>
-                    {formatNumber(ipFeeInr)}
-                  </>
-                )
+                <ValueInput
+                  value={ipFeeInr}
+                  min={0}
+                  max={200000}
+                  onChange={setIpFeeInr}
+                  ariaLabel="Average realisation per admission in rupees"
+                  prefix={<Unit side="left">₹</Unit>}
+                />
               }
             />
             <Slider
               id="growth-ip-fee"
               min={0}
               max={200000}
-              step={1000}
+              step={100}
               value={ipFeeInr}
               onChange={setIpFeeInr}
               fill="rgba(183,90,68,0.8)"
