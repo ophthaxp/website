@@ -53,25 +53,6 @@ const STEPS: {
 ];
 
 /**
- * Every specialty a visitor can explore, drifting across the first card. Short
- * clinical names, matching the filter row in ProgramsSection, so the pills stay
- * on one line; Cataract is listed on its own because it is the entry point most
- * applicants arrive looking for.
- */
-const EXPLORE_PILLS = [
-  "Cataract",
-  "Refractive Surgery",
-  "Retina",
-  "Cornea",
-  "Glaucoma",
-  "Oculoplasty",
-  "Pediatric Ophthalmology",
-  "Uveitis",
-  "Neuro-Ophthalmology",
-  "Practice Management",
-];
-
-/**
  * One wavelength is 20 user units and the path spans -5..65, so a sibling copy
  * shifted by -20 covers the badge at every point of the loop.
  */
@@ -158,13 +139,6 @@ function VisualizeOrb() {
 }
 
 /**
- * The LOMA wordmark inside the chips runs magenta to indigo top to bottom —
- * paint1_linear in the Figma card export.
- */
-const LOMA_WORDMARK =
-  "bg-[linear-gradient(180deg,#FF00E1_0%,#6054F4_84.6%)] bg-clip-text text-transparent";
-
-/**
  * The LOMA mark: a terracotta infinity loop. Path and its 2px stroke are
  * verbatim from the Figma export — it reads as a drawn logo rather than a UI
  * icon, so it deliberately does not thin out to match lucide glyphs.
@@ -231,19 +205,42 @@ function HybridIcon() {
   );
 }
 
+/**
+ * A chip is a single mark. The ones that are doorways into sections further
+ * down the page render as anchors — `html` already carries `scroll-behavior:
+ * smooth` and an 88px `scroll-padding-top`, so the target lands below the
+ * sticky navbar with no script of its own. Every glyph inside is aria-hidden,
+ * so `label` is what actually names the control.
+ */
 function Chip({
+  label,
+  href,
   children,
   className = "",
 }: {
+  label: string;
+  href?: string;
   children: React.ReactNode;
   className?: string;
 }) {
+  const base = `inline-flex h-[42px] w-[42px] items-center justify-center rounded-lg border-[0.5px] border-[#4A4A4A] bg-black/60 text-white backdrop-blur-[4px] ${className}`;
+
+  if (!href) {
+    return (
+      <span role="img" aria-label={label} className={base}>
+        {children}
+      </span>
+    );
+  }
+
   return (
-    <span
-      className={`inline-flex h-[42px] items-center gap-2.5 rounded-lg border-[0.5px] border-[#4A4A4A] bg-black/60 px-3 text-[13px] font-medium text-white backdrop-blur-[4px] ${className}`}
+    <a
+      href={href}
+      aria-label={label}
+      className={`${base} transition hover:border-white/45 hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
     >
       {children}
-    </span>
+    </a>
   );
 }
 
@@ -300,55 +297,22 @@ export function HowItWorks() {
 
               {/* Per-step decoration */}
               {i === 0 && (
-                <>
-                  {/* All three chips share a right edge in the Figma; their
-                      differing widths are what creates the staircase. */}
-                  <div className="absolute right-[5%] top-[12%] z-10 flex flex-col items-end gap-2">
-                    <Chip>
-                      <LomaMark className="h-6 w-6 shrink-0" />
-                      <span>
-                        Meet <span className={LOMA_WORDMARK}>LOMA</span>
-                      </span>
-                    </Chip>
-                    <Chip>
-                      <LomaCasesMark className="h-6 w-6 shrink-0" />
-                      <span>
-                        Access <span className={LOMA_WORDMARK}>LOMA</span> Cases
-                      </span>
-                    </Chip>
-                    <Chip>
-                      <VisualizeOrb />
-                      <span>Visualize your Future</span>
-                    </Chip>
-                  </div>
-
-                  {/* Specialty rail. Two identical copies of the list sit side
-                      by side and the track runs from 0 to -50%, which sweeps
-                      the pills right to left with no visible seam. The card
-                      clips it, so pills enter and leave mid-word exactly as
-                      they do in the design. */}
-                  <div
-                    aria-hidden
-                    className="how-rail absolute inset-x-0 bottom-[20%] z-10 overflow-hidden"
-                  >
-                    <ul className="how-rail-track flex w-max items-center gap-2">
-                      {[0, 1].map((copy) =>
-                        EXPLORE_PILLS.map((p) => (
-                          <li
-                            key={`${copy}-${p}`}
-                            className="flex h-[41px] shrink-0 items-center whitespace-nowrap rounded-full bg-white/20 px-5 text-[13px] font-medium text-white backdrop-blur-md"
-                          >
-                            {p}
-                          </li>
-                        )),
-                      )}
-                    </ul>
-                  </div>
-                  {/* Screen readers get the list once, without the duplication. */}
-                  <p className="sr-only">
-                    Specialties you can explore: {EXPLORE_PILLS.join(", ")}.
-                  </p>
-                </>
+                /* Icon-only chips, each a shortcut to the section it names:
+                   both LOMA marks go to the assistant panel and the orb to the
+                   ROI calculator. Without labels the Figma's staircase goes
+                   too — the chips are equal squares now — so they read as a
+                   column of marks and leave the photo open behind. */
+                <div className="absolute right-[5%] top-[12%] z-10 flex flex-col items-end gap-2">
+                  <Chip label="Meet LOMA" href="#smart-assist">
+                    <LomaMark className="h-6 w-6 shrink-0" />
+                  </Chip>
+                  <Chip label="Access LOMA Cases" href="#smart-assist">
+                    <LomaCasesMark className="h-6 w-6 shrink-0" />
+                  </Chip>
+                  <Chip label="Visualize your Future" href="#roi">
+                    <VisualizeOrb />
+                  </Chip>
+                </div>
               )}
 
               {i === 3 && (

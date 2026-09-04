@@ -618,30 +618,10 @@ body {
   }
 }
 
-/* ---------- How It Works: specialty marquee, wave badges, glowing orb ----------
-   Geometry is lifted from the Figma card export (292x521): the pill rail sits
-   in a strip clipped to the card, the step badge is a hollow terracotta ring
-   with liquid sloshing inside it, and the "Visualize your Future" chip carries
-   a lit orb. */
-
-/* The rail holds two identical copies of the specialty list. Running the track
-   from 0 to -50% sweeps the pills right -> left; because copy two starts where
-   copy one ends, the seam never shows. */
-@keyframes how-rail {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-.how-rail-track {
-  animation: how-rail 34s linear infinite;
-  will-change: transform;
-}
-.how-rail:hover .how-rail-track {
-  animation-play-state: paused;
-}
+/* ---------- How It Works: wave badges, glowing orb ----------
+   Geometry is lifted from the Figma card export (292x521): the step badge is a
+   hollow terracotta ring with liquid sloshing inside it, and the "Visualize
+   your Future" chip carries a lit orb. */
 
 /* One wavelength of the badge wave is 20 user units, so sliding the crest row
    exactly -20 loops seamlessly. The second, slower wave rides on top at a
@@ -705,7 +685,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .how-rail-track,
   .how-wave-front,
   .how-wave-back,
   .how-wave-body,

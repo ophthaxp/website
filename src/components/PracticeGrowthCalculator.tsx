@@ -7,6 +7,7 @@ import {
   Info,
   Loader2,
   LocateFixed,
+  MapPin,
   Minus,
   Plus,
   Sparkles,
@@ -657,16 +658,16 @@ function pickBestSpecMatch(
 }
 
 /**
- * What the panel opens on when the caller pre-fills nothing. A worked example
- * beats five blank controls: the reader can generate an outlook on the first
- * click and then move the sliders to their own practice, instead of having to
- * describe it before seeing anything at all.
+ * What the panel opens on when the caller pre-fills nothing. Only the practice
+ * profile is seeded — plausible mid-range numbers the reader adjusts rather
+ * than types from scratch.
+ *
+ * Specialization and location are deliberately absent. Those two say who the
+ * reader is and where they practise; seeding them puts an answer in their
+ * mouth and, worse, makes the first outlook look like a projection about them
+ * when it is really about a cataract surgeon in Nariman Point.
  */
 const DEFAULTS = {
-  specSlug: "cataract",
-  pincode: "400021",
-  /** The em-dash form the place picker itself writes, so the box reads alike. */
-  locationLabel: "Nariman Point — 400021",
   radiusKm: 7,
   annualOutpatients: 3_000,
   opFeeInr: 500,
@@ -689,12 +690,11 @@ export function PracticeGrowthCalculator({
 }: Props) {
   const [specs, setSpecs] = useState<Specialization[]>([]);
   // The caller wins where it has an opinion — a course page passes its own
-  // specialty, which is that page's subject rather than a guess. Everything it
-  // leaves out falls back to DEFAULTS, so the panel is never blank.
-  const [specSlug, setSpecSlug] = useState<string>(
-    defaultSpecialty ?? DEFAULTS.specSlug,
-  );
-  const [pincode, setPincode] = useState<string>(defaultPincode ?? DEFAULTS.pincode);
+  // specialty, which is that page's subject rather than a guess. Where it says
+  // nothing these stay empty and the reader answers them; `missing` below keeps
+  // the outlook button shut until they have.
+  const [specSlug, setSpecSlug] = useState<string>(defaultSpecialty ?? "");
+  const [pincode, setPincode] = useState<string>(defaultPincode ?? "");
   const [radiusKm, setRadiusKm] = useState<number | null>(
     defaultRadiusKm != null ? Math.max(1, defaultRadiusKm) : DEFAULTS.radiusKm,
   );
@@ -730,9 +730,7 @@ export function PracticeGrowthCalculator({
   // Digits keep the original behaviour (typed straight into `pincode`); letters
   // run the place typeahead, and picking a row fills `pincode` for us — so
   // everything downstream still keys off a 6-digit pincode exactly as before.
-  const [locationQuery, setLocationQuery] = useState<string>(
-    defaultPincode ?? DEFAULTS.locationLabel,
-  );
+  const [locationQuery, setLocationQuery] = useState<string>(defaultPincode ?? "");
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [placesLoading, setPlacesLoading] = useState(false);
@@ -741,7 +739,7 @@ export function PracticeGrowthCalculator({
   // written after a pick — neither of which should open a dropdown. Held as a
   // value to compare against rather than a flag to consume, because Strict Mode
   // double-invokes the mount effect and a one-shot flag leaks the second run.
-  const selfSetQuery = useRef<string>(defaultPincode ?? DEFAULTS.locationLabel);
+  const selfSetQuery = useRef<string>(defaultPincode ?? "");
   const locationBoxRef = useRef<HTMLDivElement | null>(null);
 
   const [result, setResult] = useState<RoiResult | null>(null);
@@ -795,7 +793,10 @@ export function PracticeGrowthCalculator({
             courseSlug,
             courseName,
           });
-          setSpecSlug(match ?? list[0].slug);
+          // Only caller context earns a pre-selection. With nothing to match
+          // on, `match` is null and the field stays empty — falling back to the
+          // first item in the list would be a guess wearing the reader's name.
+          if (match) setSpecSlug(match);
         }
       } catch {
         if (cancelled) return;
@@ -806,7 +807,10 @@ export function PracticeGrowthCalculator({
             courseSlug,
             courseName,
           });
-          setSpecSlug(match ?? FALLBACK_SPECIALIZATIONS[0].slug);
+          // Only caller context earns a pre-selection. With nothing to match
+          // on, `match` is null and the field stays empty — falling back to the
+          // first item in the list would be a guess wearing the reader's name.
+          if (match) setSpecSlug(match);
         }
       }
     })();
@@ -1120,6 +1124,18 @@ export function PracticeGrowthCalculator({
         ? `Stays inside ${result?.pincode} — no neighbouring pincode is touched`
         : `Reaches ${coverageOthers} other pincode${coverageOthers === 1 ? "" : "s"} ` +
           `beyond ${result?.pincode}`;
+
+  /**
+   * Pincodes the circle touches. The backend counts them directly on
+   * `pincodesInRadius`; where an older one does not send it, the breakdown rows
+   * are that same set, one per pincode. Null rather than 0 when neither is
+   * available — the density fallback returns no rows at all, and printing "0
+   * pincodes" there would state something the result does not know.
+   */
+  const pincodesCovered = useMemo(() => {
+    if (result?.pincodesInRadius != null) return result.pincodesInRadius;
+    return coverage.length > 0 ? coverage.length : null;
+  }, [result?.pincodesInRadius, coverage.length]);
 
   // The rows in whatever order the reader picked. Sorted off a copy — the array
   // is the backend result itself, and sorting in place would mutate state.
@@ -1600,8 +1616,7 @@ export function PracticeGrowthCalculator({
                 {/* Sits a line above the bottom edge to clear the map's
                     attribution, which is required and cannot leave the corner. */}
                 <p className="pointer-events-none absolute bottom-8 left-5 z-[1100] max-w-[46%] text-[12px] leading-relaxed text-white/45 sm:max-w-xs">
-                  {placeLabel || regionLabel || "Pick a location"} · {radiusKm} km radius ·{" "}
-                  {areaLabel} km&sup2;
+                  {placeLabel || regionLabel || "Pick a location"}
                 </p>
               </>
             ) : (
@@ -1653,23 +1668,59 @@ export function PracticeGrowthCalculator({
                 <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
               </span>
 
-              {/* Column widths and the 10px gutter are the Figma's: the catchment
-                  column is a little narrower than the two beside it. */}
+              {/* Column widths and the 10px gutter are the Figma's. Two cards to
+                  a column across the first two so neither runs away from the
+                  other; the gauge keeps a column to itself because it is one
+                  dial and does not stack. */}
               <div className="grid gap-2.5 lg:grid-cols-[229fr_257fr_257fr]">
-                {/* Column 1 — catchment and burden */}
+                {/* Column 1 — the ground, and who is standing on it */}
                 <div className="flex flex-col gap-2.5">
+                  {/* The circle before any population is counted into it: how
+                      much ground it covers, and how many pincodes that ground
+                      is spread across. It leads the grid because it is the
+                      premise every other card is measured over. */}
                   <div className="relative flex-1 overflow-hidden rounded-xl bg-ink-600 p-3.5">
                     {/* The Figma puts a heavily blurred shape behind this corner;
-                        at that blur radius it reads as a wash, so it is one. */}
+                        at that blur radius it reads as a wash, so it is one. It
+                        belongs to the grid's top-left corner, so it travels with
+                        whichever card leads the column. */}
                     <div
                       aria-hidden
                       className="pointer-events-none absolute -left-20 -top-10 h-40 w-52 rounded-full bg-white/[0.07] blur-3xl"
                     />
                     <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
-                      Catchment Population
+                      Serviceable Area
                       <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
                     </p>
                     <p className="relative mt-1.5 flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-xl font-bold tabular-nums text-white">
+                        {areaLabel ? <>{areaLabel} km&sup2;</> : "—"}
+                      </span>
+                      <span className="text-[11px] text-[#A5A5A5]">
+                        Within {radiusKm}km radius
+                      </span>
+                    </p>
+                    {/* Centre-aligned rather than baseline: a baseline row would
+                        hang the pin below the digits it sits beside. */}
+                    <p className="relative mt-2.5 flex flex-wrap items-center gap-x-2 border-t border-white/[0.07] pt-2.5">
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4 shrink-0 text-[#A5A5A5]" aria-hidden />
+                        <span className="text-[17px] font-bold tabular-nums text-white">
+                          {pincodesCovered ?? "—"}
+                        </span>
+                      </span>
+                      <span className="text-[11px] text-[#A5A5A5]">
+                        {pincodesCovered === 1 ? "Pincode covered" : "Pincodes covered"}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden rounded-xl bg-ink-600 p-3.5">
+                    <p className="inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
+                      Catchment Population
+                      <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+                    </p>
+                    <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
                       <span className="text-xl font-bold tabular-nums text-white">
                         {serviceablePopulation
                           ? `${formatPeopleShort(serviceablePopulation)}+`
@@ -1681,7 +1732,10 @@ export function PracticeGrowthCalculator({
                     </p>
                     <FigureRow filled={serviceablePopulation ? 10 : 0} tone="accent" />
                   </div>
+                </div>
 
+                {/* Column 2 — the need, and what meeting it is worth */}
+                <div className="flex flex-col gap-2.5">
                   <div className="flex-1 rounded-xl bg-accent p-3.5">
                     <p className="inline-flex items-center gap-1.5 text-[13px] text-white">
                       Disease Burden
@@ -1695,24 +1749,26 @@ export function PracticeGrowthCalculator({
                     </p>
                     <FigureRow filled={burdenFigures} tone="white" />
                   </div>
-                </div>
 
-                {/* Column 2 — revenue */}
-                <div className="relative flex flex-col justify-center overflow-hidden rounded-xl bg-ink-600 p-3.5">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -top-28 left-0 right-0 h-56 rounded-[50%] bg-white/[0.06] blur-3xl"
-                  />
-                  <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
-                    Projected Revenue (Annual)
-                    <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
-                  </p>
-                  <p className="relative mt-2.5 text-[clamp(1.5rem,2.5vw,2.125rem)] font-bold leading-none tabular-nums text-white">
-                    {hasGenerated ? formatINRShort(projectedRevenue) : "—"}
-                  </p>
-                  <p className="relative mt-3 text-[12px] leading-relaxed text-[#A5A5A5]">
-                    Estimated opportunity based on your location and practice profile.
-                  </p>
+                  {/* flex-1 is the one departure from the original: this card
+                      used to be the whole column, and now shares it with the
+                      burden card above. */}
+                  <div className="relative flex flex-1 flex-col justify-center overflow-hidden rounded-xl bg-ink-600 p-3.5">
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -top-28 left-0 right-0 h-56 rounded-[50%] bg-white/[0.06] blur-3xl"
+                    />
+                    <p className="relative inline-flex items-center gap-1.5 text-[13px] text-[#A5A5A5]">
+                      Projected Revenue (Annual)
+                      <Info className="h-3 w-3 text-[#A5A5A5]" aria-hidden />
+                    </p>
+                    <p className="relative mt-2.5 text-[clamp(1.5rem,2.5vw,2.125rem)] font-bold leading-none tabular-nums text-white">
+                      {hasGenerated ? formatINRShort(projectedRevenue) : "—"}
+                    </p>
+                    <p className="relative mt-3 text-[12px] leading-relaxed text-[#A5A5A5]">
+                      Estimated opportunity based on your location and practice profile.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Column 3 — impact */}
