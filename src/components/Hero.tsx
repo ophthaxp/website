@@ -33,7 +33,7 @@ export function Hero({ images }: { images?: HeroImage[] }) {
           into a sliver. */}
       <HeroBand strip={strip} />
 
-      <div className="mx-auto max-w-[1440px] px-5 pb-14 pt-8 text-center sm:px-10 sm:pb-16 sm:pt-10">
+      <div className="mx-auto max-w-[1440px] px-5 pb-14 pt-6 text-center sm:px-10 sm:pb-16">
         {/* The headline lands just behind the last portrait, so the band and
             the words read as one arrival rather than two. */}
         <h1
@@ -48,11 +48,11 @@ export function Hero({ images }: { images?: HeroImage[] }) {
           </span>
         </h1>
 
-        <p className="animate-fadeUp mx-auto mt-5 max-w-2xl text-base text-white/60 [animation-delay:640ms] sm:text-lg">
+        <p className="animate-fadeUp mx-auto mt-3 max-w-2xl text-base text-white/60 [animation-delay:640ms] sm:text-lg">
           Transforming how ophthalmologists think, decide, and practice
         </p>
 
-        <div className="animate-fadeUp mt-8 flex justify-center [animation-delay:740ms]">
+        <div className="animate-fadeUp mt-5 flex justify-center [animation-delay:740ms]">
           <Link
             href="#programs"
             className="inline-flex items-center justify-center rounded-[10px] bg-accent px-7 py-3.5 text-base font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"

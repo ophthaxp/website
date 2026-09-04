@@ -733,6 +733,47 @@ body {
    light has to know where a column is this frame to fall on it. */
 .hero-rail-track {
   will-change: transform;
+
+  /* How tall the band is allowed to be.
+     A fixed height was pushing "Begin Your Journey" off the bottom of a 768p
+     laptop — the band alone was 400px of a ~640px viewport, and the navbar and
+     headline ate the rest. So the band takes what the screen has left over
+     rather than a number decided on a large monitor:
+
+       --band-overhead  everything the band is NOT — the navbar, the headline,
+                        the tagline, the button, and a little air beneath it, so
+                        the button is not flush against the bottom edge
+       --band-max       the designed height, still what a roomy screen gets
+       --band-floor     the point below which portraits stop being portraits
+
+     `svh` and not `vh`: on phones `vh` is the height with the browser's address
+     bar hidden, which is a screen taller than the one you are actually looking
+     at. The plain-`vh` line above it is the fallback for browsers that predate
+     `svh` — without it the whole declaration is dropped and the band collapses. */
+  --band-floor: 160px;
+  --band-max: 280px;
+  --band-overhead: 310px;
+  height: clamp(var(--band-floor), 100vh - var(--band-overhead), var(--band-max));
+  height: clamp(var(--band-floor), 100svh - var(--band-overhead), var(--band-max));
+}
+
+/* The overhead grows with the breakpoint because the headline does: the type is
+   set in vw, so the same three lines are ~209px of the screen on a phone and
+   ~282px on a desktop. */
+@media (min-width: 640px) {
+  .hero-rail-track {
+    --band-floor: 180px;
+    --band-max: 380px;
+    --band-overhead: 355px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-rail-track {
+    --band-floor: 200px;
+    --band-max: 480px;
+    --band-overhead: 395px;
+  }
 }
 
 .hero-bar {
