@@ -84,7 +84,7 @@ export function SignupForm() {
         </p>
         <Link
           href="/login"
-          className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+          className="mt-6 inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
         >
           Go to log in
         </Link>
@@ -153,7 +153,7 @@ export function SignupForm() {
         </Field>
 
         {status === "error" && errorMsg ? (
-          <p className="rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
+          <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
             {errorMsg}
           </p>
         ) : null}
@@ -161,7 +161,7 @@ export function SignupForm() {
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="mt-2 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "submitting" ? (
             <>
@@ -200,7 +200,7 @@ export function SignupForm() {
 }
 
 const inputCls =
-  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
+  "w-full rounded-xl border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
 
 function Field({
   label,

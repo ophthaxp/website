@@ -122,7 +122,7 @@ export function AccountMenu() {
             onClick={() => setOpen(false)}
             className="block px-4 py-2.5 text-sm text-white/85 transition hover:bg-white/5 hover:text-white"
           >
-            Your application
+            Your space
           </Link>
 
           {account?.application ? (

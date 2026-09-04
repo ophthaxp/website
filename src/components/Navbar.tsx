@@ -25,10 +25,10 @@ export function Navbar() {
       >
         <Link href="/" aria-label="Legends of Medicine — home" className="inline-flex shrink-0 items-center">
           <Image
-            src="/logo.png"
+            src="/brand/lom-logo-full.png"
             alt="Legends of Medicine"
-            width={410}
-            height={74}
+            width={623}
+            height={290}
             priority
             className="h-14 w-auto sm:h-[62px]"
           />

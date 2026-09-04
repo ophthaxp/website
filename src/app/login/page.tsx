@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
+import { FlowHeader } from "@/components/FlowHeader";
 import { getSessionUser } from "@/lib/session";
 import { buildMetadata } from "@/lib/seo";
 
@@ -32,10 +33,13 @@ export default function LoginPage({
   if (user) redirect(next || "/account");
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
-      <div className="rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
-        <LoginForm next={next || undefined} linkError={searchParams?.error === "link"} />
-      </div>
-    </main>
+    <>
+      <FlowHeader showAccount={false} />
+      <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
+        <div className="rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] sm:p-8">
+          <LoginForm next={next || undefined} linkError={searchParams?.error === "link"} />
+        </div>
+      </main>
+    </>
   );
 }

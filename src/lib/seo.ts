@@ -6,7 +6,7 @@ export const SITE_URL =
 export const SITE_NAME = "Legends of Medicine";
 
 export const SITE_DESCRIPTION =
-  "Legends of Medicine — ACCESS. KNOWLEDGE. BREAKTHROUGH";
+  "Legends of Medicine";
 
 export const DEFAULT_KEYWORDS = [
   "ophthalmology mentorship",
@@ -26,7 +26,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
   return {
     metadataBase: new URL(SITE_URL),
     title: {
-      default: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
+      default: `${SITE_NAME}`,
       template: `%s · ${SITE_NAME}`,
     },
     description: SITE_DESCRIPTION,
@@ -37,11 +37,19 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
     publisher: SITE_NAME,
     category: "education",
     alternates: { canonical: "/" },
+    icons: {
+      icon: [
+        { url: "/brand/favicon.ico", sizes: "any" },
+        { url: "/brand/favicon-192.png", type: "image/png", sizes: "192x192" },
+        { url: "/brand/favicon-512.png", type: "image/png", sizes: "512x512" },
+      ],
+      apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180" }],
+    },
     openGraph: {
       type: "website",
       url: SITE_URL,
       siteName: SITE_NAME,
-      title: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
+      title: `${SITE_NAME}`,
       description: SITE_DESCRIPTION,
       locale: "en_IN",
       images: [
@@ -55,7 +63,7 @@ export function buildMetadata(overrides: Partial<Metadata> = {}): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${SITE_NAME} — ACCESS. KNOWLEDGE. BREAKTHROUGH`,
+      title: `${SITE_NAME}`,
       description: SITE_DESCRIPTION,
       images: ["/og.jpg"],
     },
@@ -83,7 +91,7 @@ export function organizationJsonLd() {
     "@type": "EducationalOrganization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
+    logo: `${SITE_URL}/brand/lom-logo-full.png`,
     sameAs: [
       "https://www.linkedin.com/company/legends-of-medicine",
       "https://www.instagram.com/legends_of_medicine",

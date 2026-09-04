@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { RoiSignupGate, type RoiQuota } from "@/components/RoiSignupGate";
+import { saveOutlook } from "@/lib/outlookSnapshot";
 import { CatchmentMap, type CatchmentPoint } from "./CatchmentMap";
 
 interface Specialization {
@@ -989,6 +990,10 @@ export function PracticeGrowthCalculator({
 
       if (body?.success && body.data) {
         setResult(body.data as RoiResult);
+        // Kept for the dashboard, whose Horizon pane opens on the last outlook
+        // a doctor ran. Never awaited and never allowed to throw: it is a
+        // convenience, and the calculator must not care whether it worked.
+        saveOutlook(body.data as RoiResult);
         setLockedReason(null);
         setLockedPincode(null);
         if (body.quota) setQuota(body.quota as RoiQuota);
