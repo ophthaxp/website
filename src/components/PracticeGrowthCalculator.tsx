@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ChevronDown,
+  ChevronRight,
   Info,
   Loader2,
   LocateFixed,
@@ -1137,6 +1138,44 @@ export function PracticeGrowthCalculator({
     return coverage.length > 0 ? coverage.length : null;
   }, [result?.pincodesInRadius, coverage.length]);
 
+  /**
+   * The coverage table at the foot of the panel. It sits below the fold, so the
+   * Serviceable Area card — which prints the very count the table breaks down —
+   * doubles as the way in. Held by ref rather than lifted into state: <details>
+   * keeps its own open flag, and mirroring it here would only give us two.
+   */
+  const coverageRef = useRef<HTMLDetailsElement>(null);
+  const hasCoveragePanel =
+    !compact && hasGenerated && (coverage.length > 0 || densityFallback);
+
+  const revealCoverage = useCallback(() => {
+    const el = coverageRef.current;
+    if (!el) return;
+    el.open = true;
+    // block:"start" over "center": open, the panel runs taller than the viewport,
+    // and centring it would push its own heading off the top. html carries
+    // scroll-padding-top for the sticky header, which scrollIntoView honours.
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Land the keyboard on what just opened, without a second scroll fighting
+    // the one above.
+    el.querySelector("summary")?.focus({ preventScroll: true });
+  }, []);
+
+  /** The card row's contents, identical whether or not it opens anything. */
+  const pincodesCoveredRow = (
+    <>
+      <span className="inline-flex items-center gap-1.5">
+        <MapPin className="h-4 w-4 shrink-0 text-[#A5A5A5]" aria-hidden />
+        <span className="text-[17px] font-bold tabular-nums text-white">
+          {pincodesCovered ?? "—"}
+        </span>
+      </span>
+      <span className="text-[11px] text-[#A5A5A5] group-hover/pin:text-white">
+        {pincodesCovered === 1 ? "Pincode covered" : "Pincodes covered"}
+      </span>
+    </>
+  );
+
   // The rows in whatever order the reader picked. Sorted off a copy — the array
   // is the backend result itself, and sorting in place would mutate state.
   const sortedCoverage = useMemo(() => {
@@ -1701,18 +1740,32 @@ export function PracticeGrowthCalculator({
                       </span>
                     </p>
                     {/* Centre-aligned rather than baseline: a baseline row would
-                        hang the pin below the digits it sits beside. */}
-                    <p className="relative mt-2.5 flex flex-wrap items-center gap-x-2 border-t border-white/[0.07] pt-2.5">
-                      <span className="inline-flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4 shrink-0 text-[#A5A5A5]" aria-hidden />
-                        <span className="text-[17px] font-bold tabular-nums text-white">
-                          {pincodesCovered ?? "—"}
-                        </span>
-                      </span>
-                      <span className="text-[11px] text-[#A5A5A5]">
-                        {pincodesCovered === 1 ? "Pincode covered" : "Pincodes covered"}
-                      </span>
-                    </p>
+                        hang the pin below the digits it sits beside.
+
+                        A button rather than a paragraph wherever the table
+                        exists: this count and that table are the same fact, so
+                        the number is the natural way down to it. The group-hover
+                        classes on the shared children are inert in the other
+                        branch, which has no group to hover. */}
+                    {hasCoveragePanel ? (
+                      <button
+                        type="button"
+                        onClick={revealCoverage}
+                        aria-controls="coverage-breakdown"
+                        aria-label={`${pincodesCovered ?? "No"} pincodes covered — show the coverage breakdown`}
+                        className="group/pin relative mt-2.5 flex w-full flex-wrap items-center gap-x-2 rounded-sm border-t border-white/[0.07] pt-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-600"
+                      >
+                        {pincodesCoveredRow}
+                        <ChevronRight
+                          aria-hidden
+                          className="h-3.5 w-3.5 shrink-0 text-[#A5A5A5] transition group-hover/pin:translate-x-0.5 group-hover/pin:text-white"
+                        />
+                      </button>
+                    ) : (
+                      <p className="relative mt-2.5 flex flex-wrap items-center gap-x-2 border-t border-white/[0.07] pt-2.5">
+                        {pincodesCoveredRow}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex-1 overflow-hidden rounded-xl bg-ink-600 p-3.5">
@@ -1841,44 +1894,19 @@ export function PracticeGrowthCalculator({
           showing, and pushes its own controls off the bottom of the screen. */}
       {!compact && hasGenerated && (
         <div className="border-t border-white/[0.07] p-4 sm:p-5">
-          {/* Collapsed by default: reassurance-on-demand, not something the
-              reader needs before the numbers above. Native <details> so it
-              works without JS, on keyboard, and on touch. */}
-          <details className="group rounded-lg bg-ink-850">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-2.5 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
-              {/* Same treatment as the breakdown row below it: two sibling
-                  accordions that sit one above the other have to read as a
-                  pair, and one of them dimmed looks disabled rather than
-                  secondary. */}
-              <span className="text-sm font-semibold text-white">
-                How we count the population
-              </span>
-              <ChevronDown
-                aria-hidden
-                className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
-              />
-            </summary>
-            <p className="px-5 pb-4 text-xs leading-relaxed text-white/55">
-              India is mapped as a grid of ~200 m cells, each with its own headcount, and
-              your radius sums the real cells inside it — never radius &times; average
-              density. Cells come from{" "}
-              <span className="text-white/75">Google Open Buildings</span> footprints scaled
-              by <span className="text-white/75">GHSL</span> height, carrying{" "}
-              <span className="text-white/75">WorldPop</span> totals blended with Meta&apos;s{" "}
-              <span className="text-white/75">HRSL</span> at a ratio tuned per density band,
-              then tagged to 2025 pincode boundaries (localities from the{" "}
-              <span className="text-white/75">India Post</span> directory). Calibrated
-              against ground-truth data for hundreds of pincodes — estimates, not a census.
-            </p>
-          </details>
-
           {(coverage.length > 0 || densityFallback) && (
-            /* Collapsed like the method note above it. The table can run to
+            /* Collapsed like the method note under it. The table can run to
                dozens of rows, so left open it buries everything under a scroll
                of detail nobody has asked for yet; the summary line keeps the one
-               fact worth reading at a glance. Native <details> for the same
-               reason as above: it works without JS, on keyboard, and on touch. */
-            <details className="group mt-3 rounded-lg bg-ink-850">
+               fact worth reading at a glance. It leads the two because it is the
+               one a reader comes looking for — the Serviceable Area card sends
+               them straight here. Native <details>, so that arrives open on a
+               keyboard, on touch, and with no JS at all. */
+            <details
+              id="coverage-breakdown"
+              ref={coverageRef}
+              className="group rounded-lg bg-ink-850"
+            >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-2.5 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
                 <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                   <span className="text-sm font-semibold text-white">
@@ -2028,6 +2056,41 @@ export function PracticeGrowthCalculator({
               </div>
             </details>
           )}
+
+          {/* Collapsed by default: reassurance-on-demand, not something the
+              reader needs before the numbers above — which is why it sits under
+              the table rather than over it, where it was the first thing anyone
+              scrolling this far met. Native <details> so it works without JS,
+              on keyboard, and on touch. */}
+          <details
+            className={`group rounded-lg bg-ink-850 ${hasCoveragePanel ? "mt-3" : ""}`}
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-2.5 transition hover:brightness-110 [&::-webkit-details-marker]:hidden">
+              {/* Same treatment as the breakdown row above it: two sibling
+                  accordions that sit one above the other have to read as a
+                  pair, and one of them dimmed looks disabled rather than
+                  secondary. */}
+              <span className="text-sm font-semibold text-white">
+                How we count the population
+              </span>
+              <ChevronDown
+                aria-hidden
+                className="h-4 w-4 shrink-0 text-white/45 transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+            <p className="px-5 pb-4 text-xs leading-relaxed text-white/55">
+              India is mapped as a grid of ~200 m cells, each with its own headcount, and
+              your radius sums the real cells inside it — never radius &times; average
+              density. Cells come from{" "}
+              <span className="text-white/75">Google Open Buildings</span> footprints scaled
+              by <span className="text-white/75">GHSL</span> height, carrying{" "}
+              <span className="text-white/75">WorldPop</span> totals blended with Meta&apos;s{" "}
+              <span className="text-white/75">HRSL</span> at a ratio tuned per density band,
+              then tagged to 2025 pincode boundaries (localities from the{" "}
+              <span className="text-white/75">India Post</span> directory). Calibrated
+              against ground-truth data for hundreds of pincodes — estimates, not a census.
+            </p>
+          </details>
         </div>
       )}
     </section>
