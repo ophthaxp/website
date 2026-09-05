@@ -18,6 +18,12 @@
  * without quietly bloating either store.
  */
 
+import {
+  practiceImpactPct,
+  practiceRevenue,
+  type PracticeProfile,
+} from "./roiDerived";
+
 const KEY = "lom.outlook.v1";
 
 /** One pincode inside the radius, placed for the dial. */
@@ -91,6 +97,8 @@ interface CalculatorResult {
   pincode: string;
   city: string | null;
   region: string | null;
+  /** The district, where the caller has looked it up. Preferred over `region`. */
+  district?: string | null;
   radiusKm: number;
   serviceablePopulation: number;
   prevalenceCount: number;
@@ -107,19 +115,34 @@ interface CalculatorResult {
  * Pure, and free of anything browser-only, because the server route that
  * persists an outlook against the account calls this too. One builder means the
  * two copies of an outlook can never be different shapes.
+ *
+ * `practice` is the reader's own profile, and where it is given it decides the
+ * revenue and the impact — the same arithmetic the panel drew them with. The
+ * backend's own two figures are the fallback, for a caller that has no profile
+ * to hand. Without this the dashboard quietly contradicted the calculator:
+ * the backend prices inpatients alone at a fixed rate per specialty, so an
+ * outlook shown as ₹2.40 Cr was stored, and shown again, as ₹1.50 Cr.
  */
-export function toSnapshot(result: CalculatorResult): OutlookSnapshot {
+export function toSnapshot(
+  result: CalculatorResult,
+  practice?: PracticeProfile | null,
+): OutlookSnapshot {
   return {
     savedAt: new Date().toISOString(),
     specialization: result.specialization.label,
     pincode: result.pincode,
     place: result.city,
-    region: result.region,
+    // The district if the caller knows it. `region` is India Post's postal
+    // region — 629178 sits in the Madurai region and the Kanyakumari district,
+    // and only one of those reads as an address to the doctor who lives there.
+    region: result.district ?? result.region,
     radiusKm: result.radiusKm,
     serviceablePopulation: result.serviceablePopulation,
     prevalenceCount: result.prevalenceCount,
-    projectedRevenue: result.projectedRevenue,
-    impactPct: result.impactPct,
+    projectedRevenue: practice ? practiceRevenue(practice) : result.projectedRevenue,
+    impactPct: practice
+      ? practiceImpactPct(practice, result.prevalenceCount)
+      : result.impactPct,
     pincodesInRadius: result.pincodesInRadius ?? result.breakdown?.length ?? 0,
     points: toPoints(result.breakdown, result.center, result.radiusKm),
   };
@@ -129,9 +152,12 @@ export function toSnapshot(result: CalculatorResult): OutlookSnapshot {
  * Remember this outlook in the browser. Never throws: storage switched off, or
  * a quota that is full, must not take the calculator down with it.
  */
-export function saveOutlook(result: CalculatorResult): void {
+export function saveOutlook(
+  result: CalculatorResult,
+  practice?: PracticeProfile | null,
+): void {
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(toSnapshot(result)));
+    window.localStorage.setItem(KEY, JSON.stringify(toSnapshot(result, practice)));
   } catch {
     // Storage is a convenience here, not a requirement.
   }

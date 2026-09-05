@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { RoiSignupGate, type RoiQuota } from "@/components/RoiSignupGate";
 import { saveOutlook } from "@/lib/outlookSnapshot";
+import {
+  practiceImpactPct,
+  practiceRevenue,
+  type PracticeProfile,
+} from "@/lib/roiDerived";
 import { CatchmentMap, type CatchmentPoint } from "./CatchmentMap";
 
 interface Specialization {
@@ -723,6 +728,24 @@ export function PracticeGrowthCalculator({
     [annualInpatients],
   );
 
+  /**
+   * The four answers, in one object.
+   *
+   * Sent with the calculation as well as drawn, because the route saves the
+   * outlook against the account and the account's copy is the one the
+   * dashboard shows. Without these it would save the backend's figures, which
+   * are a different question's answer — see `roiDerived.ts`.
+   */
+  const practice: PracticeProfile = useMemo(
+    () => ({
+      annualOutpatients: annualOutpatients ?? 0,
+      opFeeInr: opFeeInr ?? 0,
+      annualInpatients: annualInpatients ?? 0,
+      ipFeeInr: ipFeeInr ?? 0,
+    }),
+    [annualOutpatients, opFeeInr, annualInpatients, ipFeeInr],
+  );
+
   const [pinLookup, setPinLookup] = useState<PincodeLookup | null>(null);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinLoading, setPinLoading] = useState(false);
@@ -978,6 +1001,7 @@ export function PracticeGrowthCalculator({
           pincode,
           radiusKm,
           expectedPatients,
+          practice,
         }),
       });
       const body = await res.json();
@@ -998,7 +1022,10 @@ export function PracticeGrowthCalculator({
         // Kept for the dashboard, whose Horizon pane opens on the last outlook
         // a doctor ran. Never awaited and never allowed to throw: it is a
         // convenience, and the calculator must not care whether it worked.
-        saveOutlook(body.data as RoiResult);
+        saveOutlook(
+          { ...(body.data as RoiResult), district: pinLookup?.district ?? null },
+          practice,
+        );
         setLockedReason(null);
         setLockedPincode(null);
         if (body.quota) setQuota(body.quota as RoiQuota);
@@ -1012,7 +1039,16 @@ export function PracticeGrowthCalculator({
     } finally {
       setCalcLoading(false);
     }
-  }, [specSlug, pincode, pinLookup, radiusKm, expectedPatients, lockedReason, lockedPincode]);
+  }, [
+    specSlug,
+    pincode,
+    pinLookup,
+    radiusKm,
+    expectedPatients,
+    practice,
+    lockedReason,
+    lockedPincode,
+  ]);
 
   // A different location is a different question, so let it be asked. Without
   // this the guard above would keep refusing to call for a location the server
@@ -1084,19 +1120,13 @@ export function PracticeGrowthCalculator({
   // rather than read off the result: the backend prices a single "patients
   // treated" figure at one average selling price and has no notion of an
   // OP/IP split, so it cannot answer what the reader is being asked here.
-  const projectedRevenue = useMemo(
-    () =>
-      (annualOutpatients ?? 0) * (opFeeInr ?? 0) +
-      (annualInpatients ?? 0) * (ipFeeInr ?? 0),
-    [annualOutpatients, opFeeInr, annualInpatients, ipFeeInr],
-  );
+  const projectedRevenue = useMemo(() => practiceRevenue(practice), [practice]);
 
   /** Share of the local disease burden this practice volume could reach. */
-  const impactPct = useMemo(() => {
-    if (!prevalenceCount) return 0;
-    const treated = (annualOutpatients ?? 0) + (annualInpatients ?? 0);
-    return Math.min(100, (treated / prevalenceCount) * 100);
-  }, [prevalenceCount, annualOutpatients, annualInpatients]);
+  const impactPct = useMemo(
+    () => practiceImpactPct(practice, prevalenceCount),
+    [practice, prevalenceCount],
+  );
 
   /** Figures in the burden row, one per ~2% of the catchment. */
   const burdenFigures = useMemo(() => {
