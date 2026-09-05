@@ -12,7 +12,6 @@ import {
   ResultCount,
   SearchField,
 } from "@/components/CatalogUI";
-import { formatINR } from "@/lib/utils";
 import type { Doctor, Program } from "@/types";
 
 const DURATION_BUCKETS: { key: string; label: string; matches: (months: number) => boolean }[] = [
@@ -200,10 +199,12 @@ export function ProgramsPageClient({
                         ? `with ${mentorName}`
                         : p.specialistTitle ?? p.specialty
                     }
+                    // No fee here. The catalogue card is for deciding what to
+                    // open, and the price belongs on the programme page, where
+                    // there is room to say what it covers.
                     meta={[
                       durationLabel,
                       p.cohortSize ? `cohort of ${p.cohortSize}` : null,
-                      p.priceInr ? formatINR(p.priceInr) : null,
                     ]}
                     isNew={p.isNew}
                     tag={launchLabel ?? null}
