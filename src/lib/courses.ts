@@ -571,7 +571,15 @@ function extractRows(json: any): RawRecord[] {
   return [];
 }
 
-export async function fetchCoursesFromBackend(): Promise<Program[]> {
+/**
+ * Every course row the module holds, switched on or not.
+ *
+ * Internal: the pages want `fetchCoursesFromBackend` below, which drops the
+ * inactive ones. This exists because a lookup by slug must still be able to
+ * find a course the admin has since switched off — a Star part-way through an
+ * application to it should not walk into a 404.
+ */
+async function listAllPrograms(): Promise<Program[]> {
   if (!isBackendConfigured) return PROGRAMS;
 
   // 1. Try the dedicated courses module first.
@@ -618,6 +626,32 @@ export async function fetchCoursesFromBackend(): Promise<Program[]> {
   return programs;
 }
 
+/**
+ * The courses the site should actually show.
+ *
+ * The module is the admin's working set — courses being drafted, courses that
+ * have run their course — and `isActive` is the switch that says which of them
+ * the public gets. Listing the lot meant a half-written programme appeared on
+ * /programs beside the live ones. Same rule as `selectDisplayDoctors`: a row
+ * that has never had the column filled in counts as active, so an older course
+ * predating the switch does not vanish.
+ *
+ * The filter sits here rather than in each page so /programs, the homepage,
+ * the account suggestion, /api/programs, the sitemap and the prerendered slug
+ * list all agree on what exists.
+ */
+export async function fetchCoursesFromBackend(): Promise<Program[]> {
+  const all = await listAllPrograms();
+  // After the mock fallback inside listAllPrograms, never before it: a module
+  // whose rows are every one of them inactive should come back empty, not
+  // resurrect the local mock as though the backend were down.
+  const active = all.filter((p) => p.isActive !== false);
+  if (active.length !== all.length) {
+    console.log(`[courses] hiding ${all.length - active.length} inactive course(s)`);
+  }
+  return active;
+}
+
 function doctorToFaculty(d: Doctor): Faculty {
   return {
     slug: d.slug,
@@ -646,7 +680,8 @@ async function attachFaculty(program: Program): Promise<Program> {
     undefined;
   if (!refSlug) return program;
 
-  const doctors = await fetchDoctorsFromBackend();
+  // Unfiltered on purpose — see fetchAllDoctorsFromBackend.
+  const doctors = await fetchAllDoctorsFromBackend();
   // `doctorSlug` may be the doctor's slug OR its numeric row id (the nocode
   // backend stores reference fields as INTEGER FKs), so match against both.
   const refStr = String(refSlug);
@@ -687,8 +722,9 @@ export async function fetchCourseFromBackend(slug: string): Promise<Program | nu
     }
   }
 
-  // Fallback: list all + find by slug
-  const all = await fetchCoursesFromBackend();
+  // Fallback: list all + find by slug. Deliberately the unfiltered list — see
+  // listAllPrograms.
+  const all = await listAllPrograms();
   const found = all.find((p) => p.slug === slug);
   return found ? await attachFaculty(found) : null;
 }
@@ -698,7 +734,16 @@ export async function fetchCourseSlugsFromBackend(): Promise<string[]> {
   return all.map((p) => p.slug);
 }
 
-export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
+/**
+ * Every doctor row the module holds, switched on or not.
+ *
+ * The listings want `fetchDoctorsFromBackend` below. This one exists for the
+ * lookups that must still resolve a Legend the admin has switched off: a live
+ * course keeps its mentor credit and its booking email either way, because
+ * taking a Legend off the index should not quietly break the course page or
+ * the apply flow underneath it.
+ */
+export async function fetchAllDoctorsFromBackend(): Promise<Doctor[]> {
   if (!isBackendConfigured) return DOCTORS;
   const url = `${NOCODE_BASE}/api/public/records/${NOCODE_APP_ID}/${encodeURIComponent(
     NOCODE_DOCTORS_MODULE,
@@ -715,6 +760,24 @@ export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
   const rows = extractRows(json);
   console.log(`[courses] fetched ${rows.length} doctor rows`);
   return rows.map(mapRecordToDoctor).filter((d): d is Doctor => !!d);
+}
+
+/**
+ * The Legends the site should actually show.
+ *
+ * `isActive` is the admin's switch for which rows the public gets, and until
+ * now only the homepage rail honoured it — /doctors, /api/doctors, the hero
+ * marquee and the sitemap listed the working set entire. A row that has never
+ * had the column filled in counts as active, so nothing predating the switch
+ * disappears.
+ */
+export async function fetchDoctorsFromBackend(): Promise<Doctor[]> {
+  const all = await fetchAllDoctorsFromBackend();
+  const active = all.filter((d) => d.isActive !== false);
+  if (active.length !== all.length) {
+    console.log(`[courses] hiding ${all.length - active.length} inactive doctor(s)`);
+  }
+  return active;
 }
 
 /**

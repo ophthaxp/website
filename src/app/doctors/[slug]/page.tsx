@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { fetchDoctorsFromBackend } from "@/lib/courses";
+import { fetchAllDoctorsFromBackend, fetchDoctorsFromBackend } from "@/lib/courses";
 import { buildMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { DoctorDetailClient } from "./DoctorDetailClient";
 
@@ -16,7 +16,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const doctors = await fetchDoctorsFromBackend();
+  const doctors = await fetchAllDoctorsFromBackend();
   const d = doctors.find((x) => x.slug === params.slug);
   if (!d) return buildMetadata({ title: "Mentor not found" });
 
@@ -57,10 +57,13 @@ export default async function DoctorDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const doctors = await fetchDoctorsFromBackend();
+  // Looked up in the unfiltered list so a Legend switched off the index is
+  // still reachable by the link someone already has, but only active Legends
+  // are offered as somewhere to go next.
+  const doctors = await fetchAllDoctorsFromBackend();
   const d = doctors.find((x) => x.slug === params.slug);
   if (!d) notFound();
-  const others = doctors.filter((x) => x.id !== d.id);
+  const others = doctors.filter((x) => x.id !== d.id && x.isActive !== false);
 
   const personLd = {
     "@context": "https://schema.org",
