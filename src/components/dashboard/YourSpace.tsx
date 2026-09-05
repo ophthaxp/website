@@ -29,9 +29,9 @@ export function YourSpace({
 }) {
   const [active, setActive] = useState(THREAD[0].key);
 
-  /* A link elsewhere on the page can ask for a pane by name — the Growth Lab's
-     Horizon card points at `#horizon`. The pane has to be shown before it can
-     be scrolled to, so the scroll waits for the frame after the switch. */
+  /* A link elsewhere on the page can ask for a pane by name — `#horizon`,
+     `#pathways`. The pane has to be shown before it can be scrolled to, so the
+     scroll waits for the frame after the switch. */
   useEffect(() => {
     const apply = () => {
       const key = window.location.hash.replace("#", "");
