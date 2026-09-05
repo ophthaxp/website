@@ -123,7 +123,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
       </p>
 
       {linkError ? (
-        <p className="mt-5 rounded-[10px] bg-amber-500/10 px-3 py-2 text-sm text-amber-200 ring-1 ring-amber-500/30">
+        <p className="mt-5 rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-200 ring-1 ring-amber-500/30">
           That link has expired or was already used. Log in below instead.
         </p>
       ) : null}
@@ -163,7 +163,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
 
         {status === "error" && errorMsg ? (
           <div
-            className={`rounded-[10px] px-3 py-2 text-sm ring-1 ${
+            className={`rounded-xl px-3 py-2 text-sm ring-1 ${
               needsVerification
                 ? "bg-amber-500/10 text-amber-200 ring-amber-500/30"
                 : "bg-red-500/10 text-red-300 ring-red-500/30"
@@ -222,7 +222,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
         <button
           type="submit"
           disabled={status === "signing-in"}
-          className="mt-2 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "signing-in" ? (
             <>
@@ -250,4 +250,4 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
 }
 
 const inputCls =
-  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
+  "w-full rounded-xl border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";

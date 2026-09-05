@@ -3,32 +3,38 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronsLeft, ChevronsRight, Baby, Scissors } from "lucide-react";
 import {
-  ChevronsLeft,
-  ChevronsRight,
-  GraduationCap,
-  Eye,
-  Sparkles,
-  Aperture,
-  Droplet,
-  Baby,
-  Scissors,
-  Building2,
-  type LucideIcon,
-} from "lucide-react";
+  AllSpecialtiesIcon,
+  CorneaIcon,
+  GlaucomaIcon,
+  PracticeManagementIcon,
+  RefractiveSurgeryIcon,
+  RetinaIcon,
+} from "@/components/SpecialtyIcons";
 import { DOCTORS, SPECIALTY_TABS } from "@/lib/data";
 import type { Doctor, Program, Specialty } from "@/types";
 import { cn } from "@/lib/utils";
 
-const SPECIALTY_ICONS: Record<Specialty, LucideIcon> = {
-  all: GraduationCap,
-  "cornea-ocular-surface": Eye,
-  "phaco-refractive-surgery": Sparkles,
-  "retina-vitreo-retinal-surgery": Aperture,
-  glaucoma: Droplet,
+/**
+ * The mark on each filter chip.
+ *
+ * Six come from the Figma and are one drawn family — the same eye, with what
+ * distinguishes each specialty added to it. Two do not: the Figma row covered
+ * All, Cataract, Glaucoma, Refractive Surgery, Cornea, Retina and Practice
+ * Management, and this site's tabs also include Pediatric and Oculoplasty. Those
+ * two keep their lucide stand-ins until the artwork exists, rather than being
+ * handed a drawing that means something else.
+ */
+const SPECIALTY_ICONS: Record<Specialty, React.ComponentType<{ className?: string }>> = {
+  all: AllSpecialtiesIcon,
+  "cornea-ocular-surface": CorneaIcon,
+  "phaco-refractive-surgery": RefractiveSurgeryIcon,
+  "retina-vitreo-retinal-surgery": RetinaIcon,
+  glaucoma: GlaucomaIcon,
   "pediatric-ophthalmology": Baby,
   oculoplasty: Scissors,
-  "ophthalmology-practice-mastery": Building2,
+  "ophthalmology-practice-mastery": PracticeManagementIcon,
 };
 
 /* The filter row runs across a single line in the design, so the tabs show the
@@ -168,7 +174,7 @@ export function ProgramsSection({
       >
         {SPECIALTY_TABS.map((tab) => {
           const selected = active === tab.key;
-          const Icon = SPECIALTY_ICONS[tab.key] ?? GraduationCap;
+          const Icon = SPECIALTY_ICONS[tab.key] ?? AllSpecialtiesIcon;
           return (
             <button
               key={tab.key}
@@ -183,7 +189,7 @@ export function ProgramsSection({
                   : "border-transparent bg-ink-800 text-white/70 hover:bg-ink-700 hover:text-white",
               )}
             >
-              <Icon className="h-[18px] w-[18px]" aria-hidden />
+              <Icon className="h-[22px] w-[22px]" />
               {SHORT_LABELS[tab.key] ?? tab.label}
             </button>
           );

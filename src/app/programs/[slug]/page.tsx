@@ -14,7 +14,7 @@ import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
-  fetchDoctorsFromBackend,
+  fetchAllDoctorsFromBackend,
   fetchRelatedDoctors,
 } from "@/lib/courses";
 import type { CourseModule, Doctor, Faculty } from "@/types";
@@ -113,7 +113,9 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
     faculty = doctorToFaculty(related[0]);
   }
   if (!faculty) {
-    const allDoctors = await fetchDoctorsFromBackend();
+    // Unfiltered: a live course keeps its mentor credit even if that Legend
+    // has since been switched off the /doctors index.
+    const allDoctors = await fetchAllDoctorsFromBackend();
     const match = allDoctors.find(
       (d) => d.courseSlug === p.slug || d.slug === p.slug,
     );

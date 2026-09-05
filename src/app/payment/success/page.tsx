@@ -34,12 +34,12 @@ export default function PaymentSuccess({
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col items-center justify-center px-5 text-center">
       <Image
-        src="/logo.png"
+        src="/brand/lom-logo-full.png"
         alt="Legends of Medicine"
-        width={410}
-        height={120}
+        width={623}
+        height={290}
         priority
-        className="mb-6 h-[64px] w-auto"
+        className="mb-6 h-[92px] w-auto"
       />
       <h1 className="mt-2 font-display text-[clamp(2rem,4.4vw,3rem)] uppercase leading-[1.02] tracking-[-0.01em] text-white">
         Payment <span className="text-accent">received</span>
@@ -65,14 +65,14 @@ export default function PaymentSuccess({
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link
-          href="/account"
-          className="inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+          href="/account#applications"
+          className="inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
         >
           View your application
         </Link>
         <Link
           href="/"
-          className="inline-flex rounded-[10px] bg-ink-800 px-6 py-3 text-[15px] font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
+          className="inline-flex rounded-full border border-white/15 px-6 py-3 text-[15px] font-medium text-white/80 transition hover:border-white/25 hover:text-white"
         >
           Back home
         </Link>

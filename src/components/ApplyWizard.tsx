@@ -664,13 +664,13 @@ export function ApplyWizard({
   if (needsLogin) {
     return (
       <Panel>
-        <h1 className="text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">You already have an account</h1>
+        <h1 className="font-serif text-[26px] leading-[1.2] tracking-[-0.01em] text-white">You already have an account</h1>
         <p className="mt-3 text-sm text-white/75">
           That email is already registered. Log in and you&rsquo;ll come straight back here.
         </p>
         <Link
           href={`/login?next=${encodeURIComponent(`/apply/${courseSlug}`)}`}
-          className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+          className="mt-6 inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
         >
           Log in
         </Link>
@@ -689,14 +689,14 @@ export function ApplyWizard({
       {step <= 4 ? <Stepper current={step} /> : null}
 
       {justSignedUp && step === 2 ? (
-        <p className="mt-6 rounded-[10px] bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+        <p className="mt-6 rounded-xl bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
           We&rsquo;ve emailed you a link to verify your address. You can carry on now — but
           you&rsquo;ll need to verify before you can log back in later.
         </p>
       ) : null}
 
       {errorMsg ? (
-        <p className="mt-6 rounded-[10px] bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
+        <p className="mt-6 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-red-500/30">
           {errorMsg}
         </p>
       ) : null}
@@ -799,7 +799,7 @@ export function ApplyWizard({
               */}
               <Link
                 href={`/programs/${courseSlug}`}
-                className="inline-flex items-center gap-1.5 rounded-[10px] bg-ink-800 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white/80 transition hover:border-white/25 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" aria-hidden /> Back
               </Link>
@@ -822,7 +822,7 @@ export function ApplyWizard({
 
       {step === 2 ? (
         <Panel>
-          <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">A few cases you&rsquo;ve seen</h2>
+          <h2 className="font-serif text-[22px] leading-[1.25] tracking-[-0.01em] text-white">A few cases you&rsquo;ve seen</h2>
           <p className="mt-3 text-sm text-white/65">
             We&rsquo;ll go through your cases together on the session. Send your application
             when you&rsquo;re ready.
@@ -842,7 +842,7 @@ export function ApplyWizard({
         <Panel>
           {booked ? (
             <div>
-              <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">
+              <h2 className="font-serif text-[22px] leading-[1.25] tracking-[-0.01em] text-white">
                 {booked.status === "confirmed" ? "Your call is booked" : "This time is held for you"}
               </h2>
               <p className="mt-2 text-sm text-white/75">
@@ -857,7 +857,7 @@ export function ApplyWizard({
               </p>
 
               {movedNotice ? (
-                <p className="mt-4 rounded-[10px] bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300 ring-1 ring-emerald-400/30">
+                <p className="mt-4 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300 ring-1 ring-emerald-400/30">
                   {movedNotice}
                 </p>
               ) : null}
@@ -874,7 +874,7 @@ export function ApplyWizard({
             </div>
           ) : (
             <div>
-              <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">
+              <h2 className="font-serif text-[22px] leading-[1.25] tracking-[-0.01em] text-white">
                 Pick a time with {mentorName || "your Legend"}
               </h2>
               <p className="mt-2 text-sm text-white/65">
@@ -907,7 +907,7 @@ export function ApplyWizard({
               ) : null}
 
               {slotsError ? (
-                <div className="mt-5 rounded-[10px] bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+                <div className="mt-5 rounded-xl bg-amber-500/10 px-3 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
                   {slotsError}
                 </div>
               ) : null}
@@ -917,7 +917,7 @@ export function ApplyWizard({
               ) : null}
 
               {!loadingSlots && slots && slotRows.length === 0 && !slotsError ? (
-                <div className="mt-5 rounded-[10px] bg-ink-800 px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
+                <div className="mt-5 rounded-xl bg-ink-800 px-3 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
                   No times are open in the next few weeks. Our team will be in touch to arrange
                   one with you directly.
                 </div>
@@ -936,7 +936,7 @@ export function ApplyWizard({
                       <div
                         key={row.key}
                         aria-disabled
-                        className="cursor-not-allowed rounded-xl bg-ink-800/60 px-4 py-3 text-left text-sm text-white/45 ring-1 ring-white/15"
+                        className="cursor-not-allowed rounded-xl bg-ink-800/60 px-4 py-3 text-left text-sm text-white/45 ring-1 ring-white/10"
                       >
                         <span className="block">{row.label}</span>
                         <span className="mt-0.5 flex items-center gap-1.5 text-xs text-white/40">
@@ -951,7 +951,7 @@ export function ApplyWizard({
                         onClick={() => setSlot(row.slot)}
                         className={`rounded-xl px-4 py-3 text-left text-sm ring-1 transition ${
                           slot?.start === row.start
-                            ? "bg-spark/10 text-white ring-spark/60"
+                            ? "bg-accent/15 text-white ring-accent/50"
                             : "bg-ink-800 text-white/75 ring-white/10 hover:bg-ink-700 hover:ring-white/20"
                         }`}
                       >
@@ -1013,7 +1013,7 @@ export function ApplyWizard({
 
       {step === 4 ? (
         <Panel>
-          <h2 className="text-[19px] font-extrabold leading-[1.3] tracking-[-0.015em] text-white">Confirm and pay</h2>
+          <h2 className="font-serif text-[22px] leading-[1.25] tracking-[-0.01em] text-white">Confirm and pay</h2>
           <dl className="mt-5 grid gap-2 rounded-xl bg-ink-800 px-4 py-4 text-sm ring-1 ring-white/10">
             <Row label="Programme" value={courseName} />
             <Row label="Legend" value={mentorName || "—"} />
@@ -1023,7 +1023,7 @@ export function ApplyWizard({
 
           {/* Waiting on the money, having just come back from the gateway. */}
           {confirming ? (
-            <div className="mt-5 flex items-start gap-3 rounded-[10px] bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/75 ring-1 ring-white/10">
+            <div className="mt-5 flex items-start gap-3 rounded-xl bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/75 ring-1 ring-white/10">
               <span
                 aria-hidden
                 className="mt-0.5 h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/25 border-t-white/80"
@@ -1037,7 +1037,7 @@ export function ApplyWizard({
 
           {/* Paid, but the confirmation has not reached us while they watched. */}
           {paymentStalled ? (
-            <div className="mt-5 rounded-[10px] bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
+            <div className="mt-5 rounded-xl bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-200 ring-1 ring-amber-500/30">
               Your payment is taking longer than usual to reach us. Nothing is lost — your time
               is still held and your payment is recorded. Check again in a moment, or leave it
               with us and we&rsquo;ll email your confirmation.
@@ -1046,7 +1046,7 @@ export function ApplyWizard({
 
           {/* Came back without paying. The hold has not been spent. */}
           {paymentCancelled && !confirming && !paymentStalled ? (
-            <div className="mt-5 rounded-[10px] bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
+            <div className="mt-5 rounded-xl bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/70 ring-1 ring-white/10">
               No payment was taken. Your time is still held for a short while — you can pay
               whenever you&rsquo;re ready.
             </div>
@@ -1100,7 +1100,7 @@ export function ApplyWizard({
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
               <CheckCircle2 className="h-7 w-7 text-emerald-400" aria-hidden />
             </div>
-            <h2 className="mt-5 text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white">You&rsquo;re all set</h2>
+            <h2 className="mt-5 font-serif text-[26px] leading-[1.2] tracking-[-0.01em] text-white">You&rsquo;re all set</h2>
             <p className="mt-3 text-sm text-white/75">
               Your call with {mentorName || "your Legend"}
               {booked ? (
@@ -1120,8 +1120,8 @@ export function ApplyWizard({
               </p>
             ) : null}
             <Link
-              href="/account"
-              className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+              href="/account#applications"
+              className="mt-6 inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
             >
               View your application
             </Link>
@@ -1137,11 +1137,11 @@ export function ApplyWizard({
 function Stepper({ current }: { current: number }) {
   return (
     <div className="mt-6">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
+      <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
         <span>
           Step {current} of {STEP_LABELS.length}
         </span>
-        <span className="text-white/25">· {STEP_LABELS[current - 1]}</span>
+        <span className="text-white/30">{STEP_LABELS[current - 1]}</span>
       </div>
       <div className="mt-2 flex gap-1.5" aria-hidden>
         {STEP_LABELS.map((label, index) => (
@@ -1159,7 +1159,7 @@ function Stepper({ current }: { current: number }) {
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <section className="mt-6 rounded-xl bg-ink-850 p-6 ring-1 ring-white/15 sm:p-8">
+    <section className="mt-6 rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] sm:p-8">
       {children}
     </section>
   );
@@ -1192,7 +1192,7 @@ function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={busy}
-      className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {busy ? (
         <>
@@ -1220,7 +1220,7 @@ function SecondaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1.5 rounded-[10px] bg-ink-800 px-5 py-3 text-sm font-medium text-white/85 transition hover:bg-ink-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white/80 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
     >
       {children}
     </button>
@@ -1228,7 +1228,7 @@ function SecondaryButton({
 }
 
 const inputCls =
-  "w-full rounded-[10px] border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
+  "w-full rounded-xl border border-transparent bg-ink-800 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-white/35 hover:bg-ink-700 focus:border-accent focus:bg-ink-800";
 
 function Field({
   label,

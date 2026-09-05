@@ -618,30 +618,10 @@ body {
   }
 }
 
-/* ---------- How It Works: specialty marquee, wave badges, glowing orb ----------
-   Geometry is lifted from the Figma card export (292x521): the pill rail sits
-   in a strip clipped to the card, the step badge is a hollow terracotta ring
-   with liquid sloshing inside it, and the "Visualize your Future" chip carries
-   a lit orb. */
-
-/* The rail holds two identical copies of the specialty list. Running the track
-   from 0 to -50% sweeps the pills right -> left; because copy two starts where
-   copy one ends, the seam never shows. */
-@keyframes how-rail {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-.how-rail-track {
-  animation: how-rail 34s linear infinite;
-  will-change: transform;
-}
-.how-rail:hover .how-rail-track {
-  animation-play-state: paused;
-}
+/* ---------- How It Works: wave badges, glowing orb ----------
+   Geometry is lifted from the Figma card export (292x521): the step badge is a
+   hollow terracotta ring with liquid sloshing inside it, and the "Visualize
+   your Future" chip carries a lit orb. */
 
 /* One wavelength of the badge wave is 20 user units, so sliding the crest row
    exactly -20 loops seamlessly. The second, slower wave rides on top at a
@@ -705,7 +685,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .how-rail-track,
   .how-wave-front,
   .how-wave-back,
   .how-wave-body,
@@ -860,5 +839,45 @@ body {
   .hero-bar-rim,
   .hero-glow {
     transition: none;
+  }
+}
+
+/* ---------- Dashboard ----------
+   The signed-in shell. Almost all of it is Tailwind; what lives here is the one
+   thing utilities cannot say — a surface lit from a point rather than filled
+   with a colour, so the panel reads as sitting under the same light as the
+   header above it instead of being a flat grey rectangle on black. */
+
+.dash-panel {
+  background-image: radial-gradient(
+    120% 100% at 8% 0%,
+    rgba(255, 255, 255, 0.035) 0%,
+    rgba(255, 255, 255, 0) 58%
+  );
+}
+
+/* The three tabs are anchors into one page, so the jump between them should
+   read as travel rather than a cut. Scoped with :has() to pages that actually
+   render the dashboard: scroll-behavior only works on the scrolling element,
+   and the marketing pages scroll their own way — the hero and Ask LoMa both
+   ask for an instant jump explicitly, and a site-wide smooth would fight them.
+
+   Anyone who has asked their system for less motion is left with the cut. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.dash-shell) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Land the section below the sticky header instead of underneath it. The header
+   is taller on a phone, where the tab row sits under the logo rather than
+   beside it, so the two values are the two header heights plus a little air. */
+.dash-section {
+  scroll-margin-top: 124px;
+}
+
+@media (min-width: 768px) {
+  .dash-section {
+    scroll-margin-top: 104px;
   }
 }

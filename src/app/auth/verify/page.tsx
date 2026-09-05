@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { verifyUser } from "@/lib/platformAuth";
+import { FlowHeader } from "@/components/FlowHeader";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -33,8 +34,10 @@ export default async function VerifyPage({
     : { ok: false, error: "This link is missing its token." };
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
-      <div className="rounded-xl bg-ink-850 p-6 text-center ring-1 ring-white/15 sm:p-8">
+    <>
+      <FlowHeader showAccount={false} />
+      <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-20">
+        <div className="rounded-[22px] bg-ink-900/70 p-6 text-center ring-1 ring-white/[0.08] sm:p-8">
         {result.ok ? (
           <>
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
@@ -58,7 +61,7 @@ export default async function VerifyPage({
             </p>
             <Link
               href="/login"
-              className="mt-6 inline-flex rounded-[10px] bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+              className="mt-6 inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
             >
               Log in
             </Link>
@@ -79,7 +82,8 @@ export default async function VerifyPage({
             </Link>
           </>
         )}
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }
