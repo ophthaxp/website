@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { calculateRoi } from "@/lib/roiApi";
+import { calculateRoi, fetchPincode } from "@/lib/roiApi";
 import { checkRoiGate, lockedPayload } from "@/lib/roiGate";
 import { getSessionUser } from "@/lib/session";
 import { outlookOwnerKey, saveOutlookForOwner } from "@/lib/outlookApi";
 import { toSnapshot } from "@/lib/outlookSnapshot";
+import { parsePracticeProfile, type PracticeProfile } from "@/lib/roiDerived";
 
 /**
  * The only way a browser can reach an ROI result — the backend base URL is
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
     // outlive its response, so a detached promise here would be a save that
     // works locally and silently drops in production. The cost is one more hop
     // to a backend the calculation above has just proved is up and answering.
-    await persistOutlook(data);
+    await persistOutlook(data, parsePracticeProfile(body.practice));
 
     const res = NextResponse.json({
       success: true,
@@ -84,11 +85,19 @@ export async function POST(req: Request) {
 /**
  * Store the outlook against the signed-in doctor, if there is one.
  *
+ * This copy beats the browser's on the dashboard, so it is the one that has to
+ * agree with what the calculator drew — hence `practice`, the reader's own four
+ * figures, without which the snapshot would carry the backend's answer to a
+ * different question. See `roiDerived.ts`.
+ *
  * Never throws and never reports. Persistence is a convenience on top of a
  * calculation that has already succeeded; failing the response over it would
  * trade something the doctor asked for against something they did not.
  */
-async function persistOutlook(data: Awaited<ReturnType<typeof calculateRoi>>): Promise<void> {
+async function persistOutlook(
+  data: Awaited<ReturnType<typeof calculateRoi>>,
+  practice: PracticeProfile | null,
+): Promise<void> {
   try {
     const user = getSessionUser();
     if (!user) return;
@@ -96,7 +105,15 @@ async function persistOutlook(data: Awaited<ReturnType<typeof calculateRoi>>): P
     const ownerKey = outlookOwnerKey(user.email);
     if (!ownerKey) return;
 
-    await saveOutlookForOwner(ownerKey, toSnapshot(data));
+    // The district, which the calculation itself does not return — it gives the
+    // postal region, and "Madurai" is not how someone in Kanyakumari would say
+    // where they are. One extra hop, and only for a doctor who is signed in and
+    // about to read it on their dashboard.
+    const district = await fetchPincode(data.pincode)
+      .then((lookup) => lookup.district ?? null)
+      .catch(() => null);
+
+    await saveOutlookForOwner(ownerKey, toSnapshot({ ...data, district }, practice));
   } catch {
     // See above.
   }
