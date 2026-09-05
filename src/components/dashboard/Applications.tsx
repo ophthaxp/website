@@ -129,11 +129,19 @@ export async function loadApplications(email: string): Promise<ApplicationRow[]>
   }));
 }
 
+/**
+ * The applications, two to a row.
+ *
+ * Except when there is only one, which is most people: half a card beside half
+ * an empty column reads as something that failed to load. A lone application
+ * takes the full width instead, and the pairs come back the moment there are
+ * two of them.
+ */
 export function ApplicationList({ rows }: { rows: ApplicationRow[] }) {
   if (rows.length === 0) return <ApplicationsEmpty />;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className={`grid gap-6 ${rows.length > 1 ? "lg:grid-cols-2" : ""}`}>
       {rows.map((row) => (
         <ApplicationCard key={row.id} {...row} />
       ))}
@@ -231,16 +239,15 @@ function ApplicationCard({
 }
 
 /**
- * The ladder a submitted application climbs.
+ * The path a submitted application walks, laid out left to right.
  *
- * Drawn to match the thread rail on Your Space rather than the plain numbered
- * list this used to be: same size of marker, same line running behind them,
- * same terracotta tint on the row you are standing on. Two lists of steps on
- * one page that look nothing alike read as two different products.
+ * Horizontal because it is a journey with a beginning and an end, and read
+ * that way in one glance: five markers on one line, the line behind them
+ * filling in with terracotta as far as the application has actually got.
  *
- * Detail lines appear only up to the current stage. What happens after the
- * Legend's decision is not something to read ahead about while you are still
- * waiting for it.
+ * No sentence of explanation under it: the headline card directly above the
+ * track already says what is happening right now, and saying it twice on one
+ * card reads as a mistake.
  */
 function StageTrack({
   leadStatus,
@@ -263,35 +270,37 @@ function StageTrack({
         </span>
       </div>
 
-      <ol className="mt-4">
+      <ol className="mt-5 flex items-start">
         {STAGES.map((stage, index) => {
           const done = index < reached;
-          const current = index === reached;
+          const here = index === reached;
           const isDecision = stage.key === "selected";
           // A rejection is an outcome, not a win. It keeps its place on the
-          // ladder but never the accent, which everywhere else means progress.
+          // track but never the accent, which everywhere else means progress.
           const closed = rejected && isDecision;
-          const last = index === STAGES.length - 1;
 
           return (
-            <li key={stage.key} className="relative flex gap-3.5">
-              {!last ? (
+            <li
+              key={stage.key}
+              className="relative flex flex-1 flex-col items-center gap-2 text-center"
+            >
+              {index > 0 ? (
                 <span
                   aria-hidden
-                  className={`absolute left-[15px] top-9 h-[calc(100%-20px)] w-px ${
-                    done ? "bg-accent/40" : "bg-white/10"
+                  className={`absolute right-1/2 top-[13px] h-px w-full ${
+                    index <= reached ? "bg-accent/40" : "bg-white/10"
                   }`}
                 />
               ) : null}
 
               <span
                 aria-hidden
-                className={`relative z-10 mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-1 transition ${
+                className={`relative z-10 flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ring-1 transition ${
                   closed
                     ? "bg-white/[0.06] text-white/60 ring-white/20"
                     : done
                       ? "bg-accent text-white ring-accent"
-                      : current
+                      : here
                         ? "bg-accent/20 text-accent-soft ring-accent/45"
                         : "bg-ink-850 text-white/30 ring-white/10"
                 }`}
@@ -299,24 +308,13 @@ function StageTrack({
                 {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} /> : index + 1}
               </span>
 
-              <div
-                className={`-mx-2 mb-1 min-w-0 flex-1 rounded-xl px-3 pb-4 pt-1.5 ${
-                  current && !closed
-                    ? "bg-gradient-to-r from-accent/[0.12] to-transparent"
-                    : ""
-                } ${last ? "pb-1" : ""}`}
+              <p
+                className={`px-0.5 text-[11px] leading-tight ${
+                  done || here ? "font-medium text-white" : "text-white/35"
+                }`}
               >
-                <p
-                  className={`text-sm font-medium ${
-                    done || current ? "text-white" : "text-white/35"
-                  }`}
-                >
-                  {closed ? "Legend's decision — not this cohort" : stage.label}
-                </p>
-                {current || done ? (
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">{stage.detail}</p>
-                ) : null}
-              </div>
+                {closed ? "Not this cohort" : stage.short}
+              </p>
             </li>
           );
         })}

@@ -18,6 +18,11 @@ export type LeadStatus =
 export interface Stage {
   key: string;
   label: string;
+  /**
+   * The label when the stages are laid out side by side and each one only gets
+   * a sliver of the card's width. Says the same thing in as few words as it can.
+   */
+  short: string;
   /** What the applicant should understand has happened, or is expected of them. */
   detail: string;
 }
@@ -32,26 +37,31 @@ export const STAGES: Stage[] = [
   {
     key: "new",
     label: "Application received",
+    short: "Received",
     detail: "Our team is reviewing your application.",
   },
   {
     key: "call_fee_paid",
     label: "Slot booked",
+    short: "Slot booked",
     detail: "Your session with your Legend is confirmed.",
   },
   {
     key: "selected",
     label: "Legend's decision",
+    short: "Decision",
     detail: "Your Legend has reviewed your case after the session.",
   },
   {
     key: "course_fee_paid",
     label: "Seat confirmed",
+    short: "Seat held",
     detail: "Your course fee is paid and your seat is held.",
   },
   {
     key: "enrolled",
     label: "Enrolled",
+    short: "Enrolled",
     detail: "You're in. Your LMS details are on their way.",
   },
 ];
