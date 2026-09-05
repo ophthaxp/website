@@ -34,9 +34,14 @@ export const THREAD: ThreadItem[] = [
     name: "Visualise your future",
     blurb: "See the practice your present choices are quietly building.",
     status: "Size your catchment",
-    // The calculator itself is on Your Space now, so this points at the pane
-    // rather than sending a signed-in doctor back out to the marketing page.
-    href: "#horizon",
+    // Straight to the calculator, which lives on the ROI section of the home
+    // page — the same place the Horizon pane's own button sends you, and the
+    // same place the navbar's "Future" goes. This used to point at `#horizon`,
+    // which was nothing: no element on the page carries that id, and the pane
+    // it meant to select is a record of the last outlook rather than somewhere
+    // you can run one. The card promises to visualise your future, so it opens
+    // the thing that does it instead of costing a second click to get there.
+    href: "/#roi",
     icon: Crosshair,
   },
   {
