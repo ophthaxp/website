@@ -1610,7 +1610,14 @@ export function PracticeGrowthCalculator({
         </div>
 
         {/* ─────────── RIGHT: catchment + results ─────────── */}
-        <div className="relative flex min-w-0 flex-col">
+        {/* `z-0` is doing real work: it makes this column its own stacking
+            context. The layers inside it are numbered in the thousands to clear
+            Leaflet's own panes, and without a context of their own those
+            numbers compete with the whole page — the signup wall painted over
+            the sticky header and its blur ghosted the nav links. Contained
+            here, the column as a whole sits below the header where it belongs,
+            and the wall still covers the map inside it. */}
+        <div className="relative z-0 flex min-w-0 flex-col">
           {/* Catchment view. Empty until the reader asks for an outlook — no map,
               no rings, no numbers, because a catchment nobody chose is a figure
               nobody should read. Once there is a result the map takes over and
