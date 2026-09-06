@@ -6,7 +6,7 @@ import { ArrowUp, AudioLines, Loader2, Mic } from "lucide-react";
 const QUICK_PROMPTS = [
   "Help diagnose this retinal condition",
   "Show upcoming fellowship cohort opportunities",
-  "Recommend the right fellowship program",
+  "Recommend the right fellowship programme",
 ];
 
 /* Figma's mid-grey. Everything secondary inside the panel is this one value:

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
   const program = PROGRAMS.find((p) => p.slug === body.programSlug);
   if (!program) {
-    return NextResponse.json({ error: "Program not found" }, { status: 404 });
+    return NextResponse.json({ error: "Programme not found" }, { status: 404 });
   }
 
   return NextResponse.json({

@@ -34,7 +34,7 @@ export function HomeRoiSection() {
           Ready to redefine your clinical future?
         </h3>
         <p className="mx-auto mt-4 max-w-[42rem] text-[15px] leading-relaxed text-white/45">
-          Take the next step with a Program designed to elevate your expertise, expand
+          Take the next step with a Programme designed to elevate your expertise, expand
           your impact, and shape the future of your practice.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -49,7 +49,7 @@ export function HomeRoiSection() {
             href="/programs"
             className="rounded-[10px] bg-ink-850 px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            Explore Programs
+            Explore Programmes
           </Link>
         </div>
       </div>

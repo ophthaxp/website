@@ -10,7 +10,7 @@ import { AccountChip } from "@/components/AccountChip";
  * The dashboard's own header.
  *
  * The marketing `Navbar` is not reused here on purpose. That header sells the
- * place — Legends, Programs, Future, and a login icon — and none of those are
+ * place — Legends, Programmes, Future, and a login icon — and none of those are
  * what somebody already signed in is looking for. This one is a workspace bar:
  * where you are, and who you are signed in as.
  *

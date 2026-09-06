@@ -6,9 +6,9 @@ import { buildMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Programs",
+  title: "Programmes",
   description:
-    "Explore Legends of Medicine cohort-based mentorship programs across cataract, retina, glaucoma, cornea, paediatric, neuro and refractive ophthalmology.",
+    "Explore Legends of Medicine cohort-based mentorship programmes across cataract, retina, glaucoma, cornea, paediatric, neuro and refractive ophthalmology.",
   alternates: { canonical: "/programs" },
 });
 

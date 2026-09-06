@@ -10,7 +10,7 @@ import { AskLomaButton } from "./AskLomaButton";
 /** Centre nav — the three destinations shown in the Figma header. */
 const LINKS: { label: string; href: string }[] = [
   { label: "Legends", href: "/doctors" },
-  { label: "Programs", href: "/programs" },
+  { label: "Programmes", href: "/programs" },
   { label: "Future", href: "/#roi" },
 ];
 

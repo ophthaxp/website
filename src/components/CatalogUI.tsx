@@ -215,7 +215,7 @@ export interface CatalogCardProps {
  *
  * The rail already solved this: one portrait, everything printed over the foot
  * of it, nothing stacked underneath. Keeping that means a reader who taps
- * "Explore Programs" on the home page lands among the same objects they were
+ * "Explore Programmes" on the home page lands among the same objects they were
  * just scrolling, and the grid stays flush because the card's height is the
  * portrait's, not the text's.
  */

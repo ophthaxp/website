@@ -131,7 +131,7 @@ export const PROGRAMS: Program[] = [
     name: "Cataract Mastery Cohort",
     specialty: "phaco-refractive-surgery",
     description:
-      "A 12-week practitioner-first program covering phaco fundamentals, complication management and premium IOL outcomes.",
+      "A 12-week practitioner-first programme covering phaco fundamentals, complication management and premium IOL outcomes.",
     durationWeeks: 12,
     cohortSize: 24,
     startDate: "2026-06-01",
@@ -148,7 +148,7 @@ export const PROGRAMS: Program[] = [
     name: "Vitreo-Retinal Surgery Track",
     specialty: "retina-vitreo-retinal-surgery",
     description:
-      "Cohort-based program for residents and fellows interested in posterior segment surgery.",
+      "Cohort-based programme for residents and fellows interested in posterior segment surgery.",
     durationWeeks: 16,
     cohortSize: 18,
     startDate: "2026-07-15",
@@ -171,7 +171,7 @@ export const PROGRAMS: Program[] = [
   {
     id: "p4",
     slug: "glaucoma-clinic",
-    name: "Glaucoma Clinic Program",
+    name: "Glaucoma Clinic Programme",
     specialty: "glaucoma",
     description: "Real-time clinical decision making with senior glaucomatologists.",
     durationWeeks: 8,

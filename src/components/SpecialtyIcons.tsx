@@ -1,5 +1,5 @@
 /**
- * The specialty marks from the Figma, for the Legacy Transfer Programs filter.
+ * The specialty marks from the Figma, for the Legacy Transfer Programmes filter.
  *
  * They replace lucide's generic stand-ins (a graduation cap, a droplet, a pair
  * of scissors) which were placeholders standing in for artwork that did not

@@ -216,7 +216,7 @@ export function DoctorDetailClient({
                     href={`/programs/${doctor.courseSlug}`}
                     className="inline-flex items-center justify-center rounded-[10px] bg-accent px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   >
-                    View Program
+                    View Programme
                   </Link>
                 )}
                 <button

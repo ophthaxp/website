@@ -1627,7 +1627,7 @@ export function PracticeGrowthCalculator({
             {/* z-0 above is load-bearing: Leaflet numbers its own panes up to
                 1000 and its controls above that, and with no stacking context
                 of its own the map would compare those against the whole page —
-                painting over the sticky header and over the ROI Analysis tab
+                painting over the sticky header and over the analysis tab
                 that overlaps its bottom edge. A stacking context at z-0 keeps
                 all of that arithmetic inside this box.
 
@@ -1733,14 +1733,18 @@ export function PracticeGrowthCalculator({
             )}
           </div>
 
-          {/* ROI Analysis — the cards exist only once the reader has asked for
-              an outlook. Before that they would be five headings over five
-              dashes, which reads as a panel that failed to load rather than
-              one waiting for an answer. */}
+          {/* Clinical Impact Analysis — the cards exist only once the reader
+              has asked for an outlook. Before that they would be five headings
+              over five dashes, which reads as a panel that failed to load
+              rather than one waiting for an answer.
+
+              Called "ROI Analysis" until it was pointed out that a doctor
+              reading a panel about patients reached and disease burden is not
+              being shown a return on investment. */}
           {hasGenerated && (
             <div className="relative border-t border-white/[0.07] p-3.5 sm:p-4">
               <span className="absolute -top-[17px] left-5 inline-flex items-center gap-2 rounded-t-lg bg-ink-800 px-4 py-2 text-[13px] text-white/85">
-                ROI Analysis
+                Clinical Impact Analysis
                 <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
               </span>
 

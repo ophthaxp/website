@@ -23,12 +23,12 @@ const FAQS: FaqItem[] = [
   {
     tag: "General",
     q: "How many Mentors are currently on the Platform?",
-    a: "We currently feature 10 world-renowned Legends, each bringing exceptional expertise, mentorship, and real-world clinical experience to every program.",
+    a: "We currently feature 10 world-renowned Legends, each bringing exceptional expertise, mentorship, and real-world clinical experience to every programme.",
   },
   {
     tag: "General",
     q: "What makes us different?",
-    a: "Our live, Legend-led programs provide direct access to renowned clinicians, delivering practical learning beyond traditional online courses.",
+    a: "Our live, Legend-led programmes provide direct access to renowned clinicians, delivering practical learning beyond traditional online courses.",
   },
   {
     tag: "Cohorts & Admission",
@@ -43,7 +43,7 @@ const FAQS: FaqItem[] = [
   {
     tag: "Cohorts & Admission",
     q: "How do I apply to a cohort?",
-    a: "Apply from any program page. Our team reviews every application and responds within 48 hours, usually with a discovery call scheduled with the Legend.",
+    a: "Apply from any programme page. Our team reviews every application and responds within 48 hours, usually with a discovery call scheduled with the Legend.",
   },
   {
     tag: "Cohorts & Admission",
@@ -52,13 +52,13 @@ const FAQS: FaqItem[] = [
   },
   {
     tag: "Pricing & Access",
-    q: "What does the program cost?",
-    a: "Tuition varies by mentor and program length and is shown on each program page. Need-based and merit scholarships are available on application.",
+    q: "What does the programme cost?",
+    a: "Tuition varies by mentor and programme length and is shown on each programme page. Need-based and merit scholarships are available on application.",
   },
   {
     tag: "Pricing & Access",
     q: "Do you offer EMI or refunds?",
-    a: "Yes. Most programs support 3, 6 and 12-month EMI through partnered lenders, plus a 7-day full refund window from the cohort start.",
+    a: "Yes. Most programmes support 3, 6 and 12-month EMI through partnered lenders, plus a 7-day full refund window from the cohort start.",
   },
   {
     tag: "Pricing & Access",
