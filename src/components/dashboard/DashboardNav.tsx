@@ -72,10 +72,12 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
         <AccountChip
           name={name}
           email={email}
-          links={[
-            { href: "/", label: "Back to the site" },
-            { href: "/programs", label: "Browse programmes" },
-          ]}
+          /* Both of these used to leave: "Back to the site" and "Browse
+             programmes". The logo above already does the first and the
+             Pathways section does the second, and a signed-in doctor is meant
+             to have exactly those two ways out — not four. What is left points
+             further into their own space. */
+          links={[{ href: "/account#applications", label: "Your applications" }]}
         />
       </nav>
 

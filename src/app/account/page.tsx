@@ -142,7 +142,12 @@ export default async function AccountPage() {
         <PageHeading id="pathways-title" eyebrow="Pathways" title="Mastery, passed forward." />
 
         <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          {/* The one way from the dashboard onto the programmes site, and the
+              only one the whole signed-in space is meant to have besides the
+              logo. It carries an id because everything else that used to say
+              "browse programmes" now points here instead of leaving. */}
           <Link
+            id="explore-programmes"
             href="/programs"
             className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition hover:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:p-8"
           >

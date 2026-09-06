@@ -18,11 +18,11 @@ export function MatchedPathwayPane({ match }: { match: PathwayMatch | null }) {
         title="Pathways"
         pill={{ label: "Unavailable", tone: "quiet" }}
         footnote="The programme list is not loading just now."
-        cta={{ label: "Browse programmes", href: "/programs" }}
+        cta={{ label: "Browse programmes", href: "#explore-programmes" }}
       >
         <div className="flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/[0.02] px-6 py-14 text-center">
           <p className="max-w-md text-sm leading-relaxed text-white/55">
-            Everything on offer is on the programmes page.
+            Everything on offer is in the Pathways section below.
           </p>
         </div>
       </PaneShell>

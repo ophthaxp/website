@@ -103,10 +103,9 @@ function Discovery({ match }: { match: PathwayMatch | null }) {
           A considered match
         </p>
         <p className="mt-4 text-sm leading-relaxed text-white/55">
-          The programme list is not loading just now. Everything on offer is on the programmes
-          page.
+          The programme list is not loading just now. Everything on offer is one card over.
         </p>
-        <Cta href="/programs" label="Browse programmes" />
+        <Cta href="#explore-programmes" label="Browse programmes" />
       </>
     );
   }
@@ -134,7 +133,7 @@ function Record({ record }: { record: PathwayRecord }) {
           Nothing applied for yet. The moment you start an application it is kept here, half
           finished and all.
         </p>
-        <Cta href="/programs" label="Find a programme" />
+        <Cta href="#explore-programmes" label="Find a programme" />
       </>
     );
   }
@@ -163,7 +162,13 @@ function Record({ record }: { record: PathwayRecord }) {
   );
 }
 
-/** The one link out of this card, always pinned to the bottom of it. */
+/**
+ * The one link out of this card, always pinned to the bottom of it.
+ *
+ * `#explore-programmes` is the Explore Programmes card sitting beside this one
+ * — the single sanctioned way from the dashboard onto the programmes site. A
+ * CTA here that went to `/programs` itself would be a second front door.
+ */
 function Cta({ href, label }: { href: string; label: string }) {
   return (
     <Link
