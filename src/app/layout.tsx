@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Playfair_Display, Anton } from "next/font/google";
+import { Plus_Jakarta_Sans, Playfair_Display, Anton, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { buildMetadata, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
@@ -32,6 +32,16 @@ const anton = Anton({
   display: "swap",
 });
 
+/* One english-roundhand script, for one job: the signature above the rule on
+   the certificate in the Elite Community band. Nothing else on the site is
+   allowed to be set in it. */
+const greatVibes = Great_Vibes({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-signature",
+  display: "swap",
+});
+
 export const metadata: Metadata = buildMetadata();
 
 export const viewport: Viewport = {
@@ -43,7 +53,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${playfair.variable} ${anton.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${playfair.variable} ${anton.variable} ${greatVibes.variable}`}>
       <body className="font-sans antialiased">
         <script
           type="application/ld+json"
