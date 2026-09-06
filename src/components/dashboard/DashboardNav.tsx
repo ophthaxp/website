@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountChip } from "@/components/AccountChip";
 
@@ -19,6 +20,11 @@ import { AccountChip } from "@/components/AccountChip";
  * scroll position moves the marker back. Smooth scrolling comes from CSS (see
  * `.dash-shell` in globals.css), so a plain anchor does the whole job and this
  * file only has to work out which tab to light.
+ *
+ * Not every page under `/account` is that page, though. A tool that needs a
+ * whole screen gets its own route — `/account/horizon` — and there a bare
+ * `#growth-lab` points at nothing. So off `/account` the tabs carry the path
+ * with them, and none of them lights: the reader is not in any of the three.
  */
 
 const SECTIONS = [
@@ -28,7 +34,9 @@ const SECTIONS = [
 ];
 
 export function DashboardNav({ name, email }: { name: string; email: string }) {
-  const active = useActiveSection();
+  const onDashboard = usePathname() === "/account";
+  const scrolledTo = useActiveSection();
+  const active = onDashboard ? scrolledTo : null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.07] bg-black/85 backdrop-blur-md">
@@ -52,7 +60,11 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
         <ul className="hidden items-center gap-10 md:flex lg:gap-16">
           {SECTIONS.map((section) => (
             <li key={section.id}>
-              <Tab section={section} active={active === section.id} />
+              <Tab
+                section={section}
+                active={active === section.id}
+                onDashboard={onDashboard}
+              />
             </li>
           ))}
         </ul>
@@ -71,7 +83,12 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
       <ul className="flex items-center gap-6 overflow-x-auto border-t border-white/[0.07] px-5 py-2.5 md:hidden">
         {SECTIONS.map((section) => (
           <li key={section.id} className="shrink-0">
-            <Tab section={section} active={active === section.id} compact />
+            <Tab
+              section={section}
+              active={active === section.id}
+              onDashboard={onDashboard}
+              compact
+            />
           </li>
         ))}
       </ul>
@@ -82,15 +99,18 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
 function Tab({
   section,
   active,
+  onDashboard,
   compact = false,
 }: {
   section: (typeof SECTIONS)[number];
   active: boolean;
+  /** On `/account` the tabs are in-page jumps; anywhere else they navigate. */
+  onDashboard: boolean;
   compact?: boolean;
 }) {
   return (
     <a
-      href={`#${section.id}`}
+      href={onDashboard ? `#${section.id}` : `/account#${section.id}`}
       aria-current={active ? "true" : undefined}
       className={`relative block transition ${compact ? "py-1 text-sm" : "py-1.5 text-[15px]"} ${
         active ? "text-white" : "text-white/55 hover:text-white/90"

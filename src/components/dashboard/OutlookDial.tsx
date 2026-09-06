@@ -62,18 +62,46 @@ export function OutlookDial({
       <rect width={SIZE} height={SIZE} fill="url(#dial-grid)" />
       <circle cx={CENTRE} cy={CENTRE} r={UNIT * 1.2} fill="url(#dial-bloom)" />
 
-      {/* Three rings: the radius itself, solid, with a fainter one either side
-          so the circle reads as a field of reach and not a hard boundary. */}
-      <circle cx={CENTRE} cy={CENTRE} r={UNIT * 1.18} fill="none" stroke="#B75A44" strokeOpacity="0.14" />
+      {/* The service radius, and one ring either side of it for depth. */}
+      <circle
+        cx={CENTRE}
+        cy={CENTRE}
+        r={UNIT * 1.18}
+        fill="none"
+        stroke="#B75A44"
+        strokeOpacity="0.14"
+      />
       <circle cx={CENTRE} cy={CENTRE} r={UNIT} fill="none" stroke="#B75A44" strokeOpacity="0.4" />
-      <circle cx={CENTRE} cy={CENTRE} r={UNIT * 0.62} fill="none" stroke="#B75A44" strokeOpacity="0.2" />
+      <circle
+        cx={CENTRE}
+        cy={CENTRE}
+        r={UNIT * 0.62}
+        fill="none"
+        stroke="#B75A44"
+        strokeOpacity="0.2"
+      />
 
-      {/* Crosshair, clipped short of the middle so it never crosses the label. */}
+      {/* Crosshair, broken either side of the centre so it does not run under
+          the label sitting there. */}
       <line x1="16" y1={CENTRE} x2={CENTRE - 58} y2={CENTRE} stroke="#FFFFFF" strokeOpacity="0.09" />
-      <line x1={CENTRE + 58} y1={CENTRE} x2={SIZE - 16} y2={CENTRE} stroke="#FFFFFF" strokeOpacity="0.09" />
+      <line
+        x1={CENTRE + 58}
+        y1={CENTRE}
+        x2={SIZE - 16}
+        y2={CENTRE}
+        stroke="#FFFFFF"
+        strokeOpacity="0.09"
+      />
 
       {plotted.map((dot) => (
-        <circle key={dot.key} cx={dot.x} cy={dot.y} r={dot.r} fill="#E2735A" fillOpacity={dot.opacity} />
+        <circle
+          key={dot.key}
+          cx={dot.x}
+          cy={dot.y}
+          r={dot.r}
+          fill="#E2735A"
+          fillOpacity={dot.opacity}
+        />
       ))}
 
       <circle

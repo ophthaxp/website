@@ -11,9 +11,8 @@ import { PaneShell } from "./panes";
  *
  * A **record**, like every other pane on the thread: what you last asked, and
  * one button back to where you can ask again. Not a second calculator. There is
- * one calculator and it lives on the ROI section of the home page; a copy here
- * would be two places to keep in step and two answers to reconcile, and the
- * first time they disagreed the doctor would be the one to notice.
+ * one calculator, and its button now opens it inside the dashboard rather than
+ * on the home page — see `/account/horizon`.
  *
  * Two places an outlook can come from, in this order:
  *
@@ -57,7 +56,10 @@ export function HorizonPanel({ serverOutlook }: { serverOutlook: OutlookSnapshot
       }
       cta={{
         label: outlook ? "Explore the outlook" : "Run your first outlook",
-        href: "/#roi",
+        // The calculator, inside the dashboard. This used to be `/#roi`, which
+        // walked a signed-in doctor out onto the marketing site to use a tool
+        // their own space was advertising.
+        href: "/account/horizon",
       }}
     >
       {outlook ? <Filled outlook={outlook} /> : <Empty loading={loading} />}
