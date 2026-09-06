@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ThreadItem } from "./thread";
+import { WaitlistButton } from "./WaitlistButton";
 
 /**
  * The frame every Your Space pane sits in.
@@ -103,21 +104,28 @@ export function PaneShell({
  * ago", no level, no streak. The moment one number here is decoration, none of
  * the numbers on the other panes can be trusted either, and those are real
  * catchments and real money.
+ *
+ * What it does get is the waitlist button, so the promise is something a doctor
+ * can answer rather than only read. The footnote that used to sit at the bottom
+ * said the same thing the button's confirmation says, so it has gone: one
+ * promise, in the place where it is acted on.
  */
-export function ComingSoonPane({ item }: { item: ThreadItem }) {
+export function ComingSoonPane({ item, joined = false }: { item: ThreadItem; joined?: boolean }) {
   return (
     <PaneShell
       eyebrow={item.eyebrow}
       title={item.name}
       attribution={item.attribution}
       pill={{ label: "Coming soon", tone: "quiet" }}
-      footnote="We will tell you the moment it opens."
     >
       <div className="flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/12 bg-white/[0.02] px-6 py-14 text-center">
         <p className="max-w-md font-serif text-xl leading-snug text-white/85">{item.blurb}</p>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-white/45">
           It is being built now. Nothing to see here yet — and nothing made up to fill the space.
         </p>
+        <div className="mt-7">
+          <WaitlistButton tool={item.key} label={item.name} joined={joined} />
+        </div>
       </div>
     </PaneShell>
   );

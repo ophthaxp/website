@@ -22,10 +22,13 @@ import type { OutlookSnapshot } from "@/lib/outlookSnapshot";
 export function YourSpace({
   match,
   outlook,
+  joinedTools,
 }: {
   match: PathwayMatch | null;
   /** The account's stored outlook. Null when there is none to hand down. */
   outlook: OutlookSnapshot | null;
+  /** Thread keys this doctor has already asked to be told about. */
+  joinedTools: string[];
 }) {
   const [active, setActive] = useState(THREAD[0].key);
 
@@ -67,7 +70,7 @@ export function YourSpace({
             ) : item.key === "pathways" ? (
               <MatchedPathwayPane match={match} />
             ) : (
-              <ComingSoonPane item={item} />
+              <ComingSoonPane item={item} joined={joinedTools.includes(item.key)} />
             )}
           </div>
         ))}

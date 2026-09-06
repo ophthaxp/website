@@ -7,6 +7,7 @@ import { doctorName } from "@/lib/utils";
 import { fetchCoursesFromBackend } from "@/lib/courses";
 import { outlookOwnerKey, readOutlookForOwner } from "@/lib/outlookApi";
 import { parseOutlook } from "@/lib/outlookSnapshot";
+import { waitlistFor } from "@/lib/waitlistApi";
 import { PageHeading } from "@/components/dashboard/PageHeading";
 import { YourSpace } from "@/components/dashboard/YourSpace";
 import { ToolCard } from "@/components/dashboard/ToolCard";
@@ -57,10 +58,15 @@ export default async function AccountPage() {
 
   // Independent, so they wait together rather than one after the other. A
   // programme list that fails to load costs the suggestion card, not the page.
-  const [rows, programs, storedOutlook] = await Promise.all([
+  //
+  // The waitlist is read here rather than in the button so the two unbuilt
+  // tools open in their settled state — a doctor who signed up last week should
+  // not watch "Count me in" correct itself after hydration.
+  const [rows, programs, storedOutlook, joinedTools] = await Promise.all([
     user ? loadApplications(user.email).catch(() => [] as ApplicationRow[]) : [],
     fetchCoursesFromBackend().catch(() => []),
     ownerKey ? readOutlookForOwner(ownerKey) : Promise.resolve(null),
+    user ? waitlistFor(user.email).catch(() => [] as string[]) : ([] as string[]),
   ]);
 
   const applied = new Set(rows.map((row) => row.courseName.trim().toLowerCase()).filter(Boolean));
@@ -113,7 +119,11 @@ export default async function AccountPage() {
           }
         />
 
-        <YourSpace match={match} outlook={parseOutlook(storedOutlook)} />
+        <YourSpace
+          match={match}
+          outlook={parseOutlook(storedOutlook)}
+          joinedTools={joinedTools}
+        />
       </section>
 
       <section
@@ -129,7 +139,7 @@ export default async function AccountPage() {
 
         <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-3">
           {tools.map((item) => (
-            <ToolCard key={item.key} item={item} />
+            <ToolCard key={item.key} item={item} joined={joinedTools.includes(item.key)} />
           ))}
         </div>
       </section>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ThreadItem } from "./thread";
+import { WaitlistButton } from "./WaitlistButton";
 
 /**
  * One tool, as a card in the Growth Lab.
@@ -14,9 +15,10 @@ import type { ThreadItem } from "./thread";
  * A tool that is not finished still gets a card. Leaving it out until launch
  * means nobody knows it is coming; drawing it with an invented state would mean
  * they cannot trust the states on the cards either side of it. So it is shown,
- * and plainly labelled as not ready.
+ * plainly labelled as not ready — and, since the card is inert either way, with
+ * the one thing a doctor can usefully do about it: ask to be told.
  */
-export function ToolCard({ item }: { item: ThreadItem }) {
+export function ToolCard({ item, joined = false }: { item: ThreadItem; joined?: boolean }) {
   const Icon = item.icon;
 
   const body = (
@@ -45,10 +47,15 @@ export function ToolCard({ item }: { item: ThreadItem }) {
         <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/55">{item.blurb}</p>
       </div>
 
-      <div className="relative mt-8 flex items-center justify-between gap-4 border-t border-white/[0.09] pt-4">
+      <div className="relative mt-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-white/[0.09] pt-4">
         {/* A card that is not open says so once, in the chip. Repeating the
-            same two words on the left of the same row reads as a mistake. */}
-        {item.comingSoon ? <span /> : <span className="text-sm text-white/45">{item.status}</span>}
+            same two words on the left of the same row reads as a mistake —
+            that half of the row carries the waitlist button instead. */}
+        {item.comingSoon ? (
+          <WaitlistButton tool={item.key} label={item.name} joined={joined} />
+        ) : (
+          <span className="text-sm text-white/45">{item.status}</span>
+        )}
         {item.comingSoon ? (
           <span className="rounded-full bg-white/[0.05] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45 ring-1 ring-white/10">
             Coming soon
