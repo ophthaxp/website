@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { AccountMenu } from "./AccountMenu";
-import { AskLomaButton } from "./AskLomaButton";
+import { HeaderTools } from "./HeaderTools";
 
 /** Centre nav — the three destinations shown in the Figma header. */
 const LINKS: { label: string; href: string }[] = [
   { label: "Legends", href: "/doctors" },
-  { label: "Programs", href: "/programs" },
-  { label: "Future", href: "/#roi" },
+  { label: "Programmes", href: "/programs" },
+  // Points at the four-step walkthrough — "Every Step Towards Becoming
+  // Legendary" — not at the outlook calculator. That one has its own way in,
+  // the horizon chip in HeaderTools.
+  { label: "Journey", href: "/#how-it-works" },
 ];
 
 export function Navbar() {
@@ -49,7 +52,7 @@ export function Navbar() {
         </ul>
 
         <div className="flex items-center gap-3 sm:gap-5">
-          <AskLomaButton />
+          <HeaderTools />
           <AccountMenu />
           <button
             type="button"

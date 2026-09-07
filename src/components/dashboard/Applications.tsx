@@ -157,8 +157,10 @@ export function ApplicationsEmpty() {
         When you apply to a programme it shows up here, with everything you have filled in so far
         and where it has got to.
       </p>
+      {/* Up to the Explore Programmes card in this same section, rather than
+          out to the programmes site. See `app/account/page.tsx`. */}
       <Link
-        href="/programs"
+        href="#explore-programmes"
         className="mt-7 inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
       >
         Browse programmes

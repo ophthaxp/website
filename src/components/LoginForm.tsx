@@ -26,7 +26,16 @@ const RESEND_COOLDOWN_SECONDS = 60;
  * into "wrong password", which would send people to reset a password that was
  * never the problem.
  */
-export function LoginForm({ next, linkError }: { next?: string; linkError?: boolean }) {
+export function LoginForm({
+  next,
+  linkError,
+  passwordReset,
+}: {
+  next?: string;
+  linkError?: boolean;
+  /** They have just come back through the reset flow. */
+  passwordReset?: boolean;
+}) {
   const [status, setStatus] = useState<Status>("idle");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -128,6 +137,14 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
         </p>
       ) : null}
 
+      {/* The reset flow ends here rather than signing them in, so this is the
+          only thing telling them it worked. */}
+      {passwordReset ? (
+        <p className="mt-5 rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 ring-1 ring-emerald-500/30">
+          Password updated. Log in with your new one.
+        </p>
+      ) : null}
+
       <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold text-white/70">
@@ -146,11 +163,25 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
           />
         </label>
 
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold text-white/70">
-            Password<span className="ml-1 text-accent">*</span>
-          </span>
+        {/* Not wrapped in a <label> like the field above it: a link inside a
+            label is a click the label also wants, and the two fight. The label
+            points at the input by id instead. */}
+        <div>
+          {/* On the label's own row, where somebody who has just failed to
+              remember the password is already looking. */}
+          <div className="mb-1.5 flex items-baseline justify-between gap-3">
+            <label htmlFor="login-password" className="text-xs font-semibold text-white/70">
+              Password<span className="ml-1 text-accent">*</span>
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-accent-soft underline-offset-4 transition hover:text-white hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
+            id="login-password"
             name="password"
             type="password"
             required
@@ -159,7 +190,7 @@ export function LoginForm({ next, linkError }: { next?: string; linkError?: bool
             onChange={(e) => setPassword(e.target.value)}
             className={inputCls}
           />
-        </label>
+        </div>
 
         {status === "error" && errorMsg ? (
           <div

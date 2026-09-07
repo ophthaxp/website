@@ -40,7 +40,7 @@ const HERO_SCRIM =
 const DEFAULT_INCLUSIONS = [
   "Legend Mentorship",
   "Hands-on Clinical Exposure",
-  "Program Certification",
+  "Programme Certification",
   "Lifetime Professional Network",
 ];
 
@@ -55,7 +55,7 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const p = await fetchCourseFromBackend(params.slug);
-  if (!p) return buildMetadata({ title: "Program not found" });
+  if (!p) return buildMetadata({ title: "Programme not found" });
   return buildMetadata({
     title: p.headline ? `${p.name} — ${p.headline}` : p.name,
     description: p.tagline || p.description,
@@ -332,7 +332,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                           label: "Cohort Size",
                         }
                       : null,
-                    launchLabel && { value: launchLabel, label: "Program Begins" },
+                    launchLabel && { value: launchLabel, label: "Programme Begins" },
                   ]
                     .filter(Boolean)
                     .map((stat) => {
@@ -353,7 +353,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
 
               {/* Enrollment card */}
               <div className="mx-auto mt-10 w-full max-w-[360px] rounded-[12px] border border-[#4A4A4A] bg-ink-800 p-[23px]">
-                <p className="text-[15px] font-semibold text-white">Program Enrollment</p>
+                <p className="text-[15px] font-semibold text-white">Programme Enrolment</p>
                 <div className="mt-4">
                   <CourseApplyButton
                     courseId={p.id}
@@ -474,7 +474,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
                   courseName={p.name}
                   mentorName={faculty?.name}
                   brochureUrl={p.brochureUrl}
-                  label="Apply for Program"
+                  label="Apply for Programme"
                   variant="accent"
                 />
               </div>

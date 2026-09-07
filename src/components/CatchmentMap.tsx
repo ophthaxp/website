@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
-import type { Circle, LayerGroup, Map as LeafletMap, Marker } from "leaflet";
+import type { Circle, LayerGroup, Map as LeafletMap, Marker, TileLayer } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 /**
@@ -106,6 +106,9 @@ export function CatchmentMap({
   /** Shown for a moment when a bare wheel goes by, then it gets out of the way. */
   const [hint, setHint] = useState<string | null>(null);
   const hintTimer = useRef<number | undefined>(undefined);
+  /* The view catches up a beat after the radius stops moving — see fitToCircle. */
+  const fitTimer = useRef<number | undefined>(undefined);
+  const fitted = useRef(false);
   // Read by the async setup below, which may resolve after a prop has changed.
   const latest = useRef({ center, radiusKm, points });
   latest.current = { center, radiusKm, points };
@@ -116,6 +119,39 @@ export function CatchmentMap({
     let observer: ResizeObserver | undefined;
     let host: HTMLDivElement | null = null;
     let onWheel: ((e: WheelEvent) => void) | undefined;
+    const stopHealing: (() => void)[] = [];
+
+    /**
+     * Put back tiles the browser threw away.
+     *
+     * Leaflet asks for a tile once. If that request fails it leaves the square
+     * empty for good — and the request that fails most here is not the server
+     * refusing but the browser cancelling: stepping the radius re-fits the view,
+     * every re-fit at a new zoom asks for a fresh screenful, and a burst of
+     * those aborts the ones still in flight. Enough of them abort at once and
+     * the basemap is simply gone, circle and labels floating on black.
+     *
+     * So one redraw a beat after the errors stop — coalesced, because they
+     * arrive in a clump, and capped, because if Esri is genuinely down then
+     * asking a fourth time is just noise. A screenful that loads clean clears
+     * the count, so a later wobble gets its own three tries.
+     */
+    function heal(layer: TileLayer) {
+      let timer: number | undefined;
+      let tries = 0;
+      layer.on("tileerror", () => {
+        if (tries >= 3) return;
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          tries += 1;
+          layer.redraw();
+        }, 900);
+      });
+      layer.on("load", () => {
+        tries = 0;
+      });
+      stopHealing.push(() => window.clearTimeout(timer));
+    }
 
     (async () => {
       const L = await loadLeaflet();
@@ -137,18 +173,69 @@ export function CatchmentMap({
       map.attributionControl.setPrefix(
         '<a href="https://leafletjs.com/">Leaflet</a>',
       );
-      L.tileLayer(TILES.base, {
-        attribution: TILES.attribution,
-        maxZoom: TILES.maxZoom,
-      }).addTo(map);
+      heal(
+        L.tileLayer(TILES.base, {
+          attribution: TILES.attribution,
+          maxZoom: TILES.maxZoom,
+        }).addTo(map),
+      );
       // Place names ride above the catchment overlay rather than under it: the
       // name hidden behind a pincode dot is the one the reader wanted to read.
-      L.tileLayer(TILES.labels, {
-        maxZoom: TILES.maxZoom,
-        pane: "markerPane",
-      }).addTo(map);
+      heal(
+        L.tileLayer(TILES.labels, {
+          maxZoom: TILES.maxZoom,
+          pane: "markerPane",
+        }).addTo(map),
+      );
       // Bottom right, clear of the radius buttons in the opposite corner.
       L.control.zoom({ position: "bottomright" }).addTo(map);
+
+      /* Back to the practice.
+       *
+       * The view re-frames itself whenever the catchment changes, so until the
+       * reader drags there is nothing for this to do — and that is exactly why
+       * it has to exist: once they have panned off to look at a neighbouring
+       * town, the only ways back were to change the radius or reload the page.
+       *
+       * It is a `leaflet-bar` holding one link, which is what the zoom control
+       * is, so it inherits that control's exact look with no styling of its
+       * own — the two read as one stack rather than as a button parked near a
+       * control. Controls added to a bottom corner are inserted above what is
+       * already there, so adding it after the zoom puts it on top of the pair.
+       */
+      const recentre = new L.Control({ position: "bottomright" });
+      recentre.onAdd = () => {
+        const bar = L.DomUtil.create("div", "leaflet-bar");
+        const link = L.DomUtil.create("a", "", bar) as HTMLAnchorElement;
+        link.href = "#";
+        link.title = "Recentre on your practice";
+        link.setAttribute("role", "button");
+        link.setAttribute("aria-label", "Recentre the map on your practice");
+        /* lucide's locate-fixed, at the weight the rest of the panel's icons
+           are drawn at. The first pass was a heavier crosshair with a filled
+           centre, which at 14px on a 26px button closed up into a blot. Two
+           thin rings and four ticks stay legible that small. Centring is the
+           stylesheet's job — see `.roi-map .leaflet-bar a`. */
+        link.innerHTML =
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" ' +
+          'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" ' +
+          'aria-hidden="true">' +
+          '<circle cx="12" cy="12" r="7"/>' +
+          '<circle cx="12" cy="12" r="3"/>' +
+          '<path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>' +
+          "</svg>";
+        L.DomEvent.on(link, "click", (e) => {
+          L.DomEvent.stop(e);
+          // Flown rather than cut. The reader dragged the map themselves, so
+          // they are holding a mental picture of where they went; a jump back
+          // throws that away, where a glide shows them the way home.
+          fitToCircle(true, true);
+        });
+        // Otherwise the click reaches the map under it and pans or zooms.
+        L.DomEvent.disableClickPropagation(bar);
+        return bar;
+      };
+      recentre.addTo(map);
 
       const pulsePane = map.createPane(PULSE_PANE);
       pulsePane.style.zIndex = "350";
@@ -212,6 +299,8 @@ export function CatchmentMap({
       observer?.disconnect();
       if (onWheel) host?.removeEventListener("wheel", onWheel);
       window.clearTimeout(hintTimer.current);
+      window.clearTimeout(fitTimer.current);
+      for (const stop of stopHealing) stop();
       mapRef.current?.remove();
       mapRef.current = null;
       circleRef.current = null;
@@ -325,12 +414,44 @@ export function CatchmentMap({
     }
 
     // Refit on every change: the radius moving is exactly when the view should
-    // follow, even if the reader has panned away.
-    const bounds = circleRef.current?.getBounds();
-    if (bounds) map.fitBounds(bounds, { padding: [28, 28], animate: false });
-    // Again, now the view has settled: a refit that only panned changes the
-    // pixels under the ring without ever firing a zoom event.
-    sizePulse();
+    // follow, even if the reader has panned away. The first one lands at once —
+    // there is nothing on screen to be patient about — and the rest wait for the
+    // reader's finger to stop.
+    fitToCircle(!fitted.current);
+    fitted.current = true;
+  }
+
+  /**
+   * Frame the catchment circle.
+   *
+   * Trailing, because the radius now moves a kilometre a press and a reader
+   * walking it from 2km to 20km fires eighteen of these. Re-fitting on each one
+   * re-requests a screenful of tiles it is about to abandon, which is how the
+   * basemap ends up blank; waiting for the presses to stop asks for one
+   * screenful, once. The circle itself is redrawn immediately either way, so
+   * the ring still answers every press — it just grows in place until the view
+   * catches up with it.
+   */
+  function fitToCircle(immediate = false, smooth = false) {
+    const run = () => {
+      const map = mapRef.current;
+      const bounds = circleRef.current?.getBounds();
+      if (!map || !bounds) return;
+      map.fitBounds(bounds, {
+        padding: [28, 28],
+        animate: smooth,
+        ...(smooth ? { duration: 0.6, easeLinearity: 0.25 } : null),
+      });
+      // Again, now the view has settled: a refit that only panned changes the
+      // pixels under the ring without ever firing a zoom event. A flown one has
+      // not settled yet, so its measurement waits for the landing.
+      if (smooth) map.once("moveend", sizePulse);
+      else sizePulse();
+    };
+
+    window.clearTimeout(fitTimer.current);
+    if (immediate) run();
+    else fitTimer.current = window.setTimeout(run, 220);
   }
 
   // Redraw whenever the catchment changes. `points` is a fresh array each

@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
+  Layers,
   Loader2,
   LocateFixed,
   MapPin,
@@ -1627,7 +1628,7 @@ export function PracticeGrowthCalculator({
             {/* z-0 above is load-bearing: Leaflet numbers its own panes up to
                 1000 and its controls above that, and with no stacking context
                 of its own the map would compare those against the whole page —
-                painting over the sticky header and over the ROI Analysis tab
+                painting over the sticky header and over the analysis tab
                 that overlaps its bottom edge. A stacking context at z-0 keeps
                 all of that arithmetic inside this box.
 
@@ -1663,31 +1664,78 @@ export function PracticeGrowthCalculator({
                   Your Future is here...
                 </span>
 
-                {/* Labelled, because the map has its own +/- in the opposite
-                    corner and two identical white stacks read as two zooms. */}
-                <div className="absolute right-5 top-5 z-[1100] flex flex-col items-center gap-1.5">
-                  <span className="rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
-                    Radius
+                {/* The radius setter, and the reason it no longer looks like a
+                    zoom. It used to be a white +/- stack, which is exactly what
+                    every map's zoom control looks like — so "+" appearing to
+                    zoom the view *out* read as wired backwards. It is not: a
+                    wider radius is a bigger circle, and the map refits to hold
+                    it. What was missing was any sign that the buttons move a
+                    distance rather than a magnification, so the kilometres are
+                    on the control now, minus on the left and plus on the right
+                    like the slider it mirrors, in the same dark glass as the
+                    other overlays rather than the map's white.
+
+                    One kilometre a press, the same step as that slider. It
+                    moved in fives while the readout said 1 km, so the first
+                    press jumped to 6 and skipped past every radius a small
+                    practice actually has. */}
+                <div className="absolute right-5 top-5 z-[1100] flex items-center gap-0.5 rounded-full bg-black/70 p-1 text-white ring-1 ring-white/15 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={() => setRadiusKm((r) => Math.max(1, (r ?? 6) - 1))}
+                    disabled={radiusKm <= 1}
+                    aria-label="Narrow the service radius by one kilometre"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-35"
+                  >
+                    <Minus className="h-4 w-4" aria-hidden />
+                  </button>
+                  <span aria-hidden className="px-1.5 text-center leading-none">
+                    <span className="block text-[13px] font-semibold tabular-nums">
+                      {radiusKm} km
+                    </span>
+                    <span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-wider text-white/45">
+                      Radius
+                    </span>
                   </span>
-                  <div className="flex flex-col overflow-hidden rounded-md">
-                    <button
-                      type="button"
-                      onClick={() => setRadiusKm((r) => Math.min(100, (r ?? 0) + 5))}
-                      aria-label="Widen the service radius by 5 kilometres"
-                      className="inline-flex h-9 w-9 items-center justify-center bg-white/90 text-black transition hover:bg-white"
-                    >
-                      <Plus className="h-4 w-4" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRadiusKm((r) => Math.max(1, (r ?? 6) - 5))}
-                      aria-label="Narrow the service radius by 5 kilometres"
-                      className="inline-flex h-9 w-9 items-center justify-center border-t border-black/10 bg-white/90 text-black transition hover:bg-white"
-                    >
-                      <Minus className="h-4 w-4" aria-hidden />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRadiusKm((r) => Math.min(100, (r ?? 0) + 1))}
+                    disabled={radiusKm >= 100}
+                    aria-label="Widen the service radius by one kilometre"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-35"
+                  >
+                    <Plus className="h-4 w-4" aria-hidden />
+                  </button>
                 </div>
+
+                {/* The way into the coverage table, on the map it describes.
+                    That table is the answer to the question the map itself
+                    raises — which pincodes is this circle actually taking in —
+                    and it sat far below the fold with nothing up here pointing
+                    at it. It glows on the same beat as the orb above it because
+                    it is the one thing in this pane that is asking to be
+                    pressed; the rest of the overlay is caption. */}
+                {hasCoveragePanel && (
+                  <button
+                    type="button"
+                    onClick={revealCoverage}
+                    aria-controls="coverage-breakdown"
+                    title="Additional geographical info"
+                    aria-label="Additional geographical info — show the pincode coverage breakdown"
+                    className="group/geo absolute left-5 top-[4.25rem] z-[1100] inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white/85 ring-1 ring-spark/30 backdrop-blur-sm transition hover:text-white hover:ring-spark/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spark"
+                  >
+                    <span
+                      aria-hidden
+                      className="how-orb-halo pointer-events-none absolute inset-0 rounded-full bg-spark/40 blur-[7px]"
+                    />
+                    <Layers className="relative h-4 w-4" aria-hidden />
+                    {/* Names itself on hover: an icon alone on a map is a
+                        guess, and this one leaves the pane when pressed. */}
+                    <span className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap rounded-full bg-black/80 px-2.5 py-1 text-[11px] font-medium text-white/85 opacity-0 backdrop-blur-sm transition duration-200 group-hover/geo:opacity-100">
+                      Additional geographical info
+                    </span>
+                  </button>
+                )}
 
                 {/* Sits a line above the bottom edge to clear the map's
                     attribution, which is required and cannot leave the corner. */}
@@ -1733,14 +1781,18 @@ export function PracticeGrowthCalculator({
             )}
           </div>
 
-          {/* ROI Analysis — the cards exist only once the reader has asked for
-              an outlook. Before that they would be five headings over five
-              dashes, which reads as a panel that failed to load rather than
-              one waiting for an answer. */}
+          {/* Clinical Impact Analysis — the cards exist only once the reader
+              has asked for an outlook. Before that they would be five headings
+              over five dashes, which reads as a panel that failed to load
+              rather than one waiting for an answer.
+
+              Called "ROI Analysis" until it was pointed out that a doctor
+              reading a panel about patients reached and disease burden is not
+              being shown a return on investment. */}
           {hasGenerated && (
             <div className="relative border-t border-white/[0.07] p-3.5 sm:p-4">
               <span className="absolute -top-[17px] left-5 inline-flex items-center gap-2 rounded-t-lg bg-ink-800 px-4 py-2 text-[13px] text-white/85">
-                ROI Analysis
+                Clinical Impact Analysis
                 <ChevronDown className="h-3.5 w-3.5 text-white/50" aria-hidden />
               </span>
 

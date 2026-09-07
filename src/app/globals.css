@@ -561,18 +561,48 @@ body {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.roi-map .leaflet-control-zoom {
+/* Every button control on the map, not just the zoom pair: `leaflet-bar` is the
+   class the zoom stack and the recentre button both carry, and naming the zoom
+   control alone left anything added later sitting there in Leaflet's factory
+   white on a near-black panel. */
+.roi-map .leaflet-bar {
   border: 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
-.roi-map .leaflet-control-zoom a {
+.roi-map .leaflet-bar a {
+  /* Centred by the box rather than by a line-height: Leaflet grows these
+     buttons from 26px to 30px on any device it thinks has a touchscreen — which
+     is most Windows laptops — and an icon positioned by fixed margins sits high
+     in the taller one. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(20, 20, 20, 0.9);
   color: rgba(255, 255, 255, 0.8);
   border-color: rgba(255, 255, 255, 0.08);
 }
-.roi-map .leaflet-control-zoom a:hover {
+.roi-map .leaflet-bar a svg {
+  display: block;
+}
+/* `:focus` and not just `:focus-visible`. A mouse click leaves focus on the
+   button it pressed, and Leaflet's own rule paints a focused control pale grey
+   — which is why the recentre button turned white the moment it was used and
+   went dark again only while the pointer sat on it. */
+.roi-map .leaflet-bar a:hover,
+.roi-map .leaflet-bar a:focus {
   background: rgba(40, 40, 40, 0.95);
   color: #ffffff;
+}
+/* The keyboard still gets a mark of its own; the mouse gets none. */
+.roi-map .leaflet-bar a:focus-visible {
+  outline: 2px solid rgba(183, 90, 68, 0.75);
+  outline-offset: -2px;
+}
+/* Leaflet greys the zoom buttons out at the ends of the range with its own pale
+   fill, which is the one place the white came back. */
+.roi-map .leaflet-bar a.leaflet-disabled {
+  background: rgba(20, 20, 20, 0.55);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .roi-map .leaflet-tooltip {

@@ -112,10 +112,10 @@ export function ProgramsPageClient({
 
       <CatalogHero
         titleLead="All"
-        titleAccent={isLegendsView ? "Legends" : "Programs"}
+        titleAccent={isLegendsView ? "Legends" : "Programmes"}
         subtitle="Cohort-based mentorship for practising ophthalmologists and recent MBBS graduates — small groups, real cases, one Legend at the front of the room."
         stats={[
-          { value: programs.length, label: isLegendsView ? "Legends" : "Programs" },
+          { value: programs.length, label: isLegendsView ? "Legends" : "Programmes" },
           ...(mentorCount > 0 ? [{ value: mentorCount, label: "Mentors" }] : []),
           { value: "Cohort", label: "Format" },
         ]}
@@ -144,16 +144,16 @@ export function ProgramsPageClient({
         <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <SearchField
             id="program-search"
-            label="Search programs"
+            label="Search programmes"
             value={query}
             onChange={setQuery}
-            placeholder="Search by program, mentor or city…"
+            placeholder="Search by programme, mentor or city…"
             className="w-full sm:max-w-sm"
           />
           <ResultCount
             shown={filtered.length}
             total={programs.length}
-            noun={isLegendsView ? "legends" : "programs"}
+            noun={isLegendsView ? "legends" : "programmes"}
             filtered={isFiltered}
             onReset={resetFilters}
           />
@@ -162,13 +162,13 @@ export function ProgramsPageClient({
         <div className="mt-10">
           {programs.length === 0 ? (
             <CatalogEmpty
-              title="No programs available yet"
+              title="No programmes available yet"
               body="Check back soon — new cohorts are added regularly."
             />
           ) : filtered.length === 0 ? (
             <CatalogEmpty
               title="Nothing matches that"
-              body="No program fits this duration and search together. Try one or the other."
+              body="No programme fits this duration and search together. Try one or the other."
               actionLabel="Clear filters"
               onAction={resetFilters}
             />
@@ -208,7 +208,7 @@ export function ProgramsPageClient({
                     ]}
                     isNew={p.isNew}
                     tag={launchLabel ?? null}
-                    cta="View program"
+                    cta="View programme"
                     rawImage
                     priority={i < 4}
                   />

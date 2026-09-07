@@ -159,10 +159,10 @@ export function ProgramsSection({
         id="programs-title"
         className="text-center text-[clamp(1.75rem,3.1vw,2.6rem)] font-extrabold leading-tight tracking-[-0.015em] text-white"
       >
-        Legacy Transfer Programs
+        Legacy Transfer Programmes
       </h2>
       <p className="mx-auto mt-4 max-w-[46rem] text-center text-sm leading-relaxed text-white/45 sm:text-[15px]">
-        Each program is carefully structured and led by experienced practitioners,
+        Each programme is carefully structured and led by experienced practitioners,
         designed to help you advance through focused, real-time learning.
       </p>
 
@@ -339,7 +339,7 @@ export function ProgramsSection({
           href="/programs"
           className="rounded-[10px] bg-accent px-7 py-3.5 text-[15px] font-semibold text-white transition hover:bg-accent-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
-          Explore Programs
+          Explore Programmes
         </Link>
         <Link
           href="/doctors"

@@ -1,120 +1,53 @@
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/session";
+import { doctorName } from "@/lib/utils";
+import { isWaitlistTool, joinWaitlist } from "@/lib/waitlistApi";
 
-const NOCODE_BASE = process.env.NOCODE_API_BASE_URL || "";
-const NOCODE_APP_ID = process.env.NOCODE_APP_ID || "";
-const NOCODE_ORG_ID = process.env.NOCODE_ORG_ID || "";
-const NOCODE_LEADS_USER_ID = process.env.NOCODE_LEADS_USER_ID || "";
-const WAITLIST_MODULE =
-  process.env.NOCODE_WAITLIST_MODULE || "ophthaxp_waitlist";
-
-interface IncomingPayload {
-  name?: string;
-  city?: string;
-  phone?: string;
-  email?: string;
-  source?: string;
-}
-
-// POST /api/waitlist — body: { name?, city?, phone?, email, source? }
-// Only email is required; the rest is best-effort context for follow-up.
+/**
+ * "Count me in" — the one door between the dashboard's waitlist buttons and the
+ * list itself.
+ *
+ * The browser sends a tool name and nothing else. **The address comes from the
+ * session**, never from the request body: an endpoint that accepted an address
+ * would let anybody sign anybody else up, and the confirmation the doctor sees
+ * would be a lie about somebody else's inbox.
+ *
+ * Signed-in only, which costs nothing here — the buttons live on `/account`,
+ * which is behind the same session.
+ */
 export async function POST(req: Request) {
-  let payload: IncomingPayload;
+  const user = getSessionUser();
+  if (!user) {
+    return NextResponse.json({ success: false, error: "Not signed in" }, { status: 401 });
+  }
+
+  let body: unknown;
   try {
-    payload = (await req.json()) as IncomingPayload;
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  const name = (payload.name ?? "").trim();
-  const city = (payload.city ?? "").trim();
-  const phone = (payload.phone ?? "").trim();
-  const email = (payload.email ?? "").trim();
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json(
-      { error: "A valid email address is required" },
-      { status: 422 },
-    );
+  const tool = (body as { tool?: unknown })?.tool;
+  if (!isWaitlistTool(tool)) {
+    return NextResponse.json({ success: false, error: "Unknown tool" }, { status: 400 });
   }
 
-  const record: Record<string, unknown> = {
-    name,
-    city,
-    phone,
-    email,
-    intent: "waitlist",
-    source: payload.source ?? "hero-waitlist",
-  };
-
-  if (!NOCODE_BASE || !NOCODE_APP_ID || !NOCODE_ORG_ID || !NOCODE_LEADS_USER_ID) {
-    console.warn(
-      `[waitlist] nocode env not fully set — NOCODE_API_BASE_URL="${NOCODE_BASE}" NOCODE_APP_ID="${NOCODE_APP_ID}" NOCODE_ORG_ID set=${Boolean(
-        NOCODE_ORG_ID,
-      )} NOCODE_LEADS_USER_ID set=${Boolean(
-        NOCODE_LEADS_USER_ID,
-      )}. Signup NOT written to DB; falling through to webhook/echo.`,
-    );
-  } else {
-    const url = `${NOCODE_BASE}/api/public/data/${NOCODE_APP_ID}/${NOCODE_ORG_ID}/${encodeURIComponent(
-      WAITLIST_MODULE,
-    )}`;
-    console.log(`[waitlist] POST → ${url}`);
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          ...record,
-          loggedUser: { id: NOCODE_LEADS_USER_ID },
-        }),
-      });
-      const bodyText = await res.text().catch(() => "");
-      if (!res.ok) {
-        console.error(
-          `[waitlist] nocode insert FAILED status=${res.status} module=${WAITLIST_MODULE} body=${bodyText}`,
-        );
-        return NextResponse.json(
-          {
-            error: "Failed to save waitlist signup",
-            upstreamStatus: res.status,
-            upstream: bodyText,
-          },
-          { status: 502 },
-        );
-      }
-      console.log(`[waitlist] nocode insert OK module=${WAITLIST_MODULE}`);
-      let data: unknown = {};
-      try {
-        data = JSON.parse(bodyText);
-      } catch {
-        /* non-JSON */
-      }
-      return NextResponse.json({ ok: true, data });
-    } catch (err) {
-      console.error("[waitlist] nocode insert threw", err);
-      return NextResponse.json(
-        { error: "Failed to reach waitlist store" },
-        { status: 502 },
-      );
-    }
-  }
-
-  const webhook = process.env.LEADS_WEBHOOK_URL;
-  if (webhook) {
-    try {
-      await fetch(webhook, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...record, receivedAt: new Date().toISOString() }),
-      });
-    } catch (err) {
-      console.error("[waitlist] webhook forward failed", err);
-    }
-  }
-
-  return NextResponse.json({
-    ok: true,
-    id: `waitlist_${Date.now()}`,
-    received: record,
+  const joined = await joinWaitlist({
+    tool,
+    email: user.email,
+    name: doctorName(user.firstName, user.lastName),
   });
+
+  // Reported rather than swallowed. Everywhere else a failed write here would
+  // cost a convenience; this one has just told a doctor they are on a list, so
+  // the button needs to know it did not take and say so.
+  if (!joined) {
+    return NextResponse.json(
+      { success: false, error: "Could not save that just now" },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json({ success: true, data: { tool, joined: true } });
 }

@@ -7,9 +7,11 @@ import { doctorName } from "@/lib/utils";
 import { fetchCoursesFromBackend } from "@/lib/courses";
 import { outlookOwnerKey, readOutlookForOwner } from "@/lib/outlookApi";
 import { parseOutlook } from "@/lib/outlookSnapshot";
+import { waitlistFor } from "@/lib/waitlistApi";
 import { PageHeading } from "@/components/dashboard/PageHeading";
 import { YourSpace } from "@/components/dashboard/YourSpace";
 import { ToolCard } from "@/components/dashboard/ToolCard";
+import { PointerGlow } from "@/components/dashboard/PointerGlow";
 import { THREAD } from "@/components/dashboard/thread";
 import {
   ApplicationList,
@@ -57,10 +59,15 @@ export default async function AccountPage() {
 
   // Independent, so they wait together rather than one after the other. A
   // programme list that fails to load costs the suggestion card, not the page.
-  const [rows, programs, storedOutlook] = await Promise.all([
+  //
+  // The waitlist is read here rather than in the button so the two unbuilt
+  // tools open in their settled state — a doctor who signed up last week should
+  // not watch "Count me in" correct itself after hydration.
+  const [rows, programs, storedOutlook, joinedTools] = await Promise.all([
     user ? loadApplications(user.email).catch(() => [] as ApplicationRow[]) : [],
     fetchCoursesFromBackend().catch(() => []),
     ownerKey ? readOutlookForOwner(ownerKey) : Promise.resolve(null),
+    user ? waitlistFor(user.email).catch(() => [] as string[]) : ([] as string[]),
   ]);
 
   const applied = new Set(rows.map((row) => row.courseName.trim().toLowerCase()).filter(Boolean));
@@ -113,7 +120,11 @@ export default async function AccountPage() {
           }
         />
 
-        <YourSpace match={match} outlook={parseOutlook(storedOutlook)} />
+        <YourSpace
+          match={match}
+          outlook={parseOutlook(storedOutlook)}
+          joinedTools={joinedTools}
+        />
       </section>
 
       <section
@@ -129,7 +140,7 @@ export default async function AccountPage() {
 
         <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-3">
           {tools.map((item) => (
-            <ToolCard key={item.key} item={item} />
+            <ToolCard key={item.key} item={item} joined={joinedTools.includes(item.key)} />
           ))}
         </div>
       </section>
@@ -142,21 +153,32 @@ export default async function AccountPage() {
         <PageHeading id="pathways-title" eyebrow="Pathways" title="Mastery, passed forward." />
 
         <div className="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          {/* The one way from the dashboard onto the programmes site, and the
+              only one the whole signed-in space is meant to have besides the
+              logo. It carries an id because everything else that used to say
+              "browse programmes" now points here instead of leaving. */}
           <Link
+            id="explore-programmes"
             href="/programs"
-            className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition hover:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:p-8"
+            /* Same hover as the Growth Lab cards: the light that follows the
+               cursor, a step up, a warmed outline. It is the same kind of
+               object — a whole card that is one link — so it should answer the
+               pointer the same way. */
+            className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_60px_-24px_rgba(0,0,0,0.95)] hover:ring-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:p-8"
           >
+            <PointerGlow />
+
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-32 right-[-6rem] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.20),rgba(183,90,68,0)_66%)] opacity-80 transition duration-500 group-hover:opacity-100"
+              className="pointer-events-none absolute -bottom-[3.5rem] -right-[1.75rem] h-[19rem] w-[19rem] rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.07),rgba(183,90,68,0.03)_44%,rgba(183,90,68,0)_72%)] opacity-80 transition duration-500 group-hover:opacity-100"
             />
 
             <div className="relative flex items-start justify-between gap-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45 transition duration-300 group-hover:text-white/65">
                 Your path to mastery
               </p>
               <Share2
-                className="h-[18px] w-[18px] shrink-0 text-white/35"
+                className="h-[18px] w-[18px] shrink-0 text-white/35 transition duration-300 group-hover:text-accent"
                 strokeWidth={1.6}
                 aria-hidden
               />
