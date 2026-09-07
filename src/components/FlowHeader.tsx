@@ -30,7 +30,15 @@ export function FlowHeader({ showAccount = true }: { showAccount?: boolean }) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.07] bg-black/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-3 sm:px-8 lg:px-12">
+      {/* With nothing on the right, `justify-between` is just a left margin: the
+          mark sits hard against the edge of a page whose whole content — one
+          narrow card — is centred under it. On those pages it goes to the
+          middle, over the card it belongs to. */}
+      <div
+        className={`mx-auto flex max-w-[1440px] items-center gap-4 px-5 py-3 sm:px-8 lg:px-12 ${
+          showAccount ? "justify-between" : "justify-center"
+        }`}
+      >
         <Link href="/" aria-label="Legends of Medicine — home" className="shrink-0">
           <Image
             src="/brand/lom-logo-full.png"
@@ -38,7 +46,14 @@ export function FlowHeader({ showAccount = true }: { showAccount?: boolean }) {
             width={623}
             height={290}
             priority
-            className="h-11 w-auto sm:h-14"
+            /* Larger where it stands alone. Beside an account chip the mark is
+               one of two things sharing a bar and is sized not to shout over
+               it; centred over a single card it is the only thing on the page
+               above the form, and at the smaller size it read as an afterthought
+               rather than as the page's own mark. */
+            className={
+              showAccount ? "h-11 w-auto sm:h-14" : "h-14 w-auto sm:h-[68px]"
+            }
           />
         </Link>
 
