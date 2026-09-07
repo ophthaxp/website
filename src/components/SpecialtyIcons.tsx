@@ -116,6 +116,42 @@ export function RetinaIcon({ className }: IconProps) {
 }
 
 /**
+ * Oculoplasty — the eye with the lid crease marked for surgery.
+ *
+ * Not a Figma export, unlike every mark above it: the design row never
+ * covered this tab, and what stood here was lucide's pair of scissors — a
+ * tool, in a set that is otherwise all anatomy, and the one chip in the row
+ * that gave away which marks were placeholders.
+ *
+ * So it is built out of the family's own eye, taken from `RetinaIcon`
+ * unchanged, with the one thing this specialty is about drawn over it: the lid
+ * crease, where the incision goes. The crease is dashed on purpose. Solid, it
+ * would read as another piece of anatomy and the mark would just look like the
+ * retina one; dashed, it reads as something drawn onto the eye, which is what
+ * a surgical marking is.
+ *
+ * The inner arc the retina mark carries is left off, so the two are told apart
+ * by what each adds rather than by a detail one of them happens to keep.
+ * Replace the whole thing the day the real artwork exists.
+ */
+export function OculoplastyIcon({ className }: IconProps) {
+  return (
+    <svg viewBox={box(431.93, 87)} fill="none" stroke="currentColor" aria-hidden className={className}>
+      <path d="M443.362 90.0936L442.426 94.3562L438.268 91.4313L438.925 88.9693L443.362 90.0936Z" />
+      <path d="M429.652 76.5C434.648 76.5 438.806 81.1376 438.806 87C438.806 92.8624 434.648 97.5 429.652 97.5C424.657 97.4998 420.5 92.8623 420.5 87C420.5 84.3162 421.377 81.8748 422.812 80.0244C424.499 77.8495 426.947 76.5001 429.652 76.5Z" />
+      {/* Ends on the contour at y=82, where the outline is 8.04 either side of
+          the centre, so the crease meets the eye rather than stopping short of
+          it or running past. */}
+      <path
+        d="M421.61 82.1 Q429.65 78.4 437.69 82.1"
+        strokeDasharray="2 1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
  * Practice management — the clinic itself.
  *
  * The odd one out, and deliberately so: it is the only tab that is not about a

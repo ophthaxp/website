@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronsLeft, ChevronsRight, Baby, Scissors } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Baby } from "lucide-react";
 import {
   AllSpecialtiesIcon,
   CorneaIcon,
   GlaucomaIcon,
+  OculoplastyIcon,
   PracticeManagementIcon,
   RefractiveSurgeryIcon,
   RetinaIcon,
@@ -20,11 +21,14 @@ import { cn } from "@/lib/utils";
  * The mark on each filter chip.
  *
  * Six come from the Figma and are one drawn family — the same eye, with what
- * distinguishes each specialty added to it. Two do not: the Figma row covered
- * All, Cataract, Glaucoma, Refractive Surgery, Cornea, Retina and Practice
- * Management, and this site's tabs also include Pediatric and Oculoplasty. Those
- * two keep their lucide stand-ins until the artwork exists, rather than being
- * handed a drawing that means something else.
+ * distinguishes each specialty added to it. The Figma row covered All,
+ * Cataract, Glaucoma, Refractive Surgery, Cornea, Retina and Practice
+ * Management; this site's tabs also include Pediatric and Oculoplasty.
+ * Oculoplasty is now drawn into the family by hand — the same eye with its lid
+ * crease marked — because a pair of scissors among eight anatomical marks read
+ * as exactly what it was. Pediatric keeps its lucide stand-in until the
+ * artwork exists, rather than being handed a drawing that means something
+ * else.
  */
 const SPECIALTY_ICONS: Record<Specialty, React.ComponentType<{ className?: string }>> = {
   all: AllSpecialtiesIcon,
@@ -33,7 +37,7 @@ const SPECIALTY_ICONS: Record<Specialty, React.ComponentType<{ className?: strin
   "retina-vitreo-retinal-surgery": RetinaIcon,
   glaucoma: GlaucomaIcon,
   "pediatric-ophthalmology": Baby,
-  oculoplasty: Scissors,
+  oculoplasty: OculoplastyIcon,
   "ophthalmology-practice-mastery": PracticeManagementIcon,
 };
 
@@ -83,10 +87,43 @@ export function ProgramsSection({
   const [isPaused, setIsPaused] = useState(false);
   const railRef = useRef<HTMLDivElement | null>(null);
 
+  /**
+   * One entry per programme, not one per Legend.
+   *
+   * A card here is a programme with the Legend who teaches it credited
+   * underneath. A Legend with nothing linked to them has no programme to put
+   * on the card, so they used to fall back to their own name and specialty -
+   * a person card sitting in a row of programme cards, under a heading that
+   * promised programmes, linking off to a profile. They belong on /doctors,
+   * which the second button under this rail already goes to.
+   *
+   * The course reference is resolved once, here, rather than again inside the
+   * map below: what is filtered on and what is rendered cannot then disagree.
+   */
+  const entries = useMemo(() => {
+    const out: {
+      doctor: Doctor;
+      courseName: string;
+      courseSlug: string;
+      isNew?: boolean;
+    }[] = [];
+    for (const d of data) {
+      // Split schema: the course row points at the doctor. Merged schema: the
+      // doctor row carries the course itself. Either one is a programme.
+      const linked =
+        courseByDoctorSlug.get(d.slug) || courseByDoctorSlug.get(String(d.id));
+      const courseName = d.courseName || linked?.name;
+      const courseSlug = linked?.slug || d.courseSlug;
+      if (!courseName || !courseSlug) continue;
+      out.push({ doctor: d, courseName, courseSlug, isNew: linked?.isNew });
+    }
+    return out;
+  }, [data, courseByDoctorSlug]);
+
   const filtered = useMemo(() => {
-    if (active === "all") return data;
-    return data.filter((d) => d.specialty.includes(active));
-  }, [active, data]);
+    if (active === "all") return entries;
+    return entries.filter((e) => e.doctor.specialty.includes(active));
+  }, [active, entries]);
 
   // Track scroll position so the bottom pagination reflects the reader's place
   // in the rail. Recomputes on scroll, on filter change, and when the rail resizes.
@@ -202,6 +239,11 @@ export function ProgramsSection({
           bleed off the right — while keeping the first card on the content
           column. Body has overflow-x: clip, so it adds no page scrollbar. */}
       <div className="relative mt-14">
+        {/* Only where there is somewhere to go. pageCount is 1 whenever the
+            track already fits, so a rail holding one or two cards shows no
+            arrows rather than a pair of buttons that do nothing — the same
+            test the pagination dots below this already use. */}
+        {pageCount > 1 && (
         <div className="absolute right-0 top-0 z-10 hidden -translate-y-14 items-center gap-2.5 sm:flex">
           <button
             type="button"
@@ -220,6 +262,7 @@ export function ProgramsSection({
             <ChevronsRight className="h-5 w-5" />
           </button>
         </div>
+        )}
 
         <div
           ref={railRef}
@@ -232,36 +275,24 @@ export function ProgramsSection({
           onTouchStart={() => setIsPaused(true)}
           className="no-scrollbar rail-bleed flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 pr-5 sm:pr-10"
         >
-          {data.length === 0 ? (
+          {entries.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
-              No doctors yet — add records to the <code className="text-white/80">doctors</code> module
-              in the admin panel.
+              No programmes yet — a Legend appears here once a row in the{" "}
+              <code className="text-white/80">courses</code> module points at them.
             </div>
           ) : filtered.length === 0 ? (
             <div className="w-full rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-white/55">
-              No mentors in this specialty yet.
+              No programmes in this specialty yet.
             </div>
           ) : (
-            filtered.map((d) => {
-              const linkedCourse =
-                courseByDoctorSlug.get(d.slug) ||
-                courseByDoctorSlug.get(String(d.id));
-              const courseName = d.courseName || linkedCourse?.name;
-              // Prefer the linked course (split-schema) or the doctor's own
-              // courseSlug (merged-schema) so the card always opens the course
-              // detail page; fall back to the doctor profile only when neither
-              // course reference exists.
-              const courseSlug = linkedCourse?.slug || d.courseSlug;
-              const href = courseSlug
-                ? `/programs/${courseSlug}`
-                : `/doctors/${d.slug}`;
+            filtered.map(({ doctor: d, courseName, courseSlug, isNew }) => {
               return (
                 <Link
                   key={d.id}
-                  href={href}
+                  href={`/programs/${courseSlug}`}
                   className="group relative aspect-[306/482] w-[248px] shrink-0 snap-start overflow-hidden rounded-xl border border-white/15 bg-ink-850 sm:w-[306px]"
                 >
-                  {linkedCourse?.isNew && (
+                  {isNew && (
                     <span className="absolute left-3 top-3 z-10 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
                       New
                     </span>
@@ -282,23 +313,17 @@ export function ProgramsSection({
                     aria-hidden
                     className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.72)_38%,rgba(0,0,0,0)_100%)]"
                   />
-                  {/* Title is the program; the mentor is the credit line under
-                      it. Without a linked course the mentor becomes the title,
-                      so credit their specialty instead of repeating the name. */}
+                  {/* Title is the programme; the mentor is the credit line under
+                      it. Every card in the rail has both - one without a
+                      programme never got this far. */}
                   <div className="absolute inset-x-0 bottom-0 px-5 pb-6 pt-12 text-center">
                     <p className="font-serif text-[26px] font-medium leading-[1.12] text-white">
-                      {courseName ?? d.name}
+                      {courseName}
                     </p>
                     <span className="mx-auto mt-3 block h-px w-5 bg-white/70" aria-hidden />
-                    {courseName ? (
-                      <p className="mt-3 text-[13px] text-white/70">
-                        with <span className="font-semibold text-white">{d.name}</span>
-                      </p>
-                    ) : (
-                      <p className="mt-3 line-clamp-1 text-[13px] font-semibold text-white/85">
-                        {d.specialistTitle || d.title}
-                      </p>
-                    )}
+                    <p className="mt-3 text-[13px] text-white/70">
+                      with <span className="font-semibold text-white">{d.name}</span>
+                    </p>
                   </div>
                 </Link>
               );
