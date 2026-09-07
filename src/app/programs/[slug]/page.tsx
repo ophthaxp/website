@@ -31,10 +31,12 @@ const SECTION = `${SHELL} py-16 sm:py-24`;
 const HEADING =
   "text-[clamp(1.75rem,3.4vw,2.875rem)] font-extrabold leading-tight tracking-[-0.015em] text-white";
 
-/* Hero scrim. Solid black under the right-hand copy column, dissolving to
-   nothing before it reaches the subject's face on the left. */
+/* Hero scrim. Fully black from the right edge in to 38% of the width — where
+   the portrait panel below stops, so that panel's edge never shows as a seam —
+   then easing back to a 40% wash, which holds the whole photograph in the same
+   low key as the copy beside it. */
 const HERO_SCRIM =
-  "linear-gradient(to left, #000 0%, #000 13.46%, rgba(0,0,0,0.5) 42.3%, rgba(76,76,76,0.26) 68.75%, rgba(157,157,157,0) 100%)";
+  "linear-gradient(to left, #000 0%, #000 38%, rgba(0,0,0,0.66) 62%, rgba(0,0,0,0.4) 100%)";
 
 /* Shown when the course row carries no highlights of its own. */
 const DEFAULT_INCLUSIONS = [
@@ -237,17 +239,23 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
             § 1 — HERO   Full-bleed portrait, copy column on the right
         ══════════════════════════════════════════════════════════════ */}
         <section aria-labelledby="program-title" className="relative overflow-hidden bg-black">
-          <div className="absolute inset-0">
+          {/* The portrait is a left-hand panel, not a full-bleed backdrop.
+              These are centred portraits, so spread over the whole width the
+              Legend lands dead centre — half under the scrim, shoulder to
+              shoulder with the copy. Held to 62%, the very same crop puts him
+              about a third across, clear of the text, which is where the
+              design has him. */}
+          <div className="absolute inset-y-0 left-0 w-full lg:w-[62%]">
             {heroImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={heroImage}
                 alt={legendName}
-                /* The subject sits just left of centre in these portraits.
-                   Desktop shows the whole frame, so the crop only matters on
-                   narrow screens — where anchoring at 30% lands on the
-                   background instead of the face. */
-                className="h-full w-full object-cover object-[50%_top] lg:object-[30%_top]"
+                /* Cover in a panel this shape scales to the height, so the
+                   frame is always shown top to bottom and it is the sides that
+                   get trimmed — the subject holds his place as the window
+                   narrows, at any desktop width. */
+                className="h-full w-full object-cover object-[50%_top]"
               />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-accent/15 via-ink-900 to-black" />
@@ -277,9 +285,11 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           />
 
           <div
-            className={`relative flex min-h-[640px] items-center justify-center pb-16 pt-32 sm:min-h-[720px] lg:h-[760px] lg:justify-end lg:py-0 lg:pr-[152px] ${SHELL}`}
+            /* Off the shared 1200px column: the copy takes the half of the
+               screen the portrait does not, so its own padding places it. */
+            className="relative flex min-h-[640px] items-center justify-center px-5 pb-16 pt-32 sm:min-h-[720px] sm:px-10 lg:h-[760px] lg:py-0 lg:pl-[50%] lg:pr-20"
           >
-            <div className="w-full max-w-[420px] text-center">
+            <div className="w-full max-w-[420px] text-center lg:max-w-[560px]">
               <h1
                 id="program-title"
                 className="font-serif text-[clamp(2rem,3.4vw,2.875rem)] leading-[1.11] text-white"

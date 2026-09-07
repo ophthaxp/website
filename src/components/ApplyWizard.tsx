@@ -283,6 +283,15 @@ export function ApplyWizard({
       });
       const body = await res.json().catch(() => ({}));
 
+      // Finished this one already - in another tab, or before coming back to
+      // this page. The route refuses the duplicate rather than raising a second
+      // lead, and handing the page back to the server is the whole answer: it
+      // renders an "already applied" notice in place of this wizard.
+      if (body?.alreadyApplied) {
+        window.location.reload();
+        return;
+      }
+
       if (!res.ok) throw new Error(body?.error ?? "Could not save your details");
 
       if (body?.requiresLogin) {
