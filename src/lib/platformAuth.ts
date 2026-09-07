@@ -85,13 +85,14 @@ export interface SignUpResult {
 }
 
 /**
- * Which of the app's front ends this signup came from.
+ * Which of the app's front ends this request came from.
  *
  * One app can have several — this site, and the admin console the team is
- * invited to — and each has its own verify page. The platform keeps the actual
- * URL in the app's settings under `verifyLinks.<key>`; this only names the key,
- * so nothing routable travels in the request. Unset there, the platform falls
- * back to its own default, which is the console.
+ * invited to — and each has its own verify page and its own reset page. The
+ * platform keeps the actual URLs in the app's settings, under
+ * `verifyLinks.<key>` and `resetLinks.<key>`; this only names the key, so
+ * nothing routable travels in the request. Unset there, the platform falls back
+ * to its own default, which is the console.
  */
 const VERIFY_CLIENT = "website";
 
@@ -213,9 +214,15 @@ export async function verifyUser(token: string): Promise<{ ok: boolean; error?: 
  * Always reports success. The platform returns nothing at all for an unknown
  * address, and saying so would turn this into a way to test which doctors have
  * accounts.
+ *
+ * The client key does the same job here as it does in `signUp`: the platform
+ * keeps the actual reset page URL in the app's settings under
+ * `resetLinks.<key>`, so this only names the key and nothing routable travels
+ * in the request. Unset there, the platform falls back to its own default —
+ * which is the console, not this site.
  */
 export async function forgotPassword(email: string): Promise<boolean> {
-  await authApi("forgot_password", { email });
+  await authApi("forgot_password", { email, client: VERIFY_CLIENT });
   return true;
 }
 
