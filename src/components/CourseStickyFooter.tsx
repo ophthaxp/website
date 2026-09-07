@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ApplyFormModal } from "@/components/ApplyFormModal";
 
 interface Props {
   courseId: string;
   courseName: string;
+  /**
+   * The course's URL slug. Given one, Apply Now goes to `/apply/[slug]` —
+   * the same place every other Apply on the page goes. Without it the bar
+   * falls back to the popup, which is all it could do before and is still
+   * right for a caller that has no page to send anybody to.
+   */
+  courseSlug?: string;
   /** Used as the bold left-side title (e.g. "Senior Vitreo-Retinal Surgeon"). */
   facultyTitle?: string;
   /** Subtitle line under the title (e.g. "Dr. Arun Mehta"). */
@@ -13,6 +21,10 @@ interface Props {
   facultyImageUrl?: string;
   brochureUrl?: string;
 }
+
+/** The accent pill, shared by the link and the fallback button. */
+const APPLY_CLS =
+  "rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent-deep sm:px-5 sm:py-2.5 sm:text-sm";
 
 /**
  * Persistent footer bar shown on the course detail page. Slides in after the
@@ -22,6 +34,7 @@ interface Props {
 export function CourseStickyFooter({
   courseId,
   courseName,
+  courseSlug,
   facultyTitle,
   facultyName,
   facultyImageUrl,
@@ -100,7 +113,16 @@ export function CourseStickyFooter({
             </div>
           </div>
 
-          {/* Right: CTAs */}
+          {/* Right: CTAs.
+
+              Know More stays a popup: asking for a brochure is a name and an
+              email, and sending somebody to a different page for that would
+              lose their place on this one. Apply is the other kind of thing —
+              a journey with steps, a booking and a payment in it — so it goes
+              where the two Apply buttons in the page body already go. Two
+              routes into one application was the bug: they resume differently,
+              they say different things to somebody who has already applied,
+              and which you got depended on whether you scrolled. */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
@@ -109,13 +131,15 @@ export function CourseStickyFooter({
             >
               Know More
             </button>
-            <button
-              type="button"
-              onClick={() => setApplyOpen(true)}
-              className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-accent/30 transition hover:bg-accent-deep sm:px-5 sm:py-2.5 sm:text-sm"
-            >
-              Apply Now
-            </button>
+            {courseSlug ? (
+              <Link href={`/apply/${courseSlug}`} className={APPLY_CLS}>
+                Apply Now
+              </Link>
+            ) : (
+              <button type="button" onClick={() => setApplyOpen(true)} className={APPLY_CLS}>
+                Apply Now
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -129,15 +153,18 @@ export function CourseStickyFooter({
         mentorName={facultyName}
         brochureUrl={brochureUrl}
       />
-      <ApplyFormModal
-        open={applyOpen}
-        onClose={() => setApplyOpen(false)}
-        intent="apply"
-        courseId={courseId}
-        courseName={courseName}
-        mentorName={facultyName}
-        brochureUrl={brochureUrl}
-      />
+      {/* Only mounted where there is no journey page to link to. */}
+      {courseSlug ? null : (
+        <ApplyFormModal
+          open={applyOpen}
+          onClose={() => setApplyOpen(false)}
+          intent="apply"
+          courseId={courseId}
+          courseName={courseName}
+          mentorName={facultyName}
+          brochureUrl={brochureUrl}
+        />
+      )}
     </>
   );
 }

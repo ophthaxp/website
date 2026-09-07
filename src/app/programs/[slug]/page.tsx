@@ -12,6 +12,12 @@ import { FaqGrid } from "@/components/FaqGrid";
 import { CourseStickyFooter } from "@/components/CourseStickyFooter";
 import { CourseApplyButton } from "@/components/CourseApplyButton";
 import {
+  CertificatePlate,
+  certificateName,
+  HOUSE_SIGNATORY,
+} from "@/components/CertificatePlate";
+import { getSessionUser } from "@/lib/session";
+import {
   fetchCourseFromBackend,
   fetchCourseSlugsFromBackend,
   fetchAllDoctorsFromBackend,
@@ -84,6 +90,25 @@ function formatLaunch(p: { launchMonth?: string; launchYear?: number; startDate?
     }
   }
   return null;
+}
+
+/**
+ * A role short enough to set under a signature.
+ *
+ * `faculty.title` is a biography line - "Director, Darshan Eye Care, Chennai |
+ * Internationally Acclaimed Cornea & Cataract Specialist" - and the plate has
+ * 146px of rule to caption. Squeezed to fit, that is a pixel and a half a
+ * letter, which reads as a smudge rather than as a credential.
+ *
+ * So the first segment is taken where the title is written in parts, and
+ * anything still too long gives way to the role this person holds on this
+ * programme - shorter, and the truer caption for a signature on its
+ * certificate either way.
+ */
+const ROLE_FITS = 32;
+function signatureRole(title?: string): string {
+  const first = String(title ?? "").split(/[|\u00b7\u2014]/)[0].trim();
+  return first && first.length <= ROLE_FITS ? first : "Programme Mentor";
 }
 
 function doctorToFaculty(d: Doctor): Faculty {
@@ -193,6 +218,21 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
     .map((f) => ({ q: f.question, a: f.answer }));
 
   const inclusions = p.highlights.length > 0 ? p.highlights.slice(0, 4) : DEFAULT_INCLUSIONS;
+
+  // The certificate is drawn rather than fetched, so it can be made out to
+  // whoever is reading it. The page is force-dynamic already, so the session
+  // is read here and the right name is in the first HTML - no fetch after
+  // hydration and no flash of somebody else's name.
+  const viewer = getSessionUser();
+  const recipientName = certificateName(viewer?.firstName, viewer?.lastName);
+  // Signed by the Legend who teaches this programme, not by the house. The
+  // hand above the rule is that name set in roundhand, never a facsimile, so
+  // the printed line and the signature can never disagree.
+  const signatory = faculty?.name
+    ? { name: faculty.name, role: signatureRole(faculty.title) }
+    : mentorName
+      ? { name: `Dr. ${mentorName.replace(/^Dr\.?\s+/i, "")}`, role: "Programme Mentor" }
+      : HOUSE_SIGNATORY;
   const priceText = p.priceInr
     ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(p.priceInr)
     : null;
@@ -506,32 +546,54 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
           </section>
         )}
 
-        {(p.certificateNote || p.sampleCertificateImage) && (
-          <section aria-labelledby="cert-title" className={SECTION}>
-            <h2 id="cert-title" className={HEADING}>
-              Certificate
-            </h2>
-            <div className="mt-10 grid gap-8 rounded-[12px] border-[1.5px] border-ink-700 bg-ink-800 p-7 sm:grid-cols-[1fr_auto] sm:items-center sm:p-10">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-soft">
-                  <Award className="h-3.5 w-3.5" /> Verifiable
-                </span>
-                <p className="mt-4 text-[15px] leading-relaxed text-[#A5A5A5] sm:text-base">
-                  {p.certificateNote ||
-                    "Candidates will be awarded a certificate of completion on fulfilling the mentioned minimum criteria."}
-                </p>
-              </div>
-              {p.sampleCertificateImage && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.sampleCertificateImage}
-                  alt="Sample certificate"
-                  className="w-full max-w-[280px] rounded-lg border border-[#4A4A4A]"
-                />
-              )}
+        {/* The plate is ours and it is drawn live, so it carries the reader's
+            own name and this programme's mentor. It replaces the flat
+            `sampleCertificateImage` the course row used to supply: one picture
+            for everybody, soft wherever it was scaled, and made out to nobody.
+            The column it sits in is the wider of the two because the name has
+            to be legible - the frame is under a third of the photograph's
+            width, so a 280px thumbnail printed it at about eight pixels tall. */}
+        <section aria-labelledby="cert-title" className={SECTION}>
+          <h2 id="cert-title" className={HEADING}>
+            Certificate
+          </h2>
+          <div className="mt-10 grid items-center gap-8 rounded-[12px] border-[1.5px] border-ink-700 bg-ink-800 p-7 sm:p-10 lg:grid-cols-2 lg:gap-12">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-soft">
+                <Award className="h-3.5 w-3.5" /> Verifiable
+              </span>
+              <p className="mt-4 text-[15px] leading-relaxed text-[#A5A5A5] sm:text-base">
+                {p.certificateNote ||
+                  "Candidates will be awarded a certificate of completion on fulfilling the mentioned minimum criteria."}
+              </p>
+              {/* Says whose name is on it. Without this the personalisation
+                  reads as a promise that the certificate is already earned. */}
+              <p className="mt-4 text-[13px] text-white/45">
+                {viewer
+                  ? "Shown made out to you — a preview, not an award."
+                  : "A preview. Log in and it is made out in your name."}
+              </p>
             </div>
-          </section>
-        )}
+            {/* Cropped in on the plate. Uncropped, the frame is 30% of the
+                photograph and the printed name lands about twelve pixels tall in
+                this column - present, but not something anybody reads. The crop
+                is arithmetic rather than object-fit, because the overlay has to
+                follow it: a percentage inside the inner box is a percentage of
+                the photograph, which is how the drawn text stays on the frame.
+                At 135% the plate carries its name at about fifteen pixels,
+                with the sideboard and the vase still in shot on the right so it
+                reads as a photograph and not as a scan. */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-[#4A4A4A]">
+              <div className="absolute left-[-32%] top-[-16%] aspect-[3/2] w-[135%]">
+                <CertificatePlate
+                  name={recipientName}
+                  signatory={signatory}
+                  alt={`A ${p.name} certificate of completion made out to ${recipientName}, framed and standing on a sideboard`}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {related.length > 0 && (
           <section aria-labelledby="related-title" className={SECTION}>
@@ -581,6 +643,7 @@ export default async function ProgramDetailPage({ params }: { params: { slug: st
       <CourseStickyFooter
         courseId={p.id}
         courseName={p.name}
+        courseSlug={p.slug}
         facultyTitle={p.specialistTitle || faculty?.title}
         facultyName={faculty?.name}
         // Fallback chain: explicit faculty image → the course row's own
