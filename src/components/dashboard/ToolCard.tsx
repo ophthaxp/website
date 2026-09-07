@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { ThreadItem } from "./thread";
+import { PointerGlow } from "./PointerGlow";
 import { WaitlistButton } from "./WaitlistButton";
 
 /**
@@ -23,18 +24,39 @@ export function ToolCard({ item, joined = false }: { item: ThreadItem; joined?: 
 
   const body = (
     <>
+      {/* Three layers of light, back to front. This one answers the cursor: a
+          wall of near-identical dark rectangles gives no sign it noticed being
+          pointed at, and that sign is the whole difference between the card the
+          reader is aiming at and the two either side of it. */}
+      <PointerGlow />
+
       {/* The bloom sits low and right, clipped by the card, so the corner it
-          lights is the one the eye finishes on. */}
+          lights is the one the eye finishes on. There is no edge on it and
+          there should not be: a ring drawn round this turns a light into a
+          drawn shape, and the card stops looking lit.
+
+          It is centred a good way *inside* the corner and fades out before it
+          gets there, which is what stops the corner turning into a bright
+          orange pool — the light should be strongest across the middle of the
+          bottom half and gone by the edges. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -bottom-24 -right-16 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.22),rgba(183,90,68,0)_68%)] opacity-80 transition duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -bottom-[3.5rem] -right-[1.75rem] h-[19rem] w-[19rem] rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.07),rgba(183,90,68,0.03)_44%,rgba(183,90,68,0)_72%)] opacity-80 transition duration-500 group-hover:opacity-100"
       />
 
+
       <div className="relative flex items-start justify-between gap-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45 transition duration-300 group-hover:text-white/65">
           {item.eyebrow}
         </p>
-        <Icon className="h-[18px] w-[18px] shrink-0 text-white/35" strokeWidth={1.6} aria-hidden />
+        {/* The icon takes the accent on hover. The pointer light is diffuse by
+            design, so on its own it says "somewhere around here"; one small
+            hard-edged thing changing colour is what says "this card". */}
+        <Icon
+          className="h-[18px] w-[18px] shrink-0 text-white/35 transition duration-300 group-hover:text-accent"
+          strokeWidth={1.6}
+          aria-hidden
+        />
       </div>
 
       <div className="relative mt-auto pt-14">
@@ -70,8 +92,16 @@ export function ToolCard({ item, joined = false }: { item: ThreadItem; joined?: 
     </>
   );
 
+  /* The warming outline and the lift live here rather than on the link so that
+     the tools which are not open yet respond too. They are cards a doctor is
+     meant to read and consider — a rectangle that stays dead under the cursor
+     reads as broken rather than as unfinished.
+
+     The lift is one step up and a shadow cast down, quick enough to feel like
+     the card answering the cursor. Any further and three cards in a row start
+     bobbing as the pointer crosses them. */
   const shell =
-    "group relative flex min-h-[420px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] sm:p-8";
+    "group relative flex min-h-[420px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_60px_-24px_rgba(0,0,0,0.95)] hover:ring-accent/30 sm:p-8";
 
   if (item.comingSoon) {
     return <div className={shell}>{body}</div>;
@@ -80,7 +110,7 @@ export function ToolCard({ item, joined = false }: { item: ThreadItem; joined?: 
   return (
     <Link
       href={item.href}
-      className={`${shell} transition hover:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60`}
+      className={`${shell} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60`}
     >
       {body}
     </Link>

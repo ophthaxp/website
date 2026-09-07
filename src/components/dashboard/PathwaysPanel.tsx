@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { PointerGlow } from "./PointerGlow";
 
 /**
  * "Map what comes next" — the small card beside Explore Programmes.
@@ -53,7 +54,13 @@ export function PathwaysPanel({
   const [view, setView] = useState<View>(record.total > 0 ? "record" : "discovery");
 
   return (
-    <section className="flex flex-col rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] sm:p-8">
+    /* The cursor light and the warmed outline, as on the cards beside it — but
+       no lift. This panel is not one link: it holds tabs and a link of its own,
+       and a card that rises under the pointer promises that clicking anywhere
+       on it does something. */
+    <section className="group relative flex flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition duration-300 hover:ring-accent/25 sm:p-8">
+      <PointerGlow />
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">

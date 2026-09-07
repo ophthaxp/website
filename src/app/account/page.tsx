@@ -11,6 +11,7 @@ import { waitlistFor } from "@/lib/waitlistApi";
 import { PageHeading } from "@/components/dashboard/PageHeading";
 import { YourSpace } from "@/components/dashboard/YourSpace";
 import { ToolCard } from "@/components/dashboard/ToolCard";
+import { PointerGlow } from "@/components/dashboard/PointerGlow";
 import { THREAD } from "@/components/dashboard/thread";
 import {
   ApplicationList,
@@ -159,19 +160,25 @@ export default async function AccountPage() {
           <Link
             id="explore-programmes"
             href="/programs"
-            className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition hover:ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:p-8"
+            /* Same hover as the Growth Lab cards: the light that follows the
+               cursor, a step up, a warmed outline. It is the same kind of
+               object — a whole card that is one link — so it should answer the
+               pointer the same way. */
+            className="group relative flex min-h-[380px] flex-col overflow-hidden rounded-[22px] bg-ink-900/70 p-6 ring-1 ring-white/[0.08] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_60px_-24px_rgba(0,0,0,0.95)] hover:ring-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 sm:p-8"
           >
+            <PointerGlow />
+
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-32 right-[-6rem] h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.20),rgba(183,90,68,0)_66%)] opacity-80 transition duration-500 group-hover:opacity-100"
+              className="pointer-events-none absolute -bottom-[3.5rem] -right-[1.75rem] h-[19rem] w-[19rem] rounded-full bg-[radial-gradient(circle,rgba(183,90,68,0.07),rgba(183,90,68,0.03)_44%,rgba(183,90,68,0)_72%)] opacity-80 transition duration-500 group-hover:opacity-100"
             />
 
             <div className="relative flex items-start justify-between gap-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45 transition duration-300 group-hover:text-white/65">
                 Your path to mastery
               </p>
               <Share2
-                className="h-[18px] w-[18px] shrink-0 text-white/35"
+                className="h-[18px] w-[18px] shrink-0 text-white/35 transition duration-300 group-hover:text-accent"
                 strokeWidth={1.6}
                 aria-hidden
               />

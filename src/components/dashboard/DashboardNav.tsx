@@ -25,7 +25,20 @@ import { AccountChip } from "@/components/AccountChip";
  * whole screen gets its own route — `/account/horizon` — and there a bare
  * `#growth-lab` points at nothing. So off `/account` the tabs carry the path
  * with them, and none of them lights: the reader is not in any of the three.
+ *
+ * The line along the bottom of the bar is how far down the page the reader is.
+ * Three tabs say which of three sections they are in; the line says how much of
+ * the whole thing is left — the question a single long scroll actually raises.
  */
+
+/**
+ * How much of the scroll line is showing before the reader has scrolled at all.
+ *
+ * Small enough to read as a starting stub rather than as progress already made,
+ * wide enough to be a line and not a speck — about 60px across a full-width
+ * header, which is roughly the width of one of the tabs above it.
+ */
+const SCROLL_BAR_MINIMUM = 0.04;
 
 const SECTIONS = [
   { id: "your-space", label: "Your Space" },
@@ -37,6 +50,7 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
   const onDashboard = usePathname() === "/account";
   const scrolledTo = useActiveSection();
   const active = onDashboard ? scrolledTo : null;
+  const progress = useScrollProgress();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.07] bg-black/85 backdrop-blur-md">
@@ -94,6 +108,27 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
           </li>
         ))}
       </ul>
+
+      {/* The scroll indicator, laid over the bar's own bottom border so it reads
+          as that line filling in rather than as a second rule below it. It is
+          scaled rather than resized: width would relayout on every frame of a
+          scroll, and a transform does not. No transition — the bar is meant to
+          be pinned to the reader's finger, and easing it makes it float behind.
+          Decorative, so it is hidden from screen readers, which have their own
+          sense of position in a document.
+
+          The fill starts at a stub rather than at nothing. A reader who has not
+          scrolled yet is the one person who has not been told this line exists,
+          and an indicator that is invisible exactly then teaches nobody what the
+          first flick of the wheel is going to move. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 origin-left rounded-r-full bg-accent"
+        style={{
+          transform: `scaleX(${SCROLL_BAR_MINIMUM + progress * (1 - SCROLL_BAR_MINIMUM)})`,
+          boxShadow: "0 0 10px rgba(183,90,68,0.7)",
+        }}
+      />
     </header>
   );
 }
@@ -184,4 +219,58 @@ function useActiveSection(): string {
   }, []);
 
   return active;
+}
+
+/**
+ * How far down the page the reader is, as 0 to 1.
+ *
+ * The denominator is the scrollable distance, not the document height — a page
+ * one viewport tall has nowhere to scroll, and dividing by its height would
+ * leave the line stuck at zero on a page that is already fully read. Those
+ * pages report 1 instead, so the bar sits full rather than empty on a short
+ * route like `/account/horizon` before anybody touches the wheel.
+ *
+ * Reads are deferred to the next frame for the same reason as the section
+ * marker above: scroll fires far more often than the screen repaints. The value
+ * is rounded to three places so a hundred imperceptible frames do not each cost
+ * a React render.
+ */
+function useScrollProgress(): number {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const measure = () => {
+      frame = 0;
+      const doc = document.documentElement;
+      const scrollable = doc.scrollHeight - window.innerHeight;
+      const ratio = scrollable > 0 ? window.scrollY / scrollable : 1;
+      setProgress(Math.round(Math.min(Math.max(ratio, 0), 1) * 1000) / 1000);
+    };
+
+    const schedule = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(measure);
+    };
+
+    measure();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+
+    // The page grows and shrinks under the reader — panes load, the outlook
+    // pane fills in — and each of those changes the distance the bar is a
+    // fraction of. Without this the line would be measured against a page
+    // length that no longer exists until the next scroll event corrected it.
+    const observer = new ResizeObserver(schedule);
+    observer.observe(document.body);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
+
+  return progress;
 }
