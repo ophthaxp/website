@@ -31,15 +31,6 @@ import { AccountChip } from "@/components/AccountChip";
  * the whole thing is left — the question a single long scroll actually raises.
  */
 
-/**
- * How much of the scroll line is showing before the reader has scrolled at all.
- *
- * Small enough to read as a starting stub rather than as progress already made,
- * wide enough to be a line and not a speck — about 60px across a full-width
- * header, which is roughly the width of one of the tabs above it.
- */
-const SCROLL_BAR_MINIMUM = 0.04;
-
 const SECTIONS = [
   { id: "your-space", label: "Your Space" },
   { id: "growth-lab", label: "Growth Lab" },
@@ -117,15 +108,15 @@ export function DashboardNav({ name, email }: { name: string; email: string }) {
           Decorative, so it is hidden from screen readers, which have their own
           sense of position in a document.
 
-          The fill starts at a stub rather than at nothing. A reader who has not
-          scrolled yet is the one person who has not been told this line exists,
-          and an indicator that is invisible exactly then teaches nobody what the
-          first flick of the wheel is going to move. */}
+          At the top of the page it is nothing at all. A stub sitting there
+          before anybody has scrolled reads as progress already made, and the
+          one thing this line has to be honest about is how far down the page
+          the reader actually is. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 origin-left rounded-r-full bg-accent"
         style={{
-          transform: `scaleX(${SCROLL_BAR_MINIMUM + progress * (1 - SCROLL_BAR_MINIMUM)})`,
+          transform: `scaleX(${progress})`,
           boxShadow: "0 0 10px rgba(183,90,68,0.7)",
         }}
       />
@@ -149,15 +140,19 @@ function Tab({
     <a
       href={onDashboard ? `#${section.id}` : `/account#${section.id}`}
       aria-current={active ? "true" : undefined}
-      className={`relative block transition ${compact ? "py-1 text-sm" : "py-1.5 text-[15px]"} ${
-        active ? "text-white" : "text-white/55 hover:text-white/90"
-      }`}
+      /* The hover is the marketing header's, so the two bars feel like one
+         site: the label warms to terracotta rather than just brightening. The
+         underline stays the dashboard's own — it marks which section you are
+         reading, which is a thing the landing page has no equivalent of. */
+      className={`group/tab relative block transition hover:text-accent-soft ${
+        compact ? "py-1 text-sm" : "py-1.5 text-[15px]"
+      } ${active ? "text-white" : "text-white/55"}`}
     >
       {section.label}
       <span
         aria-hidden
         className={`absolute -bottom-0.5 left-0 h-px w-full rounded-full transition ${
-          active ? "bg-accent" : "bg-transparent"
+          active ? "bg-accent group-hover/tab:bg-accent-soft" : "bg-transparent"
         }`}
       />
     </a>
