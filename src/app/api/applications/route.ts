@@ -85,12 +85,30 @@ export async function GET(req: Request) {
   const courseId = new URL(req.url).searchParams.get("courseId") ?? undefined;
   const application = await findOpenApplication(user.email, courseId);
 
+  // A finished journey is not an open draft, so the lookup above walks past it
+  // and the form used to open on a blank step 1. The POST then refused the
+  // duplicate - correctly - and all the applicant saw for their retyped details
+  // was a red "could not save your details". Said here instead, before they
+  // fill anything in.
+  const finished =
+    !application && courseId
+      ? await findApplicationForCourse(user.email, courseId)
+      : null;
+  const alreadyApplied = isJourneyComplete(finished);
+
   // Nothing started for this course yet, but we already know who they are.
   // Their details come back separately so the form can arrive filled in rather
   // than asking a second time for what has not changed.
-  const prefill = application ? null : await findApplicantProfile(user.email);
+  const prefill =
+    application || alreadyApplied ? null : await findApplicantProfile(user.email);
 
-  return NextResponse.json({ user, application, prefill });
+  return NextResponse.json({
+    user,
+    application,
+    prefill,
+    alreadyApplied,
+    applicationId: alreadyApplied ? (finished?.id ?? null) : null,
+  });
 }
 
 /**

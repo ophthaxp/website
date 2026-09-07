@@ -114,7 +114,17 @@ type Status = "idle" | "submitting" | "success" | "error";
 type Intent = "apply" | "brochure";
 
 /** Which panel of the apply flow is showing. */
-type Stage = "loading" | "step1" | "step2" | "booking" | "check-email";
+/**
+ * `applied` is the end of the road rather than a step: this person has already
+ * been all the way through for this course, so there is no form to show them.
+ */
+type Stage =
+  | "loading"
+  | "step1"
+  | "step2"
+  | "booking"
+  | "check-email"
+  | "applied";
 
 interface DraftApplication {
   id?: number;
@@ -387,6 +397,14 @@ export function ApplyFormModal({
         setQualification(known?.qualification ?? "");
         setStateValue(known?.state ?? "");
 
+        // Been through this one already. Nothing here is theirs to fill in
+        // again, and the POST would only refuse it.
+        if (body?.alreadyApplied) {
+          setApplicationId((body.applicationId as number | null) ?? null);
+          setStage("applied");
+          return;
+        }
+
         if (application) {
           setStage(resumeStage(application));
           return;
@@ -517,6 +535,18 @@ export function ApplyFormModal({
         }),
       });
       const body = await res.json().catch(() => ({}));
+
+      // The route answers 409 here so that a stray post cannot raise a second
+      // lead for one course. To the person at the form that is news, not a
+      // failure, and it has to be read before the status is - otherwise it
+      // comes out as a red "could not save your details" against details that
+      // are perfectly fine.
+      if (body?.alreadyApplied) {
+        setApplicationId((body.applicationId as number | null) ?? null);
+        setStatus("idle");
+        setStage("applied");
+        return;
+      }
 
       if (!res.ok) throw new Error(body?.error ?? "Could not save your details");
 
@@ -685,6 +715,8 @@ export function ApplyFormModal({
             body={copy.successBody}
             onClose={handleClose}
           />
+        ) : stage === "applied" ? (
+          <AlreadyAppliedPanel courseName={courseName} onClose={handleClose} />
         ) : stage === "check-email" ? (
           <CheckEmailPanel email={linkedEmail} onClose={handleClose} />
         ) : stage === "loading" ? (
@@ -1139,6 +1171,66 @@ function CheckEmailPanel({ email, onClose }: { email: string; onClose: () => voi
       >
         Close
       </button>
+    </div>
+  );
+}
+
+/**
+ * Already applied for this course.
+ *
+ * Reads as a confirmation first, because that is what somebody who presses
+ * Apply Now a second time is usually after - proof that the first one landed.
+ * The line about there being nothing left to do follows, so a closed form is
+ * not a mystery. Mirrors the notice /apply renders server-side for this state.
+ */
+function AlreadyAppliedPanel({
+  courseName,
+  onClose,
+}: {
+  courseName?: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="success-pop py-8 text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-400/40">
+        <svg
+          className="h-7 w-7 text-emerald-400"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+      </div>
+      <h3
+        id="apply-modal-title"
+        className="mt-5 text-[22px] font-extrabold leading-[1.25] tracking-[-0.015em] text-white"
+      >
+        You&rsquo;re already in
+      </h3>
+      <p className="mt-3 text-sm text-white/80">
+        Your application{courseName ? <> for <span className="text-white">{courseName}</span></> : null} is
+        with the team, so there&rsquo;s nothing more to fill in here.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href="/account#applications"
+          className="inline-flex rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-accent-deep"
+        >
+          View your application
+        </a>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex rounded-full border border-white/15 px-6 py-3 text-[15px] font-medium text-white/80 transition hover:border-white/25 hover:text-white"
+        >
+          Close
+        </button>
+      </div>
     </div>
   );
 }
