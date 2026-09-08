@@ -130,3 +130,81 @@ export const sessionCookie = {
     };
   },
 };
+
+/* ------------------------------------------------------- the platform token -- */
+
+/**
+ * The platform's own JWT, in its own httpOnly cookie.
+ *
+ * The session cookie above answers "which applicant is this" and is enough for
+ * everything the website did before: the apply flow writes through the API key,
+ * as the website, and the applicant's identity travels in the row.
+ *
+ * LoMa is the first thing that cannot work that way. Its endpoints resolve the
+ * doctor from the token — profile, XP, logbook, whether they are a student or a
+ * legend — and the API key resolves to a single system account
+ * (`authenticationMiddleware.ts`, the `x-api-key` branch), which would give
+ * every doctor on the site one shared LoMa profile. So LoMa needs *this
+ * doctor's* credential, and this is where it is kept.
+ *
+ * Two properties worth stating, because they are the reason this is a separate
+ * cookie rather than a field on the session:
+ *
+ *  1. It is httpOnly and never read by client code. Only the LoMa proxy on the
+ *     server touches it, so the browser still cannot present a platform
+ *     credential to anything.
+ *  2. It expires on its own schedule. The platform signs these for seven days
+ *     (`CryptoUtils.ts`, `expiresIn: '7d'`) while the session runs for thirty,
+ *     and pretending otherwise would mean holding a token we know is dead. When
+ *     it lapses the LoMa proxy answers 401 and the doctor signs in again — the
+ *     ordinary login, which mints a fresh one. There is no refresh endpoint on
+ *     the platform to call instead; signing in is the only way to get one.
+ */
+
+const TOKEN_COOKIE_NAME = "lom_platform_token";
+
+/** Seven days, matching the platform's own `expiresIn`. */
+const TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+
+export const platformTokenCookie = {
+  name: TOKEN_COOKIE_NAME,
+
+  set(jwt: string) {
+    return {
+      name: TOKEN_COOKIE_NAME,
+      value: jwt,
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: TOKEN_MAX_AGE_SECONDS,
+    };
+  },
+
+  clear() {
+    return {
+      name: TOKEN_COOKIE_NAME,
+      value: "",
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 0,
+    };
+  },
+};
+
+/**
+ * The current doctor's platform token, or null once it has lapsed.
+ *
+ * Null is a normal state, not an error: the session outlives the token by three
+ * weeks, so a doctor can be legitimately signed in to the site and still have
+ * nothing to present to LoMa.
+ */
+export function getPlatformToken(): string | null {
+  try {
+    return cookies().get(TOKEN_COOKIE_NAME)?.value || null;
+  } catch {
+    return null;
+  }
+}

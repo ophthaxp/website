@@ -58,10 +58,9 @@ export const THREAD: ThreadItem[] = [
     name: "Caseroom",
     attribution: "by LoMa",
     blurb: "The next case changes as your clinical reasoning does.",
-    status: "Coming soon",
-    href: "/#smart-assist",
+    status: "Work a case",
+    href: "/account/caseroom",
     icon: ScanSearch,
-    comingSoon: true,
   },
   {
     key: "pathways",

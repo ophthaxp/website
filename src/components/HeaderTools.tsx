@@ -41,15 +41,13 @@ const TOOLS: Tool[] = [
     icon: (props) => <LoMaIcon {...props} />,
   },
   {
-    // Caseroom is not built, so this one goes nowhere. It is still here because
-    // the header is meant to say what the three tools are, and dropping the
-    // unfinished one would say there are two. Sending it to the Growth Lab card
-    // instead would be worse: a doctor would sign in to reach a tool that is
-    // not there either.
+    // Caseroom lives inside the dashboard, so this leads somewhere that needs
+    // signing in. That is the right destination rather than a marketing
+    // section: it is a tool a doctor uses, not a thing to read about, and the
+    // login page carries them back here afterwards.
     key: "caseroom",
-    label: "Caseroom",
-    href: "",
-    comingSoon: true,
+    label: "Caseroom — practise on a live case",
+    href: "/account/caseroom",
     icon: (props) => <ScanSearch strokeWidth={1.6} {...props} />,
   },
   {

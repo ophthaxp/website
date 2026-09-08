@@ -132,8 +132,32 @@ export async function signUp(input: {
 export interface SignInResult {
   ok: boolean;
   user?: PlatformUser;
-  /** The platform's JWT. Kept out of the browser; here for future server calls. */
+  /**
+   * The platform's JWT.
+   *
+   * Never reaches the browser as script-readable state. The login route parks
+   * it in an httpOnly cookie, because LoMa is the first feature that has to
+   * call the backend as *this doctor* rather than as the website — see
+   * `lomaProxy.ts`.
+   */
   jwt?: string;
+  /**
+   * The organization the platform reported, if any.
+   *
+   * LoMa resolves a doctor's role — student, legend, admin — from their
+   * membership of an org, so this has to survive login. A doctor who signed up
+   * on the website belongs to none, which is correct: they are a student, and
+   * LoMa treats an absent org as "leave their stored role alone".
+   */
+  orgId?: string;
+  /**
+   * The role the platform reported for that org.
+   *
+   * FOR FIRST PAINT ONLY. It decides which dashboard to draw before the profile
+   * arrives, so a legend does not watch the student screen flash past. The
+   * backend never trusts it — `loma.service.ts` resolves the role itself.
+   */
+  orgRole?: string;
   /** They exist but have not clicked the verification link yet. */
   needsVerification?: boolean;
   error?: string;
@@ -179,7 +203,26 @@ export async function signIn(input: {
 
   if (!user.id) return { ok: false, error: "The platform returned no user" };
 
-  return { ok: true, user, jwt: typeof data.jwt === "string" ? data.jwt : undefined };
+  // `organizations` covers every app this person belongs to, not just this one,
+  // so the first entry is not necessarily ours. Match on app id and only fall
+  // back to the first when the platform sent no app_id to match on.
+  //
+  // The platform spells the id key 'org-id' (hyphen). The underscore form is
+  // read as a fallback in case a deployment normalises it.
+  const orgs = Array.isArray(data.organizations)
+    ? (data.organizations as Array<Record<string, unknown>>)
+    : [];
+  const org = orgs.find((o) => String(o.app_id ?? "") === APP_ID) ?? orgs[0];
+  const orgId = org?.["org-id"] ?? org?.org_id;
+  const orgRole = org?.role;
+
+  return {
+    ok: true,
+    user,
+    jwt: typeof data.jwt === "string" ? data.jwt : undefined,
+    orgId: orgId ? String(orgId) : undefined,
+    orgRole: orgRole ? String(orgRole) : undefined,
+  };
 }
 
 /**

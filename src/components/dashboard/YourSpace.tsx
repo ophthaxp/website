@@ -6,6 +6,7 @@ import { ThreadRail } from "./ThreadRail";
 import { HorizonPanel } from "./HorizonPanel";
 import { MatchedPathwayPane } from "./MatchedPathwayPane";
 import { ComingSoonPane } from "./panes";
+import { CaseroomPane } from "./CaseroomPane";
 import type { PathwayMatch } from "./PathwaysPanel";
 import type { OutlookSnapshot } from "@/lib/outlookSnapshot";
 
@@ -69,6 +70,11 @@ export function YourSpace({
               <HorizonPanel serverOutlook={outlook} />
             ) : item.key === "pathways" ? (
               <MatchedPathwayPane match={match} />
+            ) : item.key === "caseroom" ? (
+              /* `active` because every pane is mounted: without it Caseroom
+                 would ask the platform for a summary on every dashboard load,
+                 including for the doctors who never open it. */
+              <CaseroomPane item={item} active={item.key === active} />
             ) : (
               <ComingSoonPane item={item} joined={joinedTools.includes(item.key)} />
             )}

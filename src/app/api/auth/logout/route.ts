@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sessionCookie } from "@/lib/session";
+import { platformTokenCookie, sessionCookie } from "@/lib/session";
 
 /**
  * POST /api/auth/logout — drop the session cookie.
@@ -10,5 +10,8 @@ import { sessionCookie } from "@/lib/session";
 export async function POST() {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(sessionCookie.clear());
+  // The platform token goes with it. Leaving it behind would hand the next
+  // person on a shared browser a live LoMa credential.
+  res.cookies.set(platformTokenCookie.clear());
   return res;
 }

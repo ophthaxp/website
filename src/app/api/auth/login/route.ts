@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAuthConfigured, signIn } from "@/lib/platformAuth";
 import { clientKey, emailKey, rateLimit } from "@/lib/rateLimit";
-import { sessionCookie } from "@/lib/session";
+import { platformTokenCookie, sessionCookie } from "@/lib/session";
 
 /**
  * POST /api/auth/login — body: { email, password }
@@ -59,9 +59,33 @@ export async function POST(req: Request) {
     firstName: result.user.first_name,
     lastName: result.user.last_name,
     role: "applicant",
+    // Carried so LoMa can scope its calls to the right organization. Absent for
+    // a doctor who signed up here and belongs to none, which is the ordinary
+    // case and means "student".
+    ...(result.orgId ? { orgId: result.orgId } : {}),
   };
 
   const res = NextResponse.json({ ok: true, user: sessionUser });
   res.cookies.set(sessionCookie.set(sessionUser));
+
+  /*
+   * Keep the platform's token as well as our own session.
+   *
+   * This used to be dropped on the floor, which was right while nothing needed
+   * to call the backend as the doctor rather than as the website. LoMa does, so
+   * it is parked in an httpOnly cookie that only the LoMa proxy reads. Sign-in
+   * is the one moment it can be obtained — the password is here and nowhere
+   * else — so not keeping it would mean asking for the password again purely to
+   * get a token we were already handed.
+   */
+  if (result.jwt) {
+    res.cookies.set(platformTokenCookie.set(result.jwt));
+  } else {
+    // Nothing to attach. Clear any older token rather than leaving the previous
+    // doctor's behind on a shared browser.
+    console.warn("[auth/login] platform returned no jwt — LoMa will ask for a re-login");
+    res.cookies.set(platformTokenCookie.clear());
+  }
+
   return res;
 }
