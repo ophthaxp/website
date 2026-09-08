@@ -18,11 +18,25 @@ import type { CaseResult, CaseSession, CaseTurn, RevealedFinding } from "./types
  * three-column layout folded into a phone becomes a very long scroll in which
  * the chat — the only part being used — is in the middle.
  *
+ * On a wide screen the whole thing is pinned to the viewport and each column
+ * scrolls inside itself, the way a chat client does. The page scrolling as one
+ * was wrong here: reading down a long history carried the reply box off the
+ * bottom of the screen, and reading the chat carried the brief away — and the
+ * brief is what a doctor keeps glancing back at while they work. Three short
+ * columns that hold their own place beat one tall page.
+ *
  * Nothing clinical is decided here. The findings, the reveals and the grading
  * all come from the platform; this draws what it is told.
  */
 
 type Pane = "brief" | "evidence";
+
+/** Air left under the columns, so they do not sit flush on the bottom edge. */
+const BOTTOM_GAP = 24;
+
+/** Below this there is not enough screen to work a case in three columns, and
+ *  pinning the page would do more harm than the scrolling it prevents. */
+const MIN_COLUMN_HEIGHT = 480;
 
 export function CasePlayer() {
   const router = useRouter();
@@ -43,6 +57,8 @@ export function CasePlayer() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const startedAt = useRef<number | null>(null);
+  const columnsRef = useRef<HTMLDivElement>(null);
+  const [fitHeight, setFitHeight] = useState<number | null>(null);
 
   /* Ask the platform to write a patient when the screen opens.
      `cancelled` guards the double-invoke of React's development strict mode —
@@ -73,8 +89,67 @@ export function CasePlayer() {
     return () => clearInterval(tick);
   }, [session, result]);
 
+  /**
+   * Give this screen the window, the way the standalone app had it.
+   *
+   * Two earlier goes at this tried to make the columns fit inside a page that
+   * is built to scroll — first with a `calc(100vh - …)`, then by measuring the
+   * same sum in JavaScript. Both lost to whatever piece of the shell the sum
+   * got wrong, and being wrong by even a few pixels hands the scroll back to
+   * the page, which then moves all three columns as one.
+   *
+   * So the page does not scroll here at all. While a case is open the document
+   * is locked, and the columns are given exactly the room between where they
+   * start and the bottom of the screen. Nothing is lost to the lock, because
+   * everything inside those columns scrolls on its own.
+   *
+   * The lock is dropped on the way out, and never taken on a screen too short
+   * to hold a workable case — under that floor the page goes back to scrolling
+   * normally, which is worse than this but far better than a chat squeezed into
+   * a slot with the rest cut off below the fold.
+   */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = columnsRef.current;
+    if (!el) return;
+
+    const root = document.documentElement;
+    const previous = root.style.overflow;
+
+    const fit = () => {
+      const wide = window.matchMedia("(min-width: 1024px)").matches;
+
+      /* Measured from the top of the screen, so the page has to be at the top
+         for the reading to mean anything. It is about to be pinned there. */
+      if (wide) window.scrollTo(0, 0);
+
+      const room = Math.floor(window.innerHeight - el.getBoundingClientRect().top - BOTTOM_GAP);
+
+      if (!wide || room < MIN_COLUMN_HEIGHT) {
+        root.style.overflow = previous;
+        setFitHeight(null);
+        return;
+      }
+
+      root.style.overflow = "hidden";
+      setFitHeight(room);
+    };
+
+    fit();
+    window.addEventListener("resize", fit);
+
+    return () => {
+      window.removeEventListener("resize", fit);
+      root.style.overflow = previous;
+    };
+    // The columns do not exist until the case does — before that this screen is
+    // the "writing a patient" splash.
+  }, [session]);
+
+  /* Keep the newest turn in view. `nearest` so it moves the chat column and
+     nothing else — the default walks every scrollable ancestor, which now
+     includes the page itself. */
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [thread, waiting]);
 
   const send = useCallback(async () => {
@@ -166,7 +241,7 @@ export function CasePlayer() {
   ];
 
   const brief = (
-    <Panel as="aside" className="lg:sticky lg:top-6">
+    <Panel as="aside" className="quiet-scroll lg:h-full lg:overflow-y-auto">
       <Eyebrow>The patient</Eyebrow>
       {session.blurb ? (
         <p className="mt-3 font-serif text-lg leading-snug text-white/90">{session.blurb}</p>
@@ -194,7 +269,7 @@ export function CasePlayer() {
   );
 
   const evidence = (
-    <Panel as="aside" className="lg:sticky lg:top-6">
+    <Panel as="aside" className="quiet-scroll lg:h-full lg:overflow-y-auto">
       <div className="flex items-baseline justify-between gap-4">
         <Eyebrow>Evidence</Eyebrow>
         <p className="text-sm tabular-nums text-white/45">
@@ -284,34 +359,10 @@ export function CasePlayer() {
   );
 
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          type="button"
-          onClick={exit}
-          className="inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-          Back to Caseroom
-        </button>
-
-        <span
-          className="ml-auto inline-flex items-center gap-1.5 text-sm tabular-nums text-white/40"
-          title="Session time — does not affect your score"
-        >
-          <Clock className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-          {formatTime(elapsed)}
-        </span>
-
-        <button
-          type="button"
-          onClick={() => setLockInOpen(true)}
-          className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-        >
-          Lock in diagnosis
-        </button>
-      </div>
-
+    /* Pulled up under the nav. The shell's top padding is set for pages that
+       scroll, and on a screen that cannot, every pixel above the columns is a
+       pixel taken off the case being read. */
+    <div className="flex flex-col gap-4 lg:-mt-8">
       {/* Tabs only exist below the three-column breakpoint. */}
       <div className="flex gap-1 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/[0.06] lg:hidden">
         {(
@@ -334,11 +385,30 @@ export function CasePlayer() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[19rem_minmax(0,1fr)_19rem]">
-        <div className={pane === "brief" ? "" : "hidden lg:block"}>{brief}</div>
+      {/* The measured height lands here as an inline style; the `calc` under it
+          is only the first paint, deliberately a little short so that frame can
+          leave a gap rather than clip. No `min-height` — with the page pinned,
+          a floor taller than the screen would put the bottom of the columns
+          somewhere nobody can scroll to.
 
-        <Panel className="flex min-h-[32rem] flex-col p-0 lg:min-h-[38rem]">
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+          `min-h-0` is not a tweak, it is what makes the height above mean
+          anything. A flex or grid child's default `min-height: auto` is its own
+          content, so a height smaller than the content is quietly ignored and
+          the box grows anyway — which is exactly what was happening every time
+          this looked like a bad measurement. Every child that has to give way
+          to the box carries it. */}
+      <div
+        ref={columnsRef}
+        style={fitHeight ? { height: fitHeight } : undefined}
+        className="grid min-h-0 gap-6 lg:h-[calc(100vh-20rem)] lg:grid-cols-[19rem_minmax(0,1fr)_19rem]"
+      >
+        <div className={`lg:min-h-0 ${pane === "brief" ? "" : "hidden lg:block"}`}>{brief}</div>
+
+        <Panel className="flex min-h-[32rem] flex-col p-0 lg:min-h-0">
+          {/* Same reason as above: without `min-h-0` a long conversation makes
+              this box refuse to shrink, and it pushes the reply field off the
+              bottom instead of scrolling. */}
+          <div className="quiet-scroll min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
             <div className="grid gap-4">
               {thread.length === 0 ? (
                 <p className="max-w-md rounded-2xl bg-white/[0.04] px-4 py-3 text-sm leading-relaxed text-white/60 ring-1 ring-white/[0.06]">
@@ -411,9 +481,45 @@ export function CasePlayer() {
               </button>
             </div>
           </div>
+
+          {/* The case controls, at the foot of the conversation rather than in a
+              band of their own above the columns. That band cost about a
+              hundred and twenty pixels of height on every screen and earned
+              none of it, and this is where a doctor is already looking when
+              they are ready to commit. */}
+          <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] px-4 py-3 sm:px-5">
+            <button
+              type="button"
+              onClick={exit}
+              className="inline-flex items-center gap-2 text-[13px] text-white/45 transition hover:text-white"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
+              Back to Caseroom
+            </button>
+
+            <div className="flex items-center gap-3">
+              <span
+                className="inline-flex items-center gap-1.5 text-[13px] tabular-nums text-white/40"
+                title="Session time — does not affect your score"
+              >
+                <Clock className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
+                {formatTime(elapsed)}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setLockInOpen(true)}
+                className="rounded-full bg-accent px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                Lock in diagnosis
+              </button>
+            </div>
+          </div>
         </Panel>
 
-        <div className={pane === "evidence" ? "" : "hidden lg:block"}>{evidence}</div>
+        <div className={`lg:min-h-0 ${pane === "evidence" ? "" : "hidden lg:block"}`}>
+          {evidence}
+        </div>
       </div>
 
       {lockInOpen ? (
