@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Route, Target } from "lucide-react";
 import { loma } from "@/lib/lomaClient";
 import { Eyebrow, Panel, TypingDots } from "./atoms";
+import { Caret, useMotionAllowed, useTypewriter } from "./typing";
 import type { CoachReport } from "./types";
 
 /**
@@ -36,60 +37,6 @@ type State =
 /** One typed run: the whole report, cut into the order it should appear in. */
 type Piece = { kind: "improving" | "focus" | "step"; text: string };
 
-const TICK_MS = 24;
-/** How long the whole report should take, whatever its length. A short read
- *  should not finish in a blink or a long one outstay its welcome, so the rate
- *  is derived from the text rather than fixed per character. */
-const TARGET_MS = 4200;
-
-/**
- * Reveals `text` a few characters at a time.
- *
- * Counting characters across the whole report — not per paragraph — is what
- * keeps the pace even: a one-line "Improving" and a five-step roadmap share one
- * budget instead of each taking their own turn at the same speed.
- */
-function useTypewriter(text: string, animate: boolean) {
-  const [count, setCount] = useState(animate ? 0 : text.length);
-  const timer = useRef<number | null>(null);
-
-  const stop = useCallback(() => {
-    if (timer.current !== null) {
-      window.clearInterval(timer.current);
-      timer.current = null;
-    }
-  }, []);
-
-  /** Straight to the end — for the skip button. */
-  const finish = useCallback(() => {
-    stop();
-    setCount(text.length);
-  }, [stop, text.length]);
-
-  useEffect(() => {
-    if (!animate) {
-      setCount(text.length);
-      return;
-    }
-
-    setCount(0);
-    if (text.length === 0) return;
-
-    const step = Math.max(1, Math.ceil(text.length / (TARGET_MS / TICK_MS)));
-    let shown = 0;
-
-    timer.current = window.setInterval(() => {
-      shown = Math.min(text.length, shown + step);
-      setCount(shown);
-      if (shown >= text.length) stop();
-    }, TICK_MS);
-
-    return stop;
-  }, [text, animate, stop]);
-
-  return { count, done: count >= text.length, finish };
-}
-
 /** How much of each piece is showing, given a count across all of them. */
 function revealPieces(pieces: Piece[], count: number): string[] {
   let left = count;
@@ -98,16 +45,6 @@ function revealPieces(pieces: Piece[], count: number): string[] {
     left -= piece.text.length;
     return piece.text.slice(0, take);
   });
-}
-
-/** The bar at the end of the sentence being written. */
-function Caret() {
-  return (
-    <span
-      aria-hidden
-      className="ml-0.5 inline-block h-[0.95em] w-[2px] translate-y-[0.15em] animate-pulse bg-accent"
-    />
-  );
 }
 
 function Section({
@@ -133,14 +70,7 @@ function Section({
 /** The report, written out. Split from the panel so the typing state is torn
  *  down and rebuilt whenever a new report replaces an old one. */
 function TypedReport({ report }: { report: CoachReport }) {
-  /* Read after mount, never on the server — the server has no idea what this
-     reader has asked their machine for. Starting false and turning it on is
-     also the safe order: the report has not arrived yet at that point, so the
-     flip cannot interrupt a run. */
-  const [animate, setAnimate] = useState(false);
-  useEffect(() => {
-    setAnimate(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
+  const animate = useMotionAllowed();
 
   const pieces = useMemo<Piece[]>(() => {
     const list: Piece[] = [];
@@ -153,7 +83,8 @@ function TypedReport({ report }: { report: CoachReport }) {
   }, [report]);
 
   const full = useMemo(() => pieces.map((p) => p.text).join(""), [pieces]);
-  const { count, done, finish } = useTypewriter(full, animate);
+  /* A whole analysis, so it gets a longer run than a single reply does. */
+  const { count, done, finish } = useTypewriter(full, { animate, durationMs: 4200 });
 
   const shown = revealPieces(pieces, count);
   /* The piece the caret sits on: the last one with anything in it. Walked by

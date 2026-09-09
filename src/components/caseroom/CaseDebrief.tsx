@@ -23,10 +23,14 @@ export function LockInModal({
   onCancel,
   onSubmit,
   submitting,
+  failure,
 }: {
   onCancel: () => void;
   onSubmit: (diagnosis: string, reasoning: string) => void;
   submitting: boolean;
+  /** Said inside the modal, because that is where the doctor is standing. A
+   *  grading failure reported on the screen behind this one is not reported. */
+  failure?: string | null;
 }) {
   const [diagnosis, setDiagnosis] = useState("");
   const [reasoning, setReasoning] = useState("");
@@ -100,6 +104,15 @@ export function LockInModal({
             />
           </div>
         </div>
+
+        {failure ? (
+          <p
+            role="alert"
+            className="mt-5 rounded-2xl bg-[#CF7A70]/[0.08] px-4 py-3 text-sm leading-relaxed text-[#E0A49D] ring-1 ring-[#CF7A70]/20"
+          >
+            {failure}
+          </p>
+        ) : null}
 
         <div className="mt-7 flex flex-wrap justify-end gap-3">
           <button

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock, Eye, Lock, Send, TriangleAlert } from "lucide-react";
-import { loma } from "@/lib/lomaClient";
+import { LomaError, loma } from "@/lib/lomaClient";
 import { ErrorNote, Eyebrow, Panel, TypingDots } from "./atoms";
 import { LockInModal, ResultCard } from "./CaseDebrief";
 import { formatTime, prettyKey } from "./scoring";
+import { Caret, useMotionAllowed, useTypewriter } from "./typing";
 import type { CaseResult, CaseSession, CaseTurn, RevealedFinding } from "./types";
 
 /**
@@ -31,6 +32,10 @@ import type { CaseResult, CaseSession, CaseTurn, RevealedFinding } from "./types
 
 type Pane = "brief" | "evidence";
 
+/** A reply is a couple of sentences, so it gets a shorter run than Iris's whole
+ *  analysis — long enough to read as speech, short enough not to be a wait. */
+const REPLY_TYPING_MS = 1800;
+
 /** Air left under the columns, so they do not sit flush on the bottom edge. */
 const BOTTOM_GAP = 24;
 
@@ -38,15 +43,116 @@ const BOTTOM_GAP = 24;
  *  pinning the page would do more harm than the scrolling it prevents. */
 const MIN_COLUMN_HEIGHT = 480;
 
+/**
+ * What to say when a question does not come back.
+ *
+ * Never the server's own words. A failed turn arrives carrying whatever the
+ * model provider said about it — "400 Failed to generate JSON. Please adjust
+ * your prompt" — which is addressed to whoever wired the thing up, not to a
+ * doctor mid-case. It tells them nothing they can act on, and it reads as if
+ * they broke something by asking. The raw text goes to the console, where the
+ * person it is written for can find it.
+ *
+ * What a doctor needs is only ever the same two facts: nothing was lost, and
+ * asking again is worth a try. Which is true — a turn that fails to come back
+ * as JSON almost always succeeds on the next attempt.
+ */
+function askFailureMessage(err: unknown): string {
+  if (err instanceof LomaError && err.status === 429) {
+    return "That was a lot of questions in a row. Give it a few seconds and ask again.";
+  }
+
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return "You appear to be offline. Check your connection and ask again.";
+  }
+
+  return "That question did not come back. Ask it again — it usually works the second time.";
+}
+
+/**
+ * One turn of the conversation.
+ *
+ * The attending's newest reply is written out rather than pasted in — the same
+ * treatment Iris's analysis gets, for the same reason: this is a person
+ * answering a question, and an answer that lands whole reads as a record being
+ * displayed. Older replies never retype. Nobody wants to sit through a
+ * conversation they have already had because they scrolled.
+ */
+function Turn({
+  turn,
+  typing,
+  onDone,
+}: {
+  turn: CaseTurn;
+  typing: boolean;
+  onDone?: () => void;
+}) {
+  const motionOk = useMotionAllowed();
+  const trainee = turn.role === "trainee";
+
+  const { shown, done, finish } = useTypewriter(turn.content, {
+    animate: typing && motionOk && !trainee,
+    durationMs: REPLY_TYPING_MS,
+  });
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  /* Tell the case screen the reply is finished — it holds the next question
+     until this is said, whether the writing ran its course or was cut short by
+     a click. */
+  useEffect(() => {
+    if (typing && done) onDone?.();
+  }, [typing, done, onDone]);
+
+  /* Follow the words down as they arrive — but only if the reader is already at
+     the bottom. Dragging them back down mid-sentence because a reply is growing
+     somewhere below is worse than letting it grow off-screen. */
+  useEffect(() => {
+    if (done) return;
+    const box = ref.current?.closest<HTMLElement>("[data-chat-scroll]");
+    if (!box) return;
+    if (box.scrollHeight - box.scrollTop - box.clientHeight < 120) {
+      box.scrollTop = box.scrollHeight;
+    }
+  }, [shown, done]);
+
+  return (
+    <div
+      ref={ref}
+      onClick={done ? undefined : finish}
+      title={done ? undefined : "Show the whole reply"}
+      aria-busy={!done}
+      className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+        trainee ? "ml-auto bg-accent/15 ring-1 ring-accent/25" : "bg-white/[0.04] ring-1 ring-white/[0.06]"
+      }`}
+    >
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
+        {trainee ? "You" : "Attending"}
+      </p>
+      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-white/85">
+        {shown}
+        {done ? null : <Caret />}
+      </p>
+    </div>
+  );
+}
+
 export function CasePlayer() {
   const router = useRouter();
 
   const [session, setSession] = useState<CaseSession | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  /* Bumped to ask for another patient after a failed one. */
+  const [attempt, setAttempt] = useState(0);
   const [thread, setThread] = useState<CaseTurn[]>([]);
   const [input, setInput] = useState("");
   const [waiting, setWaiting] = useState(false);
+  const [typingLast, setTypingLast] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* A question that did not come back, and what to say about it. Kept apart
+     from `error` above, which is for the lock-in — one belongs in the
+     conversation, the other does not. */
+  const [askFailure, setAskFailure] = useState<{ message: string; question: string } | null>(null);
   const [revealed, setRevealed] = useState<RevealedFinding[]>([]);
   const [showObjectives, setShowObjectives] = useState(false);
   const [lockInOpen, setLockInOpen] = useState(false);
@@ -70,12 +176,20 @@ export function CasePlayer() {
     loma
       .startCase()
       .then((data: CaseSession) => !cancelled && setSession(data))
-      .catch((err: Error) => !cancelled && setStartError(err.message));
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        console.error("Caseroom: the case could not be started", err);
+        setStartError(
+          err instanceof LomaError && err.status === 429
+            ? "Caseroom is busy writing patients right now. Try again in a moment."
+            : "The patient could not be written. This is usually a hiccup rather than a fault — try again.",
+        );
+      });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
   // The session clock. Shown to the doctor, never used in scoring.
   useEffect(() => {
@@ -152,25 +266,40 @@ export function CasePlayer() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [thread, waiting]);
 
+  /* Put a question to the attending. Separate from `send` below so a retry can
+     ask the same question again without writing it into the case a second
+     time — the doctor asked once, and the transcript should say so once. */
+  const ask = useCallback(
+    async (text: string) => {
+      if (!session) return;
+
+      setAskFailure(null);
+      setWaiting(true);
+
+      try {
+        const data = await loma.sendMessage(session.session_id, text);
+        setThread((t) => [...t, { role: "attending", content: data.reply }]);
+        setTypingLast(true);
+        setRevealed(data.revealed);
+      } catch (err) {
+        // The real error, for whoever is debugging this rather than using it.
+        console.error("Caseroom: the attending could not answer", err);
+        setAskFailure({ message: askFailureMessage(err), question: text });
+      } finally {
+        setWaiting(false);
+      }
+    },
+    [session],
+  );
+
   const send = useCallback(async () => {
     const text = input.trim();
-    if (!text || waiting || !session) return;
+    if (!text || waiting || typingLast || !session) return;
 
     setThread((t) => [...t, { role: "trainee", content: text }]);
     setInput("");
-    setError(null);
-    setWaiting(true);
-
-    try {
-      const data = await loma.sendMessage(session.session_id, text);
-      setThread((t) => [...t, { role: "attending", content: data.reply }]);
-      setRevealed(data.revealed);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setWaiting(false);
-    }
-  }, [input, waiting, session]);
+    await ask(text);
+  }, [input, waiting, typingLast, session, ask]);
 
   async function submitDiagnosis(diagnosis: string, reasoning: string) {
     if (!session) return;
@@ -186,11 +315,25 @@ export function CasePlayer() {
       setResult(data);
       setLockInOpen(false);
     } catch (err) {
-      setError((err as Error).message);
+      /* Same rule as a failed question: the provider's words go to the console,
+         and the doctor is told what is true and what to do about it. Their
+         diagnosis and reasoning are still in the fields behind this. */
+      console.error("Caseroom: the case could not be graded", err);
+      setError(
+        err instanceof LomaError && err.status === 429
+          ? "The grader is busy right now. Give it a few seconds and submit again."
+          : "That did not go through. Your answer is still here — submit it again.",
+      );
     } finally {
       setEvaluating(false);
     }
   }
+
+  const replyFinished = useCallback(() => setTypingLast(false), []);
+
+  /* Answering is in progress: the attending is either thinking or still
+     speaking. The next question waits for both. */
+  const answering = waiting || typingLast;
 
   /* Back to the dashboard, refreshed. `refresh` matters: the dashboard is a
      server component holding the profile from before this case, so without it
@@ -206,13 +349,26 @@ export function CasePlayer() {
       <div className="mx-auto grid max-w-md gap-5 py-24 text-center">
         <p className="font-serif text-2xl text-white">Could not start the case</p>
         <ErrorNote>{startError}</ErrorNote>
-        <button
-          type="button"
-          onClick={exit}
-          className="mx-auto rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-soft"
-        >
-          Back to Caseroom
-        </button>
+
+        <div className="flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setStartError(null);
+              setAttempt((n) => n + 1);
+            }}
+            className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-soft"
+          >
+            Try again
+          </button>
+          <button
+            type="button"
+            onClick={exit}
+            className="rounded-full px-6 py-3 text-sm font-medium text-white/60 transition hover:text-white"
+          >
+            Back to Caseroom
+          </button>
+        </div>
       </div>
     );
   }
@@ -408,7 +564,10 @@ export function CasePlayer() {
           {/* Same reason as above: without `min-h-0` a long conversation makes
               this box refuse to shrink, and it pushes the reply field off the
               bottom instead of scrolling. */}
-          <div className="quiet-scroll min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          <div
+            data-chat-scroll
+            className="quiet-scroll min-h-0 flex-1 overflow-y-auto p-5 sm:p-6"
+          >
             <div className="grid gap-4">
               {thread.length === 0 ? (
                 <p className="max-w-md rounded-2xl bg-white/[0.04] px-4 py-3 text-sm leading-relaxed text-white/60 ring-1 ring-white/[0.06]">
@@ -418,21 +577,12 @@ export function CasePlayer() {
               ) : null}
 
               {thread.map((turn, i) => (
-                <div
+                <Turn
                   key={i}
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                    turn.role === "trainee"
-                      ? "ml-auto bg-accent/15 ring-1 ring-accent/25"
-                      : "bg-white/[0.04] ring-1 ring-white/[0.06]"
-                  }`}
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
-                    {turn.role === "trainee" ? "You" : "Attending"}
-                  </p>
-                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-white/85">
-                    {turn.content}
-                  </p>
-                </div>
+                  turn={turn}
+                  typing={typingLast && i === thread.length - 1}
+                  onDone={replyFinished}
+                />
               ))}
 
               {waiting ? (
@@ -441,39 +591,58 @@ export function CasePlayer() {
                 </div>
               ) : null}
 
+              {/* A failed turn sits where the answer would have been, and offers
+                  the one thing that fixes it. The question above it stays put —
+                  it was asked, and it is about to be asked again. */}
+              {askFailure ? (
+                <div className="max-w-[85%] rounded-2xl bg-[#CF7A70]/[0.08] px-4 py-3 ring-1 ring-[#CF7A70]/20">
+                  <p className="text-sm leading-relaxed text-[#E0A49D]">{askFailure.message}</p>
+                  <button
+                    type="button"
+                    onClick={() => void ask(askFailure.question)}
+                    className="mt-2 text-[13px] font-semibold text-accent transition hover:text-accent-soft"
+                  >
+                    Ask again
+                  </button>
+                </div>
+              ) : null}
+
               <div ref={bottomRef} />
             </div>
           </div>
 
-          {error ? (
-            <div className="px-5 pb-3 sm:px-6">
-              <ErrorNote>{error}</ErrorNote>
-            </div>
-          ) : null}
-
           <div className="border-t border-white/[0.06] p-4 sm:p-5">
             <div className="flex items-end gap-3">
+              {/* Never disabled. Disabling a field the doctor is typing in
+                  hands focus back to the page, and they have to click into it
+                  again to write the next question — so the box stays live and
+                  writable throughout, and it is only *sending* that waits. */}
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   // Enter sends, Shift+Enter breaks the line. This is a chat,
-                  // and a chat that needs a mouse to send is a form.
+                  // and a chat that needs a mouse to send is a form. While the
+                  // attending is still answering, Enter holds rather than
+                  // queues — one question at a time is how the case reads back.
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    void send();
+                    if (!answering) void send();
                   }
                 }}
-                placeholder="Ask about history, exam, or request a test…"
+                placeholder={
+                  answering
+                    ? "The attending is answering…"
+                    : "Ask about history, exam, or request a test…"
+                }
                 rows={2}
-                disabled={waiting}
                 aria-label="Your message to the attending"
-                className="min-h-[3rem] flex-1 resize-none rounded-2xl bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/90 outline-none ring-1 ring-white/10 transition placeholder:text-white/25 focus:ring-accent/50 disabled:opacity-50"
+                className="min-h-[3rem] flex-1 resize-none rounded-2xl bg-ink-800 px-4 py-3 text-sm leading-relaxed text-white/90 outline-none ring-1 ring-white/10 transition placeholder:text-white/25 focus:ring-accent/50"
               />
               <button
                 type="button"
                 onClick={() => void send()}
-                disabled={waiting || !input.trim()}
+                disabled={answering || !input.trim()}
                 aria-label="Send"
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-white transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:bg-white/[0.06] disabled:text-white/30"
               >
@@ -524,7 +693,11 @@ export function CasePlayer() {
 
       {lockInOpen ? (
         <LockInModal
-          onCancel={() => setLockInOpen(false)}
+          failure={error}
+          onCancel={() => {
+            setError(null);
+            setLockInOpen(false);
+          }}
           onSubmit={submitDiagnosis}
           submitting={evaluating}
         />
